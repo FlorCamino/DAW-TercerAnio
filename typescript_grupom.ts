@@ -1,22 +1,59 @@
 
-// Interface que define el contrato para todos los animales
+// Punto 1 - Interfaz Animal
+interface Animal {
+  nombre: string;
+  gritar(): string;
+}
 
-// Implementacion de clase perro, gato y vaca que heredan la interfaz de Animal
+// Punto 2 - Clases que implementan la interfaz Animal
+class Perro implements Animal {
+  nombre: string;
 
+  constructor(nombre: string) {
+    this.nombre = nombre;
+  }
 
-// Función que describe cualquier tipo de Animal 
+  gritar(): string {
+    return "Guau";
+  }
+}
+
+class Gato implements Animal {
+  nombre: string;
+
+  constructor(nombre: string) {
+    this.nombre = nombre;
+  }
+
+  gritar(): string {
+    return "Miau";
+  }
+}
+
+class Vaca implements Animal {
+  nombre: string;
+
+  constructor(nombre: string) {
+    this.nombre = nombre;
+  }
+
+  gritar(): string {
+    return "Muuu";
+  }
+}
+
+// Punto 3 - Función que describe cualquier tipo de Animal 
 function describirAnimal(animal: Animal): void {
     console.log(`El animal "${animal.nombre}" hace "${animal.gritar()}".`);
 }
 
-// Contrato de clase genérica Fila
+// Punto 8 - Contrato de clase genérica Filas
 interface Fila<T> {
 agregar(elemento: T): void;
 remover(): T | undefined;
 }
 
 // Implementacion de clase genérica Fila que hereda la interfaz de Fila
-
 class FilaGenerica<T> implements Fila<T> {
     private elementos: T[] = [];
     agregar(elemento: T): void {
