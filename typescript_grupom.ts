@@ -47,6 +47,18 @@ function describirAnimal(animal: Animal): void {
     console.log(`El animal "${animal.nombre}" hace "${animal.gritar()}".`);
 }
 
+
+// Puntos 4 y 5 - Creación de instancias de animales y pruebas
+const perro: Perro = new Perro("Candy");
+const vaca: Vaca = new Vaca("Mila");
+const gato: Gato = new Gato("Piwi");
+
+console.log("--- Descripción de Animales ---");
+describirAnimal(perro);
+describirAnimal(vaca);
+describirAnimal(gato);
+
+
 // Punto 8 - Contrato de clase genérica Filas
 interface Fila<T> {
 agregar(elemento: T): void;
@@ -72,7 +84,7 @@ class FilaGenerica<T> implements Fila<T> {
 
 // Variable que acepta string o number
 
-// Creación de instancias de animales y pruebas
+
 
 // Crear filas con tipos específicos
 
