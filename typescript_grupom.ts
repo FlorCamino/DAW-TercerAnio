@@ -58,11 +58,14 @@ describirAnimal(perro);
 describirAnimal(vaca);
 describirAnimal(gato);
 
+// Enum con los días de la semana
+
+// Variable que acepta string o number
 
 // Punto 8 - Contrato de clase genérica Filas
 interface Fila<T> {
-agregar(elemento: T): void;
-remover(): T | undefined;
+  agregar(elemento: T): void;
+  remover(): T | undefined;
 }
 
 // Implementacion de clase genérica Fila que hereda la interfaz de Fila
@@ -80,14 +83,38 @@ class FilaGenerica<T> implements Fila<T> {
     }
 }
 
-// Enum con los días de la semana
+// Punto 9 - Crear filas con tipos específicos
 
-// Variable que acepta string o number
+const filaNumeros = new FilaGenerica<number>();
+const filaStrings = new FilaGenerica<string>();
+const filaAnimales = new FilaGenerica<Animal>();
 
+// Punto 10 - Agregar las 3 instancias anteriores en la fila para animales y 3 elementos en las otras 2 filas
 
+filaAnimales.agregar(perro);
+filaAnimales.agregar(vaca);
+filaAnimales.agregar(gato);
 
-// Crear filas con tipos específicos
+filaNumeros.agregar(13);
+filaNumeros.agregar(1);
+filaNumeros.agregar(20);
 
-// Creación de filas con distintos tipos
+filaStrings.agregar("Primer elemento");
+filaStrings.agregar("Segundo elemento");
+filaStrings.agregar("Tercer elemento");
+
+console.log("--- Se agregaron 3 elementos a cada fila ---");
+console.log("Fila de Animales:", filaAnimales.obtenerElementos());
+console.log("Fila de Números:", filaNumeros.obtenerElementos());
+console.log("Fila de Strings:", filaStrings.obtenerElementos());
 
 // Remover un elemento de cada fila
+
+filaAnimales.remover();
+filaNumeros.remover();
+filaStrings.remover();
+
+console.log("--- Se quitó un elemento de cada fila ---");
+console.log("Resultado Fila de Animales:", filaAnimales.obtenerElementos());
+console.log("Resultado Fila de Números:", filaNumeros.obtenerElementos());
+console.log("Resultado Fila de Strings:", filaStrings.obtenerElementos());
