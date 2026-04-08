@@ -1,3 +1,16 @@
+/**
+ * Trabajo Práctico: Introducción a TypeScript
+ * Materia: Desarrollo de Aplicaciones Web - 2026
+ *
+ * Grupo: M
+ *
+ * Integrantes:
+ * - Franco Challiol
+ * - Janet Casaretto
+ * - Damian Ottone
+ * - Micaela Zalazar
+ * - Florencia Camino
+ */
 
 // Punto 1 - Interfaz Animal
 interface Animal {
@@ -44,7 +57,7 @@ class Vaca implements Animal {
 
 // Punto 3 - Función que describe cualquier tipo de Animal 
 function describirAnimal(animal: Animal): void {
-    console.log(`El animal "${animal.nombre}" hace "${animal.gritar()}".`);
+    console.log(`El animal ${animal.nombre} hace ${animal.gritar()}`);
 }
 
 
@@ -62,10 +75,10 @@ describirAnimal(gato);
 enum DiasSemana {
   Lunes = "Lunes",
   Martes = "Martes",
-  Miercoles = "Miercoles",
+  Miercoles = "Miércoles",
   Jueves = "Jueves",
   Viernes = "Viernes",
-  Sabado = "Sabado",
+  Sabado = "Sábado",
   Domingo = "Domingo"
 }
 
