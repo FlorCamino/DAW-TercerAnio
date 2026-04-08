@@ -59,8 +59,25 @@ describirAnimal(vaca);
 describirAnimal(gato);
 
 // Enum con los días de la semana
+enum DiasSemana {
+  Lunes = "Lunes",
+  Martes = "Martes",
+  Miercoles = "Miercoles",
+  Jueves = "Jueves",
+  Viernes = "Viernes",
+  Sabado = "Sabado",
+  Domingo = "Domingo"
+}
+
+let hoy: DiasSemana = DiasSemana.Miercoles;
+console.log("Hoy es:", hoy);
 
 // Variable que acepta string o number
+let dato: string | number;
+dato = "Messi";
+console.log("Valor string:", dato);
+dato = 10;
+console.log("Valor number:", dato);
 
 // Punto 8 - Contrato de clase genérica Filas
 interface Fila<T> {
