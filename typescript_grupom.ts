@@ -58,7 +58,7 @@ describirAnimal(perro);
 describirAnimal(vaca);
 describirAnimal(gato);
 
-// Enum con los días de la semana
+// Punto 6 - Enum con los días de la semana
 enum DiasSemana {
   Lunes = "Lunes",
   Martes = "Martes",
@@ -69,10 +69,11 @@ enum DiasSemana {
   Domingo = "Domingo"
 }
 
+// Variable que almacena un día de la semana
 let hoy: DiasSemana = DiasSemana.Miercoles;
 console.log("Hoy es:", hoy);
 
-// Variable que acepta string o number
+// Punto 7 - Variable que acepta string o number
 let dato: string | number;
 dato = "Messi";
 console.log("Valor string:", dato);
