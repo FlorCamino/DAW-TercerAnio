@@ -1,12 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
-
   @Get()
-  getHello(): string {
-    return this.appService.getHello();
+  getApiInfo() {
+    return {
+      success: true,
+      message: 'API de gestión de proyectos está corriendo correctamente.',
+      version: '1.0.0',
+      timestamp: new Date().toISOString(),
+    };
   }
 }
