@@ -1,6 +1,7 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
+import { setupSwagger } from './config/swagger.config';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
@@ -20,10 +21,15 @@ async function bootstrap(): Promise<void> {
   app.useGlobalFilters(new HttpExceptionFilter());
   app.useGlobalInterceptors(new ResponseInterceptor());
 
+  if (process.env.SWAGGER_HABILITADO === 'true') {
+    setupSwagger(app);
+  }
+
   const port = Number(process.env.PORT ?? 3000);
   await app.listen(port);
 
   console.log(`Server running on http://localhost:${port}/api`);
+  console.log(`Swagger docs: http://localhost:${port}/api/docs`);
 }
 
 bootstrap();
