@@ -1,0 +1,38 @@
+<main class="shell">
+  <section class="status-panel" aria-labelledby="app-title">
+    <div class="eyebrow">DAW - Trabajo final</div>
+    <h1 id="app-title">Gestor de proyectos</h1>
+    <p class="lead">
+      Frontend Angular conectado al backend NestJS.
+    </p>
+
+    <div class="api-card" [class.online]="apiStatus() === 'online'" [class.offline]="apiStatus() === 'offline'">
+      <span class="status-dot" aria-hidden="true"></span>
+      <div>
+        <strong>
+          @if (apiStatus() === 'online') {
+            Backend conectado
+          } @else if (apiStatus() === 'offline') {
+            Backend sin conexion
+          } @else {
+            Verificando backend
+          }
+        </strong>
+        <p>{{ apiMessage() }}</p>
+      </div>
+    </div>
+
+    <div class="meta-grid" aria-label="Configuracion local">
+      <div>
+        <span>Angular</span>
+        <strong>http://localhost:4200</strong>
+      </div>
+      <div>
+        <span>NestJS API</span>
+        <strong>{{ apiUrl }}</strong>
+      </div>
+    </div>
+  </section>
+</main>
+
+<router-outlet />
