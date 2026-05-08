@@ -5,8 +5,7 @@ export class AppController {
   @Get()
   getApiInfo() {
     return {
-      success: true,
-      message: 'API de gestión de proyectos está corriendo correctamente.',
+      message: 'API de gestion de proyectos corriendo correctamente.',
       version: '1.0.0',
       timestamp: new Date().toISOString(),
     };
