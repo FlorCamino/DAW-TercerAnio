@@ -1,0 +1,46 @@
+<div style="padding: 30px; font-family: sans-serif; font-size: 18px;">
+  <h2 style="color: #0056b3; border-bottom: 2px solid #0056b3;">Gestión de Clientes - GRUPO M</h2>
+
+  <!-- Buscador -->
+  <div style="margin: 20px 0; background: #e7f1ff; padding: 15px; border-radius: 8px;">
+    🔍 <input [(ngModel)]="searchTerm" placeholder="Buscar por nombre o email..." 
+    style="width: 70%; padding: 10px; font-size: 16px; border: 1px solid #0056b3;">
+  </div>
+
+  <!-- Formulario -->
+  <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+    <h4 style="margin-top:0">{{ editando ? 'Editar Cliente' : 'Nuevo Cliente' }}</h4>
+    <input [(ngModel)]="nuevoCliente.nombre" placeholder="Nombre" style="padding: 8px; margin-right: 10px;">
+    <input [(ngModel)]="nuevoCliente.email" placeholder="Email" style="padding: 8px; margin-right: 10px;">
+    <input [(ngModel)]="nuevoCliente.telefono" placeholder="Teléfono" style="padding: 8px; margin-right: 10px;">
+    <button (click)="guardar()" style="background: #0056b3; color: white; padding: 10px 20px; border: none; cursor: pointer;">
+      {{ editando ? 'ACTUALIZAR' : 'GUARDAR' }}
+    </button>
+    <button *ngIf="editando" (click)="limpiar()">Cancelar</button>
+  </div>
+
+  <!-- Tabla -->
+  <table style="width: 100%; border-collapse: collapse; font-size: 18px;">
+    <thead>
+      <tr style="background: #0056b3; color: white;">
+        <th style="padding: 12px; text-align: left;">Nombre</th>
+        <th style="padding: 12px; text-align: left;">Email</th>
+        <th style="padding: 12px; text-align: left;">Estado</th>
+        <th style="padding: 12px; text-align: center;">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let c of clientesFiltrados" style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 12px;">{{c.nombre}}</td>
+        <td style="padding: 12px;">{{c.email}}</td>
+        <td style="padding: 12px;">
+            <span [style.color]="c.estado === 'ACTIVO' ? 'green' : 'red'">● {{c.estado}}</span>
+        </td>
+        <td style="padding: 12px; text-align: center;">
+          <button (click)="editar(c)" style="background: #ffc107; border: none; padding: 5px 10px; cursor: pointer;">Editar</button>
+          <button (click)="eliminar(c.id)" [disabled]="c.estado === 'BAJA'" style="background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px;">Baja</button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
