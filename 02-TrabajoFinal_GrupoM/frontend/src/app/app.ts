@@ -1,7 +1,9 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common'; 
 import { environment } from '../environments/environment';
+import { ClientesListComponent } from './features/clients/components/clientes-list/clientes-list.component'; 
 
 interface ApiInfoResponse {
   success: boolean;
@@ -15,7 +17,8 @@ interface ApiInfoResponse {
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  standalone: true, 
+  imports: [RouterOutlet, CommonModule, ClientesListComponent], 
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
