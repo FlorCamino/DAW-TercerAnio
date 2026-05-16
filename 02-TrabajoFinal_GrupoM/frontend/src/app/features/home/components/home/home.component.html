@@ -1,0 +1,125 @@
+<main class="home-shell" id="home">
+  <section class="hero" aria-labelledby="app-title">
+    <div class="hero-copy">
+      <h1 id="app-title">Gestor de proyectos</h1>
+      <p class="lead">
+        Panel inicial para administrar tareas, proyectos, clientes y usuarios desde una sola vista.
+      </p>
+      <div class="hero-actions" aria-label="Acciones destacadas">
+        <a class="primary-action" href="#proyectos">Ver proyectos</a>
+        <a class="secondary-action" href="#tareas">Revisar tareas</a>
+      </div>
+
+      <section class="focus-strip" aria-label="Foco del equipo">
+        <div class="focus-copy">
+          <span>Foco del equipo</span>
+          <h2>Datos pendientes de conectar</h2>
+          <p>Este espacio mostrara prioridades, entregas y seguimiento cuando integremos los modulos.</p>
+        </div>
+
+        <div class="focus-visual" aria-hidden="true">
+          <div class="focus-number">0%</div>
+          <div class="focus-bars">
+            <span class="bar-lg"></span>
+            <span class="bar-md"></span>
+            <span class="bar-sm"></span>
+          </div>
+          <div class="focus-icons">
+            <i class="pi pi-check-square"></i>
+            <i class="pi pi-users"></i>
+            <i class="pi pi-briefcase"></i>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <aside class="summary-panel" aria-label="Resumen del sistema">
+      <div class="summary-header">
+        <span>Estado general</span>
+        <strong>Hoy</strong>
+      </div>
+
+      <div class="dashboard-grid" aria-label="Indicadores generales">
+        <article>
+          <i class="pi pi-briefcase" aria-hidden="true"></i>
+          <div>
+            <span>Proyectos activos</span>
+            <strong>0</strong>
+          </div>
+        </article>
+        <article>
+          <i class="pi pi-check-square" aria-hidden="true"></i>
+          <div>
+            <span>Tareas pendientes</span>
+            <strong>0</strong>
+          </div>
+        </article>
+        <article>
+          <i class="pi pi-address-book" aria-hidden="true"></i>
+          <div>
+            <span>Clientes activos</span>
+            <strong>0</strong>
+          </div>
+        </article>
+        <article>
+          <i class="pi pi-users" aria-hidden="true"></i>
+          <div>
+            <span>Usuarios</span>
+            <strong>0</strong>
+          </div>
+        </article>
+      </div>
+
+      <div class="dashboard-progress">
+        <div>
+          <span>Avance general</span>
+          <strong>0%</strong>
+        </div>
+        <div class="progress-track" aria-hidden="true">
+          <span></span>
+        </div>
+      </div>
+
+      <div class="dashboard-list" aria-label="Detalles generales">
+        <div>
+          <span>Prioridad</span>
+          <strong>Pendiente</strong>
+        </div>
+        <div>
+          <span>Proxima entrega</span>
+          <strong>Pendiente</strong>
+        </div>
+      </div>
+    </aside>
+  </section>
+
+  <section class="cards-section" aria-label="Accesos principales">
+    <article class="feature-card" id="tareas">
+      <span class="card-icon" aria-hidden="true">T</span>
+      <h2>Tareas</h2>
+      <p>Organiza pendientes, prioridades y avances del equipo.</p>
+      <a href="#tareas">Abrir seccion</a>
+    </article>
+
+    <article class="feature-card" id="proyectos">
+      <span class="card-icon" aria-hidden="true">P</span>
+      <h2>Proyecto</h2>
+      <p>Consulta el estado de cada proyecto y sus entregas.</p>
+      <a href="#proyectos">Abrir seccion</a>
+    </article>
+
+    <article class="feature-card" id="clientes">
+      <span class="card-icon" aria-hidden="true">C</span>
+      <h2>Clientes</h2>
+      <p>Administra datos de contacto y actividad comercial.</p>
+      <a routerLink="/clientes">Abrir seccion</a>
+    </article>
+
+    <article class="feature-card" id="usuarios">
+      <span class="card-icon" aria-hidden="true">U</span>
+      <h2>Usuarios</h2>
+      <p>Gestiona perfiles, permisos y miembros del sistema.</p>
+      <a href="#usuarios">Abrir seccion</a>
+    </article>
+  </section>
+</main>

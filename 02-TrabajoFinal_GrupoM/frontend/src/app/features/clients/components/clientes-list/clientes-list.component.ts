@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ClientsService } from '../../services/clients.service';
 
@@ -7,48 +7,53 @@ import { ClientsService } from '../../services/clients.service';
   selector: 'app-clientes-list',
   standalone: true,
   imports: [CommonModule, FormsModule],
-  templateUrl: './clientes-list.component.html'
+  templateUrl: './clientes-list.component.html',
+  styleUrl: './clientes-list.component.css',
 })
 export class ClientesListComponent implements OnInit {
   listaClientes: any[] = [];
-  searchTerm: string = '';
+  searchTerm = '';
   nuevoCliente: any = { id: null, nombre: '', email: '', telefono: '' };
   editando = false;
 
   constructor(private api: ClientsService) {}
 
-  ngOnInit() { this.cargar(); }
-
-  cargar() {
-    this.api.getClientes().subscribe(data => this.listaClientes = data);
+  ngOnInit(): void {
+    this.cargar();
   }
 
-  get clientesFiltrados() {
-    return this.listaClientes.filter(c => 
-      c.nombre.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-      c.email?.toLowerCase().includes(this.searchTerm.toLowerCase())
+  cargar(): void {
+    this.api.getClientes().subscribe((data) => this.listaClientes = data);
+  }
+
+  get clientesFiltrados(): any[] {
+    const term = this.searchTerm.toLowerCase();
+
+    return this.listaClientes.filter((cliente) =>
+      (cliente.nombre ?? '').toLowerCase().includes(term) ||
+      (cliente.email ?? '').toLowerCase().includes(term)
     );
   }
 
-  guardar() {
+  guardar(): void {
     this.api.crearCliente(this.nuevoCliente).subscribe(() => {
       this.cargar();
       this.limpiar();
     });
   }
 
-  editar(c: any) {
-    this.nuevoCliente = { ...c };
+  editar(cliente: any): void {
+    this.nuevoCliente = { ...cliente };
     this.editando = true;
   }
 
-  eliminar(id: number) {
-    if(confirm('¿Desea dar de baja a este cliente?')) {
+  eliminar(id: number): void {
+    if (confirm('Desea dar de baja a este cliente?')) {
       this.api.cambiarEstado(id).subscribe(() => this.cargar());
     }
   }
 
-  limpiar() {
+  limpiar(): void {
     this.nuevoCliente = { id: null, nombre: '', email: '', telefono: '' };
     this.editando = false;
   }
