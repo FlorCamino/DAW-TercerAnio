@@ -1,0 +1,242 @@
+.topbar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px clamp(20px, 5vw, 72px);
+  border-bottom: 1px solid #d9e4df;
+  background: #f4f7f6;
+}
+
+.topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #163128;
+  font-size: 1rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.brand-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 8px;
+  color: #ffffff;
+  background: #177d63;
+  font-weight: 900;
+}
+
+.menu-toggle {
+  display: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 8px;
+  color: #23463d;
+  background: #e4eeea;
+  cursor: pointer;
+}
+
+.menu-close {
+  display: none;
+}
+
+.main-nav {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.main-nav a {
+  min-width: 68px;
+  min-height: 48px;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 0 9px;
+  border-radius: 8px;
+  color: #465961;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.main-nav a:hover {
+  color: #14372f;
+  background: #e6efeb;
+}
+
+.main-nav a.active-link {
+  color: #ffffff;
+  background: #177d63;
+}
+
+.main-nav a.active-link i {
+  color: #ffffff;
+}
+
+.main-nav .logout-link {
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  margin-left: 18px;
+  position: relative;
+  justify-content: center;
+  padding: 0;
+  color: #23463d;
+  background: #e4eeea;
+}
+
+.main-nav .logout-link::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  width: 1px;
+  height: 28px;
+  background: #d3dfda;
+}
+
+.main-nav .logout-link:hover {
+  color: #ffffff;
+  background: #177d63;
+}
+
+.logout-link i {
+  font-size: 1rem;
+}
+
+.logout-link span {
+  display: none;
+}
+
+.main-nav a:not(.logout-link) i {
+  font-size: 1rem;
+}
+
+@media (max-width: 900px) {
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .menu-toggle {
+    display: inline-grid;
+    place-items: center;
+  }
+
+  .main-nav {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: none;
+    grid-template-columns: 1fr;
+    align-content: start;
+    gap: 8px;
+    width: 100%;
+    padding: 74px clamp(20px, 5vw, 72px) 16px;
+    border: 0;
+    border-radius: 0;
+    background: linear-gradient(90deg, rgba(23, 125, 99, 0.08), rgba(23, 125, 99, 0.88));
+    backdrop-filter: blur(18px);
+    box-shadow: 0 18px 40px rgba(16, 37, 31, 0.16);
+    box-sizing: border-box;
+  }
+
+  .main-nav.open {
+    display: grid;
+  }
+
+  .menu-close {
+    position: absolute;
+    top: 14px;
+    right: clamp(20px, 5vw, 72px);
+    display: grid;
+    width: 40px;
+    height: 40px;
+    place-items: center;
+    border: 0;
+    border-radius: 8px;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.16);
+    cursor: pointer;
+  }
+
+  .menu-close:hover {
+    background: rgba(255, 255, 255, 0.28);
+  }
+
+  .main-nav a {
+    min-width: 0;
+    min-height: 42px;
+    flex-direction: row;
+    justify-content: flex-end;
+    padding: 0 12px;
+    color: #ffffff;
+    font-size: 0.9rem;
+  }
+
+  .main-nav .logout-link {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-end;
+    color: #ffffff;
+    background: transparent;
+  }
+
+  .main-nav a:hover,
+  .main-nav a.active-link {
+    color: #10251f;
+    background: transparent;
+  }
+
+  .main-nav a span {
+    padding: 8px 12px;
+    border-radius: 8px;
+  }
+
+  .main-nav a:hover span,
+  .main-nav a.active-link span {
+    background: rgba(255, 255, 255, 0.82);
+  }
+
+  .main-nav .logout-link::before {
+    display: none;
+  }
+
+  .main-nav a i {
+    display: none;
+  }
+
+  .logout-link span {
+    display: inline;
+  }
+}
+
+@media (max-width: 520px) {
+  .topbar {
+    padding: 10px 14px;
+  }
+
+  .main-nav a {
+    font-size: 0.78rem;
+  }
+}

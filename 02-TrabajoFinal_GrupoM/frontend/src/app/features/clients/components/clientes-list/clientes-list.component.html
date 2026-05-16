@@ -1,46 +1,57 @@
-<div style="padding: 30px; font-family: sans-serif; font-size: 18px;">
-  <h2 style="color: #0056b3; border-bottom: 2px solid #0056b3;">Gestión de Clientes - GRUPO M</h2>
+<main class="clients-page">
+  <section class="clients-header">
+    <div>
+      <span>Clientes</span>
+      <h1>Gestion de clientes</h1>
+      <p>Administra contactos, estados y datos principales de cada cliente.</p>
+    </div>
+  </section>
 
-  <!-- Buscador -->
-  <div style="margin: 20px 0; background: #e7f1ff; padding: 15px; border-radius: 8px;">
-    🔍 <input [(ngModel)]="searchTerm" placeholder="Buscar por nombre o email..." 
-    style="width: 70%; padding: 10px; font-size: 16px; border: 1px solid #0056b3;">
-  </div>
+  <section class="clients-toolbar" aria-label="Busqueda de clientes">
+    <i class="pi pi-search" aria-hidden="true"></i>
+    <input [(ngModel)]="searchTerm" placeholder="Buscar por nombre o email..." />
+  </section>
 
-  <!-- Formulario -->
-  <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
-    <h4 style="margin-top:0">{{ editando ? 'Editar Cliente' : 'Nuevo Cliente' }}</h4>
-    <input [(ngModel)]="nuevoCliente.nombre" placeholder="Nombre" style="padding: 8px; margin-right: 10px;">
-    <input [(ngModel)]="nuevoCliente.email" placeholder="Email" style="padding: 8px; margin-right: 10px;">
-    <input [(ngModel)]="nuevoCliente.telefono" placeholder="Teléfono" style="padding: 8px; margin-right: 10px;">
-    <button (click)="guardar()" style="background: #0056b3; color: white; padding: 10px 20px; border: none; cursor: pointer;">
-      {{ editando ? 'ACTUALIZAR' : 'GUARDAR' }}
-    </button>
-    <button *ngIf="editando" (click)="limpiar()">Cancelar</button>
-  </div>
+  <section class="client-form" aria-label="Formulario de cliente">
+    <h2>{{ editando ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
+    <div class="form-grid">
+      <input [(ngModel)]="nuevoCliente.nombre" placeholder="Nombre" />
+      <input [(ngModel)]="nuevoCliente.email" placeholder="Email" />
+      <input [(ngModel)]="nuevoCliente.telefono" placeholder="Telefono" />
+      <button class="primary-button" (click)="guardar()">
+        {{ editando ? 'Actualizar' : 'Guardar' }}
+      </button>
+      <button class="secondary-button" *ngIf="editando" (click)="limpiar()">Cancelar</button>
+    </div>
+  </section>
 
-  <!-- Tabla -->
-  <table style="width: 100%; border-collapse: collapse; font-size: 18px;">
-    <thead>
-      <tr style="background: #0056b3; color: white;">
-        <th style="padding: 12px; text-align: left;">Nombre</th>
-        <th style="padding: 12px; text-align: left;">Email</th>
-        <th style="padding: 12px; text-align: left;">Estado</th>
-        <th style="padding: 12px; text-align: center;">Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let c of clientesFiltrados" style="border-bottom: 1px solid #ddd;">
-        <td style="padding: 12px;">{{c.nombre}}</td>
-        <td style="padding: 12px;">{{c.email}}</td>
-        <td style="padding: 12px;">
-            <span [style.color]="c.estado === 'ACTIVO' ? 'green' : 'red'">● {{c.estado}}</span>
-        </td>
-        <td style="padding: 12px; text-align: center;">
-          <button (click)="editar(c)" style="background: #ffc107; border: none; padding: 5px 10px; cursor: pointer;">Editar</button>
-          <button (click)="eliminar(c.id)" [disabled]="c.estado === 'BAJA'" style="background: #dc3545; color: white; border: none; padding: 5px 10px; cursor: pointer; margin-left: 5px;">Baja</button>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-</div>
+  <section class="clients-table" aria-label="Listado de clientes">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cliente of clientesFiltrados">
+          <td>{{ cliente.nombre }}</td>
+          <td>{{ cliente.email || 'Sin email' }}</td>
+          <td>
+            <span class="status-pill" [class.inactive]="cliente.estado === 'BAJA'">
+              {{ cliente.estado }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <button class="edit-button" (click)="editar(cliente)">Editar</button>
+            <button class="danger-button" (click)="eliminar(cliente.id)" [disabled]="cliente.estado === 'BAJA'">
+              Baja
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</main>

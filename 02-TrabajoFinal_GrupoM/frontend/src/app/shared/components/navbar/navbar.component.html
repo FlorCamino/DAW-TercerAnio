@@ -1,0 +1,63 @@
+<header class="topbar">
+  <div class="topbar-main">
+    <a class="brand" routerLink="/" aria-label="Ir al inicio" (click)="closeMenu()">
+      <span class="brand-mark" aria-hidden="true">M</span>
+      <span>Grupo M</span>
+    </a>
+
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-label="Abrir menu"
+      [attr.aria-expanded]="menuOpen"
+      (click)="toggleMenu()">
+      <i class="pi" [class.pi-bars]="!menuOpen" [class.pi-times]="menuOpen" aria-hidden="true"></i>
+    </button>
+  </div>
+
+  <nav class="main-nav" [class.open]="menuOpen" aria-label="Menu principal">
+    <button class="menu-close" type="button" aria-label="Cerrar menu" (click)="closeMenu()">
+      <i class="pi pi-times" aria-hidden="true"></i>
+    </button>
+
+    <a
+      routerLink="/"
+      fragment="tareas"
+      routerLinkActive="active-link"
+      [routerLinkActiveOptions]="activeLinkOptions"
+      (click)="closeMenu()">
+      <i class="pi pi-check-square" aria-hidden="true"></i>
+      <span>Tareas</span>
+    </a>
+    <a
+      routerLink="/"
+      fragment="proyectos"
+      routerLinkActive="active-link"
+      [routerLinkActiveOptions]="activeLinkOptions"
+      (click)="closeMenu()">
+      <i class="pi pi-briefcase" aria-hidden="true"></i>
+      <span>Proyecto</span>
+    </a>
+    <a
+      routerLink="/clientes"
+      routerLinkActive="active-link"
+      [routerLinkActiveOptions]="activeLinkOptions"
+      (click)="closeMenu()">
+      <i class="pi pi-address-book" aria-hidden="true"></i>
+      <span>Clientes</span>
+    </a>
+    <a
+      routerLink="/"
+      fragment="usuarios"
+      routerLinkActive="active-link"
+      [routerLinkActiveOptions]="activeLinkOptions"
+      (click)="closeMenu()">
+      <i class="pi pi-users" aria-hidden="true"></i>
+      <span>Usuarios</span>
+    </a>
+    <a class="logout-link" href="#cerrar-sesion" aria-label="Cerrar sesion" title="Cerrar sesion" (click)="closeMenu()">
+      <i class="pi pi-sign-out" aria-hidden="true"></i>
+      <span>Cerrar sesion</span>
+    </a>
+  </nav>
+</header>
