@@ -19,8 +19,6 @@ import { TasksService } from './tasks.service';
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
-  // GET /tasks
-  // GET /tasks?status=Pendiente
   @Get()
   findAll(@Query('status') status?: string) {
     return this.tasksService.findAll(status);
