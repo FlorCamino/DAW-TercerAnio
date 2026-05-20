@@ -1,0 +1,12 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  color: #1c2730;
+  background: #f4f7f6;
+  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+app-footer {
+  margin-top: auto;
+}

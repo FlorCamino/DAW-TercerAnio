@@ -1,0 +1,66 @@
+<main class="clients-page">
+  <section class="clients-header">
+    <div>
+      <span>Clientes</span>
+      <h1>Gestion de clientes</h1>
+      <p>Administra contactos, estados y datos principales de cada cliente.</p>
+    </div>
+  </section>
+
+  <section class="clients-toolbar" aria-label="Busqueda de clientes">
+    <i class="pi pi-search" aria-hidden="true"></i>
+    <input [(ngModel)]="searchTerm" placeholder="Buscar por nombre o email..." />
+  </section>
+
+  <section class="client-form" aria-label="Formulario de cliente">
+    <h2>{{ editando ? 'Editar cliente' : 'Nuevo cliente' }}</h2>
+    <div class="form-grid">
+      <input [(ngModel)]="nuevoCliente.nombre" placeholder="Nombre" />
+      <input [(ngModel)]="nuevoCliente.email" placeholder="Email" />
+      <input [(ngModel)]="nuevoCliente.telefono" placeholder="Telefono" />
+      <button class="primary-button" (click)="guardar()">
+        {{ editando ? 'Actualizar' : 'Guardar' }}
+      </button>
+      <button class="secondary-button" *ngIf="editando" (click)="limpiar()">Cancelar</button>
+    </div>
+  </section>
+
+ 
+  <section class="clients-table" aria-label="Listado de clientes" *ngIf="clientesFiltrados.length > 0">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Email</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let cliente of clientesFiltrados">
+          <td>{{ cliente.nombre }}</td>
+          <td>{{ cliente.email || 'Sin email' }}</td>
+          <td>
+            <span class="status-pill" [class.inactive]="cliente.estado === 'BAJA'">
+              {{ cliente.estado }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <button class="edit-button" (click)="editar(cliente)">Editar</button>
+            <button class="danger-button" (click)="eliminar(cliente.id)" [disabled]="cliente.estado === 'BAJA'">
+              Baja
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+
+  <section *ngIf="clientesFiltrados.length === 0 && searchTerm !== ''" class="empty-state" style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 8px; margin-top: 20px; border: 1px dashed #ccc;">
+    <p style="font-size: 1.2rem; color: #666;">
+      ⚠️ El cliente "<strong>{{ searchTerm }}</strong>" no está registrado en el sistema.
+    </p>
+    <button class="secondary-button" (click)="searchTerm = ''" style="margin-top: 10px;">Limpiar búsqueda</button>
+  </section>
+</main>
