@@ -116,6 +116,21 @@ button:disabled {
   overflow: auto;
 }
 
+.empty-state {
+  margin-top: 16px;
+  padding: 30px;
+  text-align: center;
+  border: 1px dashed #c8d7d2;
+  border-radius: 8px;
+  background: #f7faf8;
+}
+
+.empty-state p {
+  margin: 0 0 14px;
+  color: #536970;
+  font-size: 1.05rem;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;

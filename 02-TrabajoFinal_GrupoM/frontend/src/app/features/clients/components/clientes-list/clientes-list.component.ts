@@ -36,9 +36,20 @@ export class ClientesListComponent implements OnInit {
   }
 
   guardar(): void {
-    this.api.crearCliente(this.nuevoCliente).subscribe(() => {
-      this.cargar();
-      this.limpiar();
+    const clienteData = {
+      ...this.nuevoCliente,
+      estado: this.nuevoCliente.id ? this.nuevoCliente.estado : 'ACTIVO',
+    };
+
+    this.api.crearCliente(clienteData).subscribe({
+      next: () => {
+        this.cargar();
+        this.limpiar();
+      },
+      error: (err) => {
+        console.error('Error detallado:', err);
+        alert('Error del Backend: ' + JSON.stringify(err.error?.message ?? err.message));
+      },
     });
   }
 
