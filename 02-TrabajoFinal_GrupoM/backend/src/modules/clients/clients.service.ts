@@ -10,7 +10,10 @@ export class ClientsService {
   constructor(@InjectRepository(Client) private readonly repo: Repository<Client>) {}
 
   create(dto: CreateClientDto) {
-    const nuevo = this.repo.create(dto);
+    const nuevo = this.repo.create({
+      ...dto,
+      estado: dto.estado || ClientStatus.ACTIVO,
+    });
     return this.repo.save(nuevo);
   }
 
