@@ -25,7 +25,7 @@
     </div>
   </section>
 
-  <section class="clients-table" aria-label="Listado de clientes">
+  <section class="clients-table" aria-label="Listado de clientes" *ngIf="clientesFiltrados.length > 0">
     <table>
       <thead>
         <tr>
@@ -53,5 +53,10 @@
         </tr>
       </tbody>
     </table>
+  </section>
+
+  <section *ngIf="clientesFiltrados.length === 0 && searchTerm !== ''" class="empty-state">
+    <p>El cliente "<strong>{{ searchTerm }}</strong>" no esta registrado en el sistema.</p>
+    <button class="secondary-button" (click)="searchTerm = ''">Limpiar busqueda</button>
   </section>
 </main>
