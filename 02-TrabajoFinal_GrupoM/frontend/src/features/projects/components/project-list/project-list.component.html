@@ -1,0 +1,34 @@
+<table class="projects-table">
+  <thead>
+    <tr>
+      <th>Nombre</th>
+      <th>Estado</th>
+      <th>Cliente</th>
+      <th>Finalización</th>
+      <th>Acciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    @for (project of projects(); track project.id) {
+      <tr>
+        <td>
+          {{ project.name }}
+          @if (project.isOverdue) {
+            <span class="badge-overdue">Retrasado</span>
+          }
+        </td>
+        <td>
+          <app-project-status-badge [status]="project.status" />
+        </td>
+        <td>{{ project.client?.nombre ?? 'Sin cliente' }}</td>
+        <td>{{ project.endDate ?? '—' }}</td>
+        <td>
+          <div class="table-actions">
+            <a [routerLink]="['/projects', project.id]" class="action-ver">Ver</a>
+            <a [routerLink]="['/projects', project.id, 'edit']" class="action-editar">Editar</a>
+          </div>
+        </td>
+      </tr>
+    }
+  </tbody>
+</table>

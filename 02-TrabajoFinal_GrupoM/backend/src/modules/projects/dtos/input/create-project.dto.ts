@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional, IsInt, IsPositive, IsEnum, MaxLength } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsInt, IsPositive, IsEnum, IsDateString, MaxLength } from 'class-validator';
 import { ProjectStatus } from '../../../../common/enums/project-status.enum';
 
 export class CreateProjectDto {
@@ -15,4 +15,8 @@ export class CreateProjectDto {
   @IsInt()
   @IsPositive()
   clientId?: number | null;
+
+  @IsOptional()
+  @IsDateString({}, { message: 'La fecha de finalización debe tener formato YYYY-MM-DD' })
+  endDate?: string | null;
 }

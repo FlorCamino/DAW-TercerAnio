@@ -6,4 +6,6 @@ export class ProjectResponseDto {
   status: ProjectStatus;
   clientId: number | null;
   client: { id: number; nombre: string; estado: string } | null;
+  endDate: string | null;
+  isOverdue: boolean;
 }

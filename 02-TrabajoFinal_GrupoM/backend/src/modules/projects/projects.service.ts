@@ -17,10 +17,12 @@ export class ProjectsService {
   ) {}
 
   async create(dto: CreateProjectDto): Promise<ProjectResponseDto> {
+    console.log('DTO recibido:', dto);
     const project = this.projectRepository.create({
       name: dto.name,
       status: dto.status ?? ProjectStatus.ACTIVE,
       clientId: dto.clientId ?? null,
+      endDate: dto.endDate ?? null,
     });
     const saved = await this.projectRepository.save(project);
     return ProjectsMapper.toResponse(saved);

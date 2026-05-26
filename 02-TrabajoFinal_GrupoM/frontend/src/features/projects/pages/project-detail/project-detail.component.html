@@ -1,0 +1,7 @@
+<div class="projects-container">
+  @if (project()) {
+    <app-project-detail [project]="project()!" />
+  } @else {
+    <p>Cargando...</p>
+  }
+</div>

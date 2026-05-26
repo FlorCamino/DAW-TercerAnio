@@ -23,4 +23,7 @@ export class Project {
 
   @Column({ type: 'int', nullable: true })
   clientId: number | null;
+
+  @Column({ type: 'date', nullable: true })
+  endDate: string | null;
 }

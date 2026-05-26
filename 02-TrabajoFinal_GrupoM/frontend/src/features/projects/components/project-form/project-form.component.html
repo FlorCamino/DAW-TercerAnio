@@ -1,0 +1,49 @@
+<form (ngSubmit)="onSubmit()">
+  <div class="form-group">
+    <label>Nombre</label>
+    <input
+      type="text"
+      [ngModel]="name()"
+      (ngModelChange)="name.set($event)"
+      name="name"
+      required
+      placeholder="Nombre del proyecto"
+    />
+  </div>
+
+  @if (initialData()) {
+    <div class="form-group">
+      <label>Estado</label>
+      <select [ngModel]="status()" (ngModelChange)="status.set($event)" name="status">
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+  }
+
+  <div class="form-group">
+    <label>Cliente (opcional)</label>
+    <select [ngModel]="clientId()" (ngModelChange)="clientId.set(+$event || null)" name="clientId">
+      <option [value]="null">Sin cliente (proyecto interno)</option>
+      @for (client of clients(); track client.id) {
+        <option [value]="client.id">{{ client.nombre }}</option>
+      }
+    </select>
+  </div>
+
+  <div class="form-group">
+    <label>Fecha de finalización (opcional)</label>
+    <input
+      type="date"
+      [ngModel]="endDate()"
+      (ngModelChange)="endDate.set($event || null)"
+      name="endDate"
+    />
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">{{ submitLabel() }}</button>
+    <ng-content />
+  </div>
+</form>
