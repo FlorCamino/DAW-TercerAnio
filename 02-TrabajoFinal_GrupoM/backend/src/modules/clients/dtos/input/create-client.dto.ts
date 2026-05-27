@@ -1,25 +1,32 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { ClientStatus } from '../../../../common/enums/client-status.enum';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Matches,
+} from 'class-validator';
 
 export class CreateClientDto {
   @ApiProperty({ example: 'Janet Casaretto' })
-  @IsNotEmpty()
-  @IsString()
-  nombre: string;
+  @IsNotEmpty({ message: 'El nombre es obligatorio' })
+  @IsString({ message: 'El nombre debe ser texto' })
+  nombre!: string;
 
   @ApiProperty({ example: 'janet@mail.com', required: false })
   @IsOptional()
-  @IsEmail()
+  @IsEmail({}, { message: 'El email debe ser un correo valido' })
   email?: string;
 
-  @ApiProperty({ example: '123456789', required: false })
+  @ApiProperty({
+    example: '123456789',
+    required: false,
+    description: 'Solo numeros, entre 7 y 15 digitos',
+  })
   @IsOptional()
-  @IsString()
+  @IsString({ message: 'El telefono debe ser texto' })
+  @Matches(/^[0-9]{7,15}$/, {
+    message: 'El telefono debe tener entre 7 y 15 numeros',
+  })
   telefono?: string;
-
-  @ApiProperty({ enum: ClientStatus, required: false })
-  @IsOptional()
-  @IsEnum(ClientStatus)
-  estado?: ClientStatus;
 }

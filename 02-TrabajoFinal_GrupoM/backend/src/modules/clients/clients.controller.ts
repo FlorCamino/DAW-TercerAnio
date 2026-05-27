@@ -1,7 +1,26 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiBody,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dtos/input/create-client.dto';
+import { UpdateClientDto } from './dtos/input/update-client.dto';
+import { ClientStatus } from '../../common/enums/client-status.enum';
 
+@ApiTags('Clients')
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
@@ -11,18 +30,60 @@ export class ClientsController {
     return this.clientsService.create(dto);
   }
 
+  @ApiQuery({ name: 'estado', enum: ClientStatus, required: false })
+  @ApiQuery({ name: 'nombre', required: false })
+  @ApiQuery({ name: 'email', required: false })
+  @ApiQuery({ name: 'telefono', required: false })
+  @ApiQuery({ name: 'page', required: false, example: 1 })
+  @ApiQuery({ name: 'limit', required: false, example: 6 })
+  @ApiBadRequestResponse({
+    description: 'No se encontraron clientes con los filtros ingresados',
+  })
   @Get()
-  findAll() {
-    return this.clientsService.findAll();
+  findAll(
+    @Query('estado') estado?: string,
+    @Query('nombre') nombre?: string,
+    @Query('email') email?: string,
+    @Query('telefono') telefono?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    return this.clientsService.findAll({
+      estado,
+      nombre,
+      email,
+      telefono,
+      page,
+      limit,
+    });
+  }
+
+  @Get(':id')
+  findOne(@Param('id', ParseIntPipe) id: number) {
+    return this.clientsService.findOne(id);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.clientsService.remove(+id);
+  remove(@Param('id', ParseIntPipe) id: number) {
+    return this.clientsService.remove(id);
   }
 
+  @ApiBody({
+    type: UpdateClientDto,
+    examples: {
+      editarCliente: {
+        summary: 'Modificar datos del cliente',
+        value: {
+          nombre: 'Janet Casaretto',
+          email: 'janet@mail.com',
+          telefono: '123456789',
+          estado: ClientStatus.ACTIVO,
+        },
+      },
+    },
+  })
   @Patch(':id')
-  update(@Param('id') id: string, @Body() dto: any) {
-    return this.clientsService.update(+id, dto);
+  update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateClientDto) {
+    return this.clientsService.update(id, dto);
   }
 }
