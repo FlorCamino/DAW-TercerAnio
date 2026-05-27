@@ -1,4 +1,4 @@
-export const APP_NAME = 'Project Management System';
+export const APP_NAME = 'Sistema de Gestion de Proyectos - Equipo M';
 export const API_PREFIX = 'api';
 
 export const DEFAULT_PAGE_SIZE = 10;

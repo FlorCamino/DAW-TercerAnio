@@ -15,7 +15,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const request = context.getRequest<Request>();
 
     let statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
-    let message = 'Internal server error';
+    let message = 'Error interno del servidor';
 
     if (exception instanceof HttpException) {
       statusCode = exception.getStatus();
@@ -47,19 +47,19 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const dbError = exception as { code: string };
 
       switch (dbError.code) {
-        case '23505': 
+        case '23505':
           statusCode = HttpStatus.CONFLICT;
-          message = 'The record already exists';
+          message = 'El registro ya existe';
           break;
 
-        case '23503': 
+        case '23503':
           statusCode = HttpStatus.BAD_REQUEST;
-          message = 'The record is related to another entity';
+          message = 'El registro esta relacionado con otra entidad';
           break;
 
         case '23502':
           statusCode = HttpStatus.BAD_REQUEST;
-          message = 'Required field is missing';
+          message = 'Falta completar un campo obligatorio';
           break;
       }
     }

@@ -6,17 +6,16 @@
 }
 
 .clients-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
   margin-bottom: 22px;
-}
-
-.clients-header span {
-  color: #177d63;
-  font-weight: 800;
 }
 
 .clients-header h1 {
   margin: 8px 0 10px;
-  color: #12211d;
+  color: #177d63;
   font-size: clamp(2rem, 4vw, 3.2rem);
   line-height: 1;
 }
@@ -43,10 +42,6 @@
   padding: 14px 16px;
 }
 
-.clients-toolbar i {
-  color: #177d63;
-}
-
 input {
   min-height: 42px;
   width: 100%;
@@ -57,10 +52,22 @@ input {
   font: inherit;
 }
 
-.clients-toolbar input {
-  min-height: 32px;
-  border: 0;
-  padding: 0;
+select {
+  min-height: 42px;
+  width: 100%;
+  border: 1px solid #d9e4df;
+  border-radius: 8px;
+  padding: 0 12px;
+  color: #1c2730;
+  background: #ffffff;
+  font: inherit;
+}
+
+.clients-toolbar {
+  display: grid;
+  grid-template-columns:
+    170px minmax(140px, 1fr) minmax(140px, 1fr) minmax(140px, 1fr)
+    auto auto;
 }
 
 .client-form {
@@ -74,11 +81,35 @@ input {
   font-size: 1.15rem;
 }
 
+.new-client-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.2s;
+}
+
+.new-client-button:hover {
+  background: #12614d;
+}
+
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) auto auto;
+  max-width: 420px;
+  grid-template-columns: 1fr;
   gap: 10px;
-  align-items: center;
+  align-items: start;
+}
+
+.form-grid button {
+  width: fit-content;
 }
 
 button {
@@ -116,19 +147,11 @@ button:disabled {
   overflow: auto;
 }
 
-.empty-state {
-  margin-top: 16px;
-  padding: 30px;
-  text-align: center;
-  border: 1px dashed #c8d7d2;
-  border-radius: 8px;
-  background: #f7faf8;
-}
-
-.empty-state p {
-  margin: 0 0 14px;
+.empty-row {
+  padding: 28px 16px;
   color: #536970;
-  font-size: 1.05rem;
+  text-align: center;
+  font-weight: 700;
 }
 
 table {
@@ -167,7 +190,102 @@ th {
   gap: 8px;
 }
 
+.pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.page-size-control,
+.pagination-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-size-control span,
+.pagination-summary {
+  color: #536970;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.page-size-control select {
+  width: 82px;
+}
+
+.client-alert-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(18, 33, 29, 0.38);
+}
+
+.client-alert {
+  width: min(430px, 100%);
+  border: 1px solid #c8d7d2;
+  border-radius: 8px;
+  padding: 20px;
+  color: #1c2730;
+  background: #ffffff;
+  box-shadow: 0 18px 50px rgba(18, 33, 29, 0.22);
+}
+
+.client-alert.error {
+  border-color: #e2c1c1;
+}
+
+.client-alert-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.client-alert-icon {
+  display: inline-grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #177d63;
+  font-weight: 900;
+}
+
+.client-alert.error .client-alert-icon {
+  background: #8f3d3d;
+}
+
+.client-alert h2 {
+  margin: 0;
+  color: #12211d;
+  font-size: 1.12rem;
+}
+
+.client-alert p {
+  margin: 14px 0 0;
+  color: #536970;
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+.client-alert-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
 @media (max-width: 900px) {
+  .clients-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+
   .form-grid {
     grid-template-columns: 1fr;
   }
@@ -183,8 +301,16 @@ th {
     font-size: 2rem;
   }
 
+  .clients-header {
+    flex-direction: column;
+  }
+
   .client-form {
     padding: 14px;
+  }
+
+  .clients-toolbar {
+    grid-template-columns: 1fr;
   }
 
   th,
@@ -199,5 +325,12 @@ th {
 
   .actions-cell button {
     width: 100%;
+  }
+
+  .pagination-bar,
+  .page-size-control,
+  .pagination-actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
