@@ -1,0 +1,25 @@
+<h2 class="title">Lista de Proyectos</h2>
+
+<div class="projects-container">
+
+  <div *ngFor="let project of projects" class="project-card">
+
+    <h3>{{ project.name }}</h3>
+
+    <p *ngIf="project.id">
+      <strong>ID:</strong>
+      {{ project.id }}
+    </p>
+
+    <p *ngIf="project.status">
+      <strong>Estado:</strong>
+      {{ project.status }}
+    </p>
+
+    <button (click)="deleteProject(project.id)">
+      Eliminar
+    </button>
+
+  </div>
+
+</div>
