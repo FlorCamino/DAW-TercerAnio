@@ -1,13 +1,21 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { NavbarComponent } from './shared/components/navbar/navbar.component';
+import { ProjectsListComponent } from './features/projects/components/projects-list/projects-list';
 
 @Component({
   selector: 'app-root',
-  standalone: true, 
-  imports: [RouterOutlet, NavbarComponent, FooterComponent], 
+  standalone: true,
+  imports: [
+    RouterOutlet,
+    NavbarComponent,
+    FooterComponent,
+    ProjectsListComponent
+  ],
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {}
+
