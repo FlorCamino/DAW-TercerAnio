@@ -1,34 +1,67 @@
 <main class="clients-page">
   <section class="clients-header">
     <div>
-      <h1>Gestión de clientes</h1>
+      <h1>Clientes</h1>
       <p>Administra contactos, estados y datos principales de cada cliente.</p>
     </div>
     <a class="primary-button new-client-button" routerLink="/clientes/crear">+ Nuevo cliente</a>
   </section>
 
   <section class="clients-toolbar" aria-label="Búsqueda de clientes">
-    <select [(ngModel)]="filtros.estado" aria-label="Filtrar por estado">
-      <option value="">Todos los estados</option>
-      <option value="activo">Activo</option>
-      <option value="baja">Baja</option>
-    </select>
-    <input [(ngModel)]="filtros.nombre" placeholder="Buscar por nombre..." />
-    <input [(ngModel)]="filtros.email" placeholder="Buscar por email..." />
-    <input [(ngModel)]="filtros.telefono" placeholder="Buscar por telefono..." />
+    <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
+      <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
+        aria-label="Filtrar por estado">
+        <span>{{ obtenerTextoEstado(filtros.estado) }}</span>
+        <span class="custom-status-arrow">▾</span>
+      </button>
+
+      <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
+        <button type="button" class="custom-status-option" [class.selected]="filtros.estado === ''"
+          (click)="seleccionarEstado('')">
+          Todos los estados
+        </button>
+
+        <button type="button" class="custom-status-option" [class.selected]="filtros.estado === 'activo'"
+          (click)="seleccionarEstado('activo')">
+          Activo
+        </button>
+
+        <button type="button" class="custom-status-option danger" [class.selected]="filtros.estado === 'baja'"
+          (click)="seleccionarEstado('baja')">
+          Baja
+        </button>
+      </div>
+    </div>
+    <input class="relative-search" [(ngModel)]="filtros.busqueda" (ngModelChange)="actualizarBusqueda()"
+      placeholder="Buscar por parte del nombre, email o telefono..." />
     <button class="primary-button" (click)="buscarClientes()">Buscar</button>
     <button class="secondary-button" (click)="limpiarFiltros()">Limpiar</button>
   </section>
 
-  <section class="client-form" aria-label="Formulario de cliente" *ngIf="editando">
-    <h2>Editar cliente</h2>
+  <section class="client-form" aria-label="Formulario de cliente" aria-live="polite" *ngIf="editando">
+    <div class="edit-panel-header">
+      <span class="edit-eyebrow">Modo edicion</span>
+      <strong>{{ clienteEditado.nombre || 'Cliente seleccionado' }}</strong>
+    </div>
+
     <div class="form-grid">
-      <input [(ngModel)]="clienteEditado.nombre" placeholder="Nombre" />
-      <input [(ngModel)]="clienteEditado.email" placeholder="Email" />
-      <input [(ngModel)]="clienteEditado.telefono" placeholder="Telefono" inputmode="numeric" minlength="7"
-        maxlength="15" pattern="[0-9]{7,15}" />
-      <button class="primary-button" (click)="guardar()">Actualizar</button>
-      <button class="secondary-button" (click)="limpiar()">Cancelar</button>
+      <label class="field-control">
+        <span>Nombre</span>
+        <input [(ngModel)]="clienteEditado.nombre" placeholder="Nombre" />
+      </label>
+      <label class="field-control">
+        <span>Email</span>
+        <input [(ngModel)]="clienteEditado.email" placeholder="Email" />
+      </label>
+      <label class="field-control">
+        <span>Telefono</span>
+        <input [(ngModel)]="clienteEditado.telefono" placeholder="Telefono" inputmode="numeric" minlength="7"
+          maxlength="15" pattern="[0-9]{7,15}" />
+      </label>
+      <div class="edit-actions">
+        <button class="primary-button" (click)="guardar()">Actualizar</button>
+        <button class="secondary-button" (click)="limpiar()">Cancelar</button>
+      </div>
     </div>
   </section>
 
@@ -44,7 +77,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let cliente of listaClientes">
+        <tr *ngFor="let cliente of listaClientes" [class.editing-row]="editando && cliente.id === clienteEditado.id">
           <td>{{ cliente.nombre }}</td>
           <td>{{ cliente.email || 'Sin email' }}</td>
           <td>{{ cliente.telefono || 'Sin telefono' }}</td>
@@ -54,13 +87,13 @@
             </span>
           </td>
           <td class="actions-cell">
-            <button class="edit-button" (click)="editar(cliente)" [disabled]="estaDeBaja(cliente)">
+            <button class="action-button action-edit" (click)="editar(cliente)" [disabled]="estaDeBaja(cliente)">
               Editar
             </button>
-            <button class="danger-button" (click)="eliminar(cliente)" [disabled]="estaDeBaja(cliente)">
+            <button class="action-button action-danger" (click)="eliminar(cliente)" [disabled]="estaDeBaja(cliente)">
               Baja
             </button>
-            <button class="primary-button" *ngIf="estaDeBaja(cliente)" (click)="activar(cliente.id)">
+            <button class="action-button action-success" *ngIf="estaDeBaja(cliente)" (click)="activar(cliente.id)">
               Alta
             </button>
           </td>

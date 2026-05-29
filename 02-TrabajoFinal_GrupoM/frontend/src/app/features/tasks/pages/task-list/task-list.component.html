@@ -1,0 +1,164 @@
+<main class="tasks-page">
+    <section class="tasks-header">
+        <div>
+            <h1>Tareas</h1>
+            <p>Administra tareas, estados y proyectos asociados.</p>
+        </div>
+
+        <a class="primary-button new-task-button" routerLink="/tareas/crear">
+            + Nueva tarea
+        </a>
+    </section>
+
+    <section class="tasks-toolbar" aria-label="Búsqueda de tareas">
+        <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
+            <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
+                aria-label="Filtrar por estado">
+                <span>{{ obtenerTextoEstado(filtros.estado) }}</span>
+                <span class="custom-status-arrow">▾</span>
+            </button>
+
+            <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
+                <button type="button" class="custom-status-option" [class.selected]="filtros.estado === ''"
+                    (click)="seleccionarEstado('')">
+                    Todos los estados
+                </button>
+
+                <button type="button" class="custom-status-option" [class.selected]="filtros.estado === 'pendiente'"
+                    (click)="seleccionarEstado('pendiente')">
+                    Pendiente
+                </button>
+
+                <button type="button" class="custom-status-option done"
+                    [class.selected]="filtros.estado === 'finalizado'" (click)="seleccionarEstado('finalizado')">
+                    Finalizado
+                </button>
+
+                <button type="button" class="custom-status-option danger" [class.selected]="filtros.estado === 'baja'"
+                    (click)="seleccionarEstado('baja')">
+                    Baja
+                </button>
+            </div>
+        </div>
+
+        <input class="relative-search" [(ngModel)]="filtros.busqueda" (ngModelChange)="actualizarBusqueda()"
+            placeholder="Buscar por descripción o proyecto..." />
+
+        <button class="primary-button" type="button" (click)="buscarTareas()">Buscar</button>
+        <button class="secondary-button" type="button" (click)="limpiarFiltros()">Limpiar</button>
+    </section>
+
+    <section class="tasks-table" aria-label="Listado de tareas">
+        <table>
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th>Proyecto</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let tarea of listaTareas" [class.editing-row]="editando && tarea.id === tareaEditada.id">
+                    <td>{{ tarea.descripcion }}</td>
+                    <td>{{ obtenerProyecto(tarea) }}</td>
+                    <td>
+                        <span class="status-pill" [class.pending]="estaPendiente(tarea)"
+                            [class.done]="estaFinalizada(tarea)" [class.inactive]="estaDeBaja(tarea)">
+                            {{ obtenerTextoEstado(tarea.estado) }}
+                        </span>
+                    </td>
+                    <td class="actions-cell">
+                        <button class="action-button action-edit" type="button" (click)="editar(tarea)"
+                            [disabled]="estaDeBaja(tarea)">
+                            Editar
+                        </button>
+
+                        <button class="action-button action-success" type="button" *ngIf="estaPendiente(tarea)"
+                            (click)="finalizar(tarea)">
+                            Finalizar
+                        </button>
+
+                        <button class="action-button action-success" type="button" *ngIf="estaFinalizada(tarea)"
+                            (click)="reactivar(tarea)">
+                            Reabrir
+                        </button>
+
+                        <button class="action-button action-danger" type="button" (click)="eliminar(tarea)"
+                            [disabled]="estaDeBaja(tarea)">
+                            Baja
+                        </button>
+
+                        <button class="action-button action-success" type="button" *ngIf="estaDeBaja(tarea)"
+                            (click)="reactivar(tarea)">
+                            Alta
+                        </button>
+                    </td>
+                </tr>
+
+                <tr *ngIf="listaTareas.length === 0">
+                    <td colspan="4" class="empty-row">
+                        {{
+                        hayFiltrosActivos()
+                        ? 'No hay tareas que coincidan con los filtros seleccionados.'
+                        : 'No hay tareas cargadas.'
+                        }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination-bar" *ngIf="totalTareas > 0">
+            <div class="page-size-control">
+                <span>Tareas por página</span>
+                <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
+                    <option [ngValue]="6">6</option>
+                    <option [ngValue]="5">5</option>
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="20">20</option>
+                </select>
+            </div>
+
+            <span class="pagination-summary">
+                Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalTareas }} tareas
+            </span>
+
+            <div class="pagination-actions">
+                <button class="secondary-button" type="button" (click)="paginaAnterior()"
+                    [disabled]="paginaActual <= 1">
+                    Anterior
+                </button>
+                <button class="secondary-button" type="button" (click)="paginaSiguiente()"
+                    [disabled]="paginaActual >= totalPaginas">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="task-alert-backdrop" *ngIf="alerta as alertaActual">
+        <section class="task-alert" [class.error]="alertaActual.type === 'error'">
+            <div class="task-alert-header">
+                <span class="task-alert-icon">
+                    {{ alertaActual.type === 'error' ? '!' : '?' }}
+                </span>
+                <h2>{{ alertaActual.title }}</h2>
+            </div>
+
+            <p *ngIf="alertaActual.message">{{ alertaActual.message }}</p>
+
+            <div class="task-alert-actions">
+                <button class="secondary-button" type="button" *ngIf="alertaActual.type === 'confirm'"
+                    (click)="cerrarAlerta()">
+                    {{ alertaActual.cancelText }}
+                </button>
+
+                <button type="button" [class.primary-button]="!alertaActual.confirmDanger"
+                    [class.danger-button]="alertaActual.confirmDanger" (click)="confirmarAlerta()">
+                    {{ alertaActual.confirmText }}
+                </button>
+            </div>
+        </section>
+    </div>
+</main>

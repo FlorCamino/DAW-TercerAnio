@@ -1,0 +1,69 @@
+<div class="projects-container">
+  <section class="management-header">
+    <div class="management-title-block">
+      <h1>Proyectos</h1>
+      <p>Administra proyectos, clientes asociados, estados y fechas de finalización.</p>
+    </div>
+
+    <a class="primary-button" routerLink="/projects/create">
+      + Nuevo proyecto
+    </a>
+  </section>
+
+  @if (loading()) {
+  <p class="project-list-message">Cargando proyectos...</p>
+  } @else if (error()) {
+  <p class="project-list-message error">{{ error() }}</p>
+  } @else {
+  <table class="projects-table">
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Estado</th>
+        <th>Cliente</th>
+        <th>Finalización</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+
+    <tbody>
+      @for (project of projects(); track project.id) {
+      <tr>
+        <td>
+          {{ project.name }}
+
+          @if (project.isOverdue) {
+          <span class="badge-overdue">Retrasado</span>
+          }
+        </td>
+
+        <td>
+          <app-project-status-badge [status]="project.status" />
+        </td>
+
+        <td>{{ project.client?.nombre ?? 'Sin cliente' }}</td>
+        <td>{{ project.endDate ?? '—' }}</td>
+
+        <td>
+          <div class="table-actions">
+            <a [routerLink]="['/projects', project.id]" class="action-button action-view">
+              Ver
+            </a>
+
+            <a [routerLink]="['/projects', project.id, 'edit']" class="action-button action-edit">
+              Editar
+            </a>
+          </div>
+        </td>
+      </tr>
+      } @empty {
+      <tr>
+        <td colspan="5" class="project-empty-row">
+          No hay proyectos cargados.
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
+  }
+</div>

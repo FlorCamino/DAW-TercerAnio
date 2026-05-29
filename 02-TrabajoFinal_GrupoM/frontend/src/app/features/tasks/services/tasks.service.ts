@@ -2,75 +2,75 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { Task, TaskFormData } from '../models/task.model';
 
 interface ApiResponse<T> {
   success: boolean;
   data: T;
 }
 
-export interface ClientFilters {
+export interface TaskFilters {
   estado?: string;
   busqueda?: string;
-  nombre?: string;
-  email?: string;
-  telefono?: string;
+  descripcion?: string;
+  proyectoId?: number | string | null;
   page?: number;
   limit?: number;
 }
 
-export interface PaginatedClients {
-  data: any[];
+export interface PaginatedTasks {
+  data: Task[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
 }
 
-type ClientsApiResponse = ApiResponse<PaginatedClients | any[]> | PaginatedClients | any[];
+type TasksApiResponse = ApiResponse<PaginatedTasks | Task[]> | PaginatedTasks | Task[];
 
 @Injectable({
   providedIn: 'root',
 })
-export class ClientsService {
-  private readonly apiUrl = `${environment.apiUrl}/clients`;
+export class TasksService {
+  private readonly apiUrl = `${environment.apiUrl}/tasks`;
 
   constructor(private readonly http: HttpClient) { }
 
-  getClientes(filters: ClientFilters = {}): Observable<any[]> {
-    return this.getClientesPaginados(filters).pipe(
-      map((response: PaginatedClients) => response.data),
+  getTareas(filters: TaskFilters = {}): Observable<Task[]> {
+    return this.getTareasPaginadas(filters).pipe(
+      map((response: PaginatedTasks) => response.data),
     );
   }
 
-  getClientesPaginados(filters: ClientFilters = {}): Observable<PaginatedClients> {
+  getTareasPaginadas(filters: TaskFilters = {}): Observable<PaginatedTasks> {
     return this.http
-      .get<ClientsApiResponse>(this.apiUrl, {
+      .get<TasksApiResponse>(this.apiUrl, {
         params: this.buildParams(filters),
       })
       .pipe(
-        map((response: ClientsApiResponse) => this.normalizeClientsResponse(response, filters)),
+        map((response: TasksApiResponse) => this.normalizeTasksResponse(response, filters)),
       );
   }
 
-  crearCliente(cliente: any): Observable<any> {
-    if (cliente.id) {
-      const { id, ...clienteActualizado } = cliente;
-      return this.http.patch(`${this.apiUrl}/${id}`, clienteActualizado);
+  guardarTarea(tarea: TaskFormData): Observable<Task> {
+    if (tarea.id) {
+      const { id, ...tareaActualizada } = tarea;
+      return this.http.patch<Task>(`${this.apiUrl}/${id}`, tareaActualizada);
     }
 
-    const { id, estado, ...nuevoCliente } = cliente;
-    return this.http.post(this.apiUrl, nuevoCliente);
+    const { id, ...nuevaTarea } = tarea;
+    return this.http.post<Task>(this.apiUrl, nuevaTarea);
   }
 
-  cambiarEstado(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  cambiarEstado(id: number, estado: string): Observable<Task> {
+    return this.http.patch<Task>(`${this.apiUrl}/${id}`, { estado });
   }
 
-  activarCliente(id: number): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${id}`, { estado: 'activo' });
+  eliminarTarea(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
-  private buildParams(filters: ClientFilters): HttpParams {
+  private buildParams(filters: TaskFilters): HttpParams {
     let params = new HttpParams();
 
     for (const [key, value] of Object.entries(filters)) {
@@ -84,10 +84,10 @@ export class ClientsService {
     return params.set('_t', Date.now().toString());
   }
 
-  private normalizeClientsResponse(
-    response: ClientsApiResponse,
-    filters: ClientFilters,
-  ): PaginatedClients {
+  private normalizeTasksResponse(
+    response: TasksApiResponse,
+    filters: TaskFilters,
+  ): PaginatedTasks {
     if (
       !Array.isArray(response) &&
       'success' in response &&
@@ -111,7 +111,7 @@ export class ClientsService {
     return this.toPaginatedResponse([], filters);
   }
 
-  private getResponsePayload(response: ClientsApiResponse): PaginatedClients | any[] {
+  private getResponsePayload(response: TasksApiResponse): PaginatedTasks | Task[] {
     if (Array.isArray(response)) {
       return response;
     }
@@ -123,7 +123,7 @@ export class ClientsService {
     return response;
   }
 
-  private toPaginatedResponse(data: any[], filters: ClientFilters): PaginatedClients {
+  private toPaginatedResponse(data: Task[], filters: TaskFilters): PaginatedTasks {
     const limit = filters.limit ?? data.length;
 
     return {
@@ -136,9 +136,9 @@ export class ClientsService {
   }
 
   private toPaginatedResponseFromPayload(
-    payload: PaginatedClients,
-    filters: ClientFilters,
-  ): PaginatedClients {
+    payload: PaginatedTasks,
+    filters: TaskFilters,
+  ): PaginatedTasks {
     const data = Array.isArray(payload.data) ? payload.data : [];
     const limit = payload.limit ?? filters.limit ?? data.length;
 

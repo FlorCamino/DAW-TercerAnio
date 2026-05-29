@@ -31,6 +31,7 @@ export class ClientsController {
   }
 
   @ApiQuery({ name: 'estado', enum: ClientStatus, required: false })
+  @ApiQuery({ name: 'busqueda', required: false })
   @ApiQuery({ name: 'nombre', required: false })
   @ApiQuery({ name: 'email', required: false })
   @ApiQuery({ name: 'telefono', required: false })
@@ -42,6 +43,7 @@ export class ClientsController {
   @Get()
   findAll(
     @Query('estado') estado?: string,
+    @Query('busqueda') busqueda?: string,
     @Query('nombre') nombre?: string,
     @Query('email') email?: string,
     @Query('telefono') telefono?: string,
@@ -50,6 +52,7 @@ export class ClientsController {
   ) {
     return this.clientsService.findAll({
       estado,
+      busqueda,
       nombre,
       email,
       telefono,
