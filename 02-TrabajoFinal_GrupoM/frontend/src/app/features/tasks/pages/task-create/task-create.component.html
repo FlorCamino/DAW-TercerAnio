@@ -1,0 +1,49 @@
+<main class="task-create-page">
+    <section class="task-create-panel">
+        <div class="task-create-header">
+            <h1>Nueva tarea</h1>
+            <p>Completa los datos principales para registrar una tarea.</p>
+        </div>
+
+        <div class="form-grid">
+            <label>
+                Descripción
+                <input [(ngModel)]="tarea.descripcion" placeholder="Descripción de la tarea" />
+            </label>
+
+            <label>
+                Proyecto
+                <select [(ngModel)]="tarea.proyectoId" [disabled]="cargandoProyectos || proyectos.length === 0">
+                    <option [ngValue]="null">
+                        {{ cargandoProyectos ? 'Cargando proyectos...' : 'Seleccione un proyecto' }}
+                    </option>
+
+                    <option *ngFor="let proyecto of proyectos" [ngValue]="proyecto.id">
+                        {{ proyecto.name }}
+                    </option>
+                </select>
+            </label>
+
+            <label>
+                Estado
+                <select [(ngModel)]="tarea.estado">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="finalizado">Finalizado</option>
+                    <option value="baja">Baja</option>
+                </select>
+            </label>
+        </div>
+
+        <p class="form-error" *ngIf="error">{{ error }}</p>
+        <p class="form-success" *ngIf="success">{{ success }}</p>
+
+        <div class="form-actions">
+            <button class="primary-button" type="button" (click)="guardar()"
+                [disabled]="guardando || !!success || cargandoProyectos">
+                {{ guardando ? 'Guardando...' : 'Guardar' }}
+            </button>
+
+            <a class="secondary-button" routerLink="/tareas">Cancelar</a>
+        </div>
+    </section>
+</main>

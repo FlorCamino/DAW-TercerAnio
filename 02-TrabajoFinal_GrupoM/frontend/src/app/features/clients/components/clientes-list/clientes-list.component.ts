@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { ClientsService } from '../../services/clients.service';
 
 type AlertType = 'info' | 'error' | 'confirm';
@@ -24,26 +25,47 @@ interface ClientAlert {
   templateUrl: './clientes-list.component.html',
   styleUrl: './clientes-list.component.css',
 })
-export class ClientesListComponent implements OnInit {
+export class ClientesListComponent implements OnInit, OnDestroy {
   listaClientes: any[] = [];
+
   filtros = {
     estado: '',
-    nombre: '',
-    email: '',
-    telefono: '',
+    busqueda: '',
   };
+
   clienteEditado: any = { id: null, nombre: '', email: '', telefono: '' };
   editando = false;
   alerta: ClientAlert | null = null;
+
   totalClientes = 0;
   paginaActual = 1;
   cantidadPorPagina = 6;
   totalPaginas = 0;
 
-  constructor(private api: ClientsService) { }
+  estadoDropdownAbierto = false;
+
+  private readonly filtrosChange$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
+
+  constructor(
+    private api: ClientsService,
+    private cdr: ChangeDetectorRef,
+  ) { }
 
   ngOnInit(): void {
+    this.filtrosChange$
+      .pipe(debounceTime(300), takeUntil(this.destroy$))
+      .subscribe(() => {
+        this.paginaActual = 1;
+        this.cargarClientes(this.hayFiltrosActivos());
+      });
+
     this.cargarTodos();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   cargarTodos(): void {
@@ -55,13 +77,35 @@ export class ClientesListComponent implements OnInit {
     this.cargarClientes(true);
   }
 
+  actualizarBusqueda(): void {
+    this.filtrosChange$.next();
+  }
+
+  seleccionarEstado(estado: string): void {
+    this.filtros.estado = estado;
+    this.estadoDropdownAbierto = false;
+    this.actualizarBusqueda();
+  }
+
+  obtenerTextoEstado(estado: string): string {
+    if (estado === 'activo') {
+      return 'Activo';
+    }
+
+    if (estado === 'baja') {
+      return 'Baja';
+    }
+
+    return 'Todos los estados';
+  }
+
   limpiarFiltros(): void {
     this.filtros = {
       estado: '',
-      nombre: '',
-      email: '',
-      telefono: '',
+      busqueda: '',
     };
+
+    this.estadoDropdownAbierto = false;
     this.paginaActual = 1;
     this.cargarTodos();
   }
@@ -90,6 +134,13 @@ export class ClientesListComponent implements OnInit {
 
     this.clienteEditado = { ...cliente };
     this.editando = true;
+
+    setTimeout(() => {
+      document.querySelector('.client-form')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+      });
+    });
   }
 
   eliminar(cliente: any): void {
@@ -171,6 +222,7 @@ export class ClientesListComponent implements OnInit {
 
   private mostrarError(error: HttpErrorResponse, titulo: string): void {
     const detalle = this.obtenerMensajeError(error);
+
     this.alerta = {
       title: titulo,
       message: detalle,
@@ -208,11 +260,15 @@ export class ClientesListComponent implements OnInit {
       })
       .subscribe({
         next: (response) => {
-          this.listaClientes = response.data;
-          this.totalClientes = response.total;
-          this.paginaActual = response.page;
-          this.cantidadPorPagina = response.limit;
-          this.totalPaginas = response.totalPages;
+          const clientesPaginados = this.normalizarRespuestaClientes(response);
+
+          this.listaClientes = [...clientesPaginados.data];
+          this.totalClientes = clientesPaginados.total;
+          this.paginaActual = clientesPaginados.page;
+          this.cantidadPorPagina = clientesPaginados.limit;
+          this.totalPaginas = clientesPaginados.totalPages;
+
+          this.cdr.detectChanges();
         },
         error: (err: HttpErrorResponse) => {
           this.listaClientes = [];
@@ -224,6 +280,37 @@ export class ClientesListComponent implements OnInit {
           }
         },
       });
+  }
+
+  private normalizarRespuestaClientes(response: any) {
+    const pagina = this.extraerPaginaClientes(response);
+    const data = Array.isArray(pagina) ? pagina : pagina?.data;
+    const clientes = Array.isArray(data) ? data : [];
+    const limit = pagina?.limit ?? this.cantidadPorPagina;
+
+    return {
+      data: clientes,
+      total: pagina?.total ?? clientes.length,
+      page: pagina?.page ?? this.paginaActual,
+      limit,
+      totalPages:
+        pagina?.totalPages ??
+        (clientes.length > 0 && limit > 0 ? Math.ceil(clientes.length / limit) : 0),
+    };
+  }
+
+  private extraerPaginaClientes(response: any): any {
+    let payload = response;
+
+    for (let i = 0; i < 3; i++) {
+      if (Array.isArray(payload) || Array.isArray(payload?.data)) {
+        return payload;
+      }
+
+      payload = payload?.data;
+    }
+
+    return [];
   }
 
   private obtenerMensajeError(error: HttpErrorResponse): string {

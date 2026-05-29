@@ -25,8 +25,13 @@
 
     <p class="form-error" *ngIf="error">{{ error }}</p>
 
+    <p class="form-success" *ngIf="success">{{ success }}</p>
+
     <div class="form-actions">
-      <button class="primary-button" (click)="guardar()">Guardar</button>
+      <button class="primary-button" (click)="guardar()" [disabled]="guardando || !!success">
+        {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+
       <a class="secondary-button" routerLink="/clientes">Cancelar</a>
     </div>
   </section>

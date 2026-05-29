@@ -1,11 +1,11 @@
-.clients-page {
+.tasks-page {
   width: min(1160px, calc(100% - 40px));
   margin: 0 auto;
   padding: 42px 0;
   color: #1c2730;
 }
 
-.clients-header {
+.tasks-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
@@ -13,56 +13,37 @@
   margin-bottom: 22px;
 }
 
-.clients-header h1 {
+.tasks-header h1 {
   margin: 8px 0 10px;
   color: #12211d;
   font-size: clamp(1.6rem, 3vw, 2.25rem);
   line-height: 1;
 }
 
-.clients-header p {
+.tasks-header p {
   max-width: 620px;
   margin: 0;
   color: #5b7078;
   line-height: 1.6;
 }
 
-.clients-toolbar,
-.client-form,
-.clients-table {
+.tasks-toolbar,
+.task-form,
+.tasks-table {
   border: 1px solid #d9e4df;
   border-radius: 8px;
   background: #ffffff;
 }
 
-.clients-toolbar {
+.tasks-toolbar {
   display: grid;
-  grid-template-columns: 170px minmax(260px, 1fr) auto auto;
+  grid-template-columns: 190px minmax(260px, 1fr) auto auto;
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
 }
 
-input {
-  min-height: 42px;
-  width: 100%;
-  border: 1px solid #d9e4df;
-  border-radius: 8px;
-  padding: 0 12px;
-  color: #1c2730;
-  font: inherit;
-  outline: none;
-}
-
-input:hover {
-  border-color: #9ed6c7;
-}
-
-input:focus {
-  border-color: #177d63;
-  box-shadow: 0 0 0 3px rgba(23, 125, 99, 0.15);
-}
-
+input,
 select {
   min-height: 42px;
   width: 100%;
@@ -72,15 +53,15 @@ select {
   color: #1c2730;
   background-color: #ffffff;
   font: inherit;
-  cursor: pointer;
   outline: none;
-  accent-color: #177d63;
 }
 
+input:hover,
 select:hover {
   border-color: #9ed6c7;
 }
 
+input:focus,
 select:focus {
   border-color: #177d63;
   box-shadow: 0 0 0 3px rgba(23, 125, 99, 0.15);
@@ -164,6 +145,16 @@ select:focus {
   background: #12614d;
 }
 
+.custom-status-option.done:hover {
+  color: #4f6f21;
+  background: #edf4df;
+}
+
+.custom-status-option.done.selected {
+  color: #ffffff;
+  background: #6b8f2a;
+}
+
 .custom-status-option.danger:hover {
   color: #8f3d3d;
   background: #f3e4e4;
@@ -174,12 +165,7 @@ select:focus {
   background: #8f3d3d;
 }
 
-.custom-status-option.danger.selected:hover {
-  color: #ffffff;
-  background: #783232;
-}
-
-.client-form {
+.task-form {
   display: grid;
   grid-template-columns: minmax(180px, 240px) 1fr;
   gap: 16px;
@@ -203,7 +189,7 @@ select:focus {
   text-transform: uppercase;
 }
 
-.new-client-button {
+.new-task-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -218,13 +204,9 @@ select:focus {
   transition: background 0.2s;
 }
 
-.new-client-button:hover {
-  background: #12614d;
-}
-
 .form-grid {
   display: grid;
-  grid-template-columns: minmax(140px, 1fr) minmax(170px, 1fr) minmax(140px, 1fr) auto;
+  grid-template-columns: minmax(220px, 1fr) minmax(120px, 0.45fr) minmax(150px, 0.55fr) auto;
   gap: 12px;
   align-items: end;
 }
@@ -282,12 +264,12 @@ button:disabled {
   opacity: 0.45;
 }
 
-.clients-table {
+.tasks-table {
   margin-top: 16px;
   overflow: auto;
 }
 
-.clients-table table {
+.tasks-table table {
   overflow: hidden;
 }
 
@@ -336,9 +318,17 @@ thead th:last-child {
   display: inline-flex;
   padding: 5px 10px;
   border-radius: 999px;
+  font-weight: 800;
+}
+
+.status-pill.pending {
   color: #177d63;
   background: #e4eeea;
-  font-weight: 800;
+}
+
+.status-pill.done {
+  color: #4f6f21;
+  background: #edf4df;
 }
 
 .status-pill.inactive {
@@ -372,7 +362,7 @@ thead th:last-child {
   width: 82px;
 }
 
-.client-alert-backdrop {
+.task-alert-backdrop {
   position: fixed;
   inset: 0;
   z-index: 20;
@@ -382,7 +372,7 @@ thead th:last-child {
   background: rgba(18, 33, 29, 0.38);
 }
 
-.client-alert {
+.task-alert {
   width: min(430px, 100%);
   border: 1px solid #c8d7d2;
   border-radius: 8px;
@@ -392,17 +382,17 @@ thead th:last-child {
   box-shadow: 0 18px 50px rgba(18, 33, 29, 0.22);
 }
 
-.client-alert.error {
+.task-alert.error {
   border-color: #e2c1c1;
 }
 
-.client-alert-header {
+.task-alert-header {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.client-alert-icon {
+.task-alert-icon {
   display: inline-grid;
   width: 34px;
   height: 34px;
@@ -413,36 +403,36 @@ thead th:last-child {
   font-weight: 900;
 }
 
-.client-alert.error .client-alert-icon {
+.task-alert.error .task-alert-icon {
   background: #8f3d3d;
 }
 
-.client-alert h2 {
+.task-alert h2 {
   margin: 0;
   color: #12211d;
   font-size: 1.12rem;
 }
 
-.client-alert p {
+.task-alert p {
   margin: 14px 0 0;
   color: #536970;
   line-height: 1.5;
   white-space: pre-line;
 }
 
-.client-alert-actions {
+.task-alert-actions {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   margin-top: 20px;
 }
 
-@media (max-width: 900px) {
-  .clients-toolbar {
+@media (max-width: 1000px) {
+  .tasks-toolbar {
     grid-template-columns: 1fr 1fr;
   }
 
-  .client-form {
+  .task-form {
     grid-template-columns: 1fr;
     align-items: stretch;
   }
@@ -453,24 +443,24 @@ thead th:last-child {
 }
 
 @media (max-width: 640px) {
-  .clients-page {
+  .tasks-page {
     width: min(100% - 28px, 1160px);
     padding: 28px 0;
   }
 
-  .clients-header h1 {
-    font-size: 1.7rem;
-  }
-
-  .clients-header {
+  .tasks-header {
     flex-direction: column;
   }
 
-  .client-form {
+  .tasks-header h1 {
+    font-size: 1.7rem;
+  }
+
+  .task-form {
     padding: 14px;
   }
 
-  .clients-toolbar {
+  .tasks-toolbar {
     grid-template-columns: 1fr;
   }
 
@@ -480,7 +470,8 @@ thead th:last-child {
     flex-direction: column;
   }
 
-  .edit-actions button {
+  .edit-actions button,
+  .new-task-button {
     width: 100%;
   }
 

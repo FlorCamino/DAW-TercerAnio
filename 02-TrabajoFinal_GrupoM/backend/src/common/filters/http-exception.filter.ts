@@ -49,12 +49,12 @@ export class HttpExceptionFilter implements ExceptionFilter {
       switch (dbError.code) {
         case '23505':
           statusCode = HttpStatus.CONFLICT;
-          message = 'El registro ya existe';
+          message = 'El registro ya existe.';
           break;
 
         case '23503':
           statusCode = HttpStatus.BAD_REQUEST;
-          message = 'El registro esta relacionado con otra entidad';
+          message = 'El registro esta relacionado con otra entidad.';
           break;
 
         case '23502':

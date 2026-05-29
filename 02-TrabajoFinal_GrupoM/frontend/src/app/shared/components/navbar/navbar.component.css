@@ -58,22 +58,24 @@
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px;
 }
 
 .main-nav a {
-  min-width: 68px;
-  min-height: 48px;
+  width: 96px;
+  min-height: 54px;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  padding: 0 9px;
-  border-radius: 8px;
+  gap: 6px;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border-radius: 10px;
   color: #465961;
-  font-size: 0.86rem;
-  font-weight: 700;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.1;
   text-decoration: none;
 }
 
@@ -92,9 +94,9 @@
 }
 
 .main-nav .logout-link {
-  width: 40px;
-  min-width: 40px;
-  min-height: 40px;
+  width: 46px;
+  min-width: 46px;
+  min-height: 46px;
   margin-left: 18px;
   position: relative;
   justify-content: center;
@@ -118,7 +120,7 @@
 }
 
 .logout-link i {
-  font-size: 1rem;
+  font-size: 1.15rem;
 }
 
 .logout-link span {
@@ -126,7 +128,7 @@
 }
 
 .main-nav a:not(.logout-link) i {
-  font-size: 1rem;
+  font-size: 1.25rem;
 }
 
 @media (max-width: 900px) {
@@ -185,13 +187,14 @@
   }
 
   .main-nav a {
+    width: 100%;
     min-width: 0;
-    min-height: 42px;
+    min-height: 52px;
     flex-direction: row;
     justify-content: flex-end;
-    padding: 0 12px;
+    padding: 0 16px;
     color: #ffffff;
-    font-size: 0.9rem;
+    font-size: 1rem;
   }
 
   .main-nav .logout-link {
@@ -237,6 +240,6 @@
   }
 
   .main-nav a {
-    font-size: 0.78rem;
+    font-size: 0.9rem;
   }
 }

@@ -1,0 +1,40 @@
+<div class="projects-container">
+  @if (project()) {
+  <div class="detail-card">
+    <h1>
+      {{ project()!.name }}
+
+      @if (project()!.isOverdue) {
+      <span class="badge-overdue">Retrasado</span>
+      }
+    </h1>
+
+    <div class="detail-row">
+      <span class="detail-label">Estado</span>
+      <app-project-status-badge [status]="project()!.status" />
+    </div>
+
+    <div class="detail-row">
+      <span class="detail-label">Cliente</span>
+      <span>{{ project()!.client?.nombre ?? 'Sin cliente' }}</span>
+    </div>
+
+    <div class="detail-row">
+      <span class="detail-label">Finalización</span>
+      <span>{{ project()!.endDate ?? '—' }}</span>
+    </div>
+
+    <div class="detail-actions">
+      <a [routerLink]="['/projects', project()!.id, 'edit']" class="primary-button">
+        Editar
+      </a>
+
+      <a routerLink="/projects" class="secondary-button">
+        Volver
+      </a>
+    </div>
+  </div>
+  } @else {
+  <p>Cargando...</p>
+  }
+</div>

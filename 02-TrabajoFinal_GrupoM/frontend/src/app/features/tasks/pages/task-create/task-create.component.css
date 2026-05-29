@@ -1,11 +1,11 @@
-.client-create-page {
+.task-create-page {
   width: min(720px, calc(100% - 40px));
   margin: 0 auto;
   padding: 42px 0 56px;
   color: #1c2730;
 }
 
-.client-create-panel {
+.task-create-panel {
   width: 100%;
   border: 1px solid #d9e4df;
   border-radius: 8px;
@@ -14,11 +14,11 @@
   box-shadow: 0 2px 8px rgba(18, 33, 29, 0.06);
 }
 
-.client-create-header {
+.task-create-header {
   margin-bottom: 24px;
 }
 
-.client-create-header h1 {
+.task-create-header h1 {
   margin: 0 0 10px;
   color: #177d63;
   font-size: clamp(1.6rem, 3vw, 2.2rem);
@@ -26,7 +26,7 @@
   line-height: 1;
 }
 
-.client-create-header p {
+.task-create-header p {
   margin: 0;
   color: #5b7078;
   line-height: 1.5;
@@ -47,7 +47,8 @@ label {
   text-transform: uppercase;
 }
 
-input {
+input,
+select {
   min-height: 44px;
   width: 100%;
   border: 1px solid #d9e4df;
@@ -64,11 +65,22 @@ input {
     background 0.2s;
 }
 
-input:focus {
+input:focus,
+select:focus {
   border-color: #177d63;
   outline: none;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(23, 125, 99, 0.12);
+}
+
+.form-error {
+  margin: 14px 0 0;
+  padding: 12px;
+  border: 1px solid #e2c1c1;
+  border-radius: 8px;
+  color: #8f3d3d;
+  background: #f3e4e4;
+  white-space: pre-line;
 }
 
 .form-success {
@@ -79,16 +91,6 @@ input:focus {
   color: #177d63;
   background: #eef6f3;
   font-weight: 800;
-  white-space: pre-line;
-}
-
-.form-error {
-  margin: 14px 0 0;
-  padding: 12px;
-  border: 1px solid #e2c1c1;
-  border-radius: 8px;
-  color: #8f3d3d;
-  background: #f3e4e4;
   white-space: pre-line;
 }
 
@@ -115,11 +117,6 @@ button,
   transition: background 0.2s;
 }
 
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
 .primary-button {
   color: #ffffff;
   background: #177d63;
@@ -138,13 +135,18 @@ button:disabled {
   background: #d0e3da;
 }
 
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 @media (max-width: 640px) {
-  .client-create-page {
+  .task-create-page {
     width: min(100% - 28px, 720px);
     padding: 28px 0 36px;
   }
 
-  .client-create-panel {
+  .task-create-panel {
     padding: 18px;
   }
 
