@@ -15,6 +15,15 @@ import { ProjectStatus } from '../../common/enums/project-status.enum';
 import { Client } from '../clients/entities/client.entity';
 import { ClientStatus } from '../../common/enums/client-status.enum';
 
+interface ProjectFilters {
+  estado?: string;
+  busqueda?: string;
+  nombre?: string;
+  clientId?: string;
+  page?: string;
+  limit?: string;
+}
+
 @Injectable()
 export class ProjectsService {
   constructor(
@@ -40,11 +49,55 @@ export class ProjectsService {
     return ProjectsMapper.toResponse(saved);
   }
 
-  async findAll(): Promise<ProjectListResponseDto> {
-    const projects = await this.projectRepository.find({
-      order: { id: 'DESC' },
-    });
-    return ProjectsMapper.toListResponse(projects);
+  async findAll(filters: ProjectFilters = {}): Promise<ProjectListResponseDto> {
+    const query = this.projectRepository
+      .createQueryBuilder('project')
+      .leftJoinAndSelect('project.client', 'client');
+
+    const estado = this.normalizeStatus(filters.estado);
+    const busqueda = filters.busqueda?.trim();
+    const nombre = filters.nombre?.trim();
+    const clientId = this.parseOptionalPositiveInt(filters.clientId, 'cliente');
+    const page = this.parsePositiveInt(filters.page, 1);
+    const limit = this.parseOptionalPositiveInt(filters.limit, 'limite');
+
+    if (estado) {
+      query.andWhere('project.status = :estado', { estado });
+    }
+
+    if (busqueda) {
+      query.andWhere(
+        '(LOWER(project.name) LIKE LOWER(:busqueda) OR LOWER(client.nombre) LIKE LOWER(:busqueda))',
+        { busqueda: `%${busqueda}%` },
+      );
+    }
+
+    if (nombre) {
+      query.andWhere('LOWER(project.name) LIKE LOWER(:nombre)', {
+        nombre: `%${nombre}%`,
+      });
+    }
+
+    if (clientId) {
+      query.andWhere('project.clientId = :clientId', { clientId });
+    }
+
+    query.orderBy('project.id', 'DESC');
+
+    if (limit) {
+      query.skip((page - 1) * limit).take(limit);
+    }
+
+    const [projects, total] = await query.getManyAndCount();
+    const response = ProjectsMapper.toListResponse(projects);
+
+    return {
+      ...response,
+      total,
+      page,
+      limit: limit ?? total,
+      totalPages: limit ? Math.ceil(total / limit) : total > 0 ? 1 : 0,
+    };
   }
 
   async findOne(id: number): Promise<ProjectResponseDto> {
@@ -102,5 +155,53 @@ export class ProjectsService {
         'Solo se puede asociar un cliente en estado activo',
       );
     }
+  }
+
+  private normalizeStatus(status?: string): ProjectStatus | undefined {
+    const trimmedStatus = status?.trim();
+
+    if (!trimmedStatus) {
+      return undefined;
+    }
+
+    const normalizedStatus = trimmedStatus.toLowerCase() as ProjectStatus;
+
+    if (!Object.values(ProjectStatus).includes(normalizedStatus)) {
+      throw new BadRequestException('Estado de proyecto invalido');
+    }
+
+    return normalizedStatus;
+  }
+
+  private parsePositiveInt(
+    value: string | undefined,
+    defaultValue: number,
+  ): number {
+    const parsedValue = Number(value);
+
+    if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+      return defaultValue;
+    }
+
+    return parsedValue;
+  }
+
+  private parseOptionalPositiveInt(
+    value: string | undefined,
+    fieldName: string,
+  ): number | undefined {
+    if (value === undefined || value.trim() === '') {
+      return undefined;
+    }
+
+    const parsedValue = Number(value);
+
+    if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+      throw new BadRequestException(
+        `El ${fieldName} debe ser un numero positivo`,
+      );
+    }
+
+    return parsedValue;
   }
 }

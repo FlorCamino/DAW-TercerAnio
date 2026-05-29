@@ -11,21 +11,24 @@ import { TaskStatus } from '../../../common/enums/task-status.enum';
 
 @Entity('tasks')
 export class Task {
-
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
-  description: string;
+  @Column({ name: 'description', length: 255 })
+  descripcion: string;
 
   @Column({
+    name: 'status',
     type: 'enum',
     enum: TaskStatus,
     default: TaskStatus.PENDING,
   })
-  status: TaskStatus;
+  estado: TaskStatus;
 
-  @ManyToOne(() => Project, { eager: true })
+  @Column({ name: 'projectId', type: 'int' })
+  proyectoId: number;
+
+  @ManyToOne(() => Project, { eager: true, nullable: false })
   @JoinColumn({ name: 'projectId' })
   project: Project;
 }

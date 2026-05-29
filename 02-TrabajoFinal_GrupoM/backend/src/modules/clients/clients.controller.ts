@@ -25,6 +25,19 @@ import { ClientStatus } from '../../common/enums/client-status.enum';
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
 
+  @ApiBody({
+    type: CreateClientDto,
+    examples: {
+      crearCliente: {
+        summary: 'Crear cliente activo',
+        value: {
+          nombre: 'Janet Casaretto',
+          email: 'janet@mail.com',
+          telefono: '123456789',
+        },
+      },
+    },
+  })
   @Post()
   create(@Body() dto: CreateClientDto) {
     return this.clientsService.create(dto);

@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -7,6 +11,15 @@ import { Project } from '../projects/entities/project.entity';
 import { CreateTaskDto } from './dtos/input/create-task.dto';
 import { UpdateTaskDto } from './dtos/input/update-task.dto';
 import { TaskStatus } from '../../common/enums/task-status.enum';
+import { TasksMapper, TaskListResponseDto } from './mappers/tasks.mapper';
+import { TaskResponseDto } from './dtos/output/task-response.dto';
+
+interface TaskFilters {
+  estado?: string;
+  busqueda?: string;
+  page: number;
+  limit: number;
+}
 
 @Injectable()
 export class TasksService {
@@ -18,64 +31,125 @@ export class TasksService {
     private readonly projectRepository: Repository<Project>,
   ) {}
 
-  async create(dto: CreateTaskDto) {
-    const project = await this.projectRepository.findOneBy({
-      id: dto.projectId,
-    });
-
-    if (!project) {
-      throw new NotFoundException(
-        `Project con id ${dto.projectId} no existe`,
-      );
-    }
+  async create(dto: CreateTaskDto): Promise<TaskResponseDto> {
+    const project = await this.findProject(dto.proyectoId);
 
     const task = this.taskRepository.create({
-      description: dto.description,
-      status: dto.status ?? TaskStatus.PENDING,
+      descripcion: dto.descripcion,
+      estado: dto.estado ?? TaskStatus.PENDING,
+      proyectoId: dto.proyectoId,
       project,
     });
 
-    return this.taskRepository.save(task);
+    const saved = await this.taskRepository.save(task);
+    return TasksMapper.toResponse(saved);
   }
 
-  findAll(status?: string) {
+  async findAll(filters: TaskFilters): Promise<TaskListResponseDto> {
+    const page =
+      Number.isFinite(filters.page) && filters.page > 0 ? filters.page : 1;
+    const limit =
+      Number.isFinite(filters.limit) && filters.limit > 0 ? filters.limit : 10;
+    const estado = filters.estado?.trim();
+    const busqueda = filters.busqueda?.trim();
+
+    if (estado && !this.isValidStatus(estado)) {
+      throw new BadRequestException('El estado indicado no es valido');
+    }
+
     const query = this.taskRepository
       .createQueryBuilder('task')
       .leftJoinAndSelect('task.project', 'project');
 
-    if (status) {
-      query.andWhere('task.status = :status', { status });
+    if (estado) {
+      query.andWhere('task.estado = :estado', { estado });
     }
 
-    return query.getMany();
+    if (busqueda) {
+      query.andWhere(
+        '(LOWER(task.descripcion) LIKE LOWER(:busqueda) OR LOWER(project.name) LIKE LOWER(:busqueda))',
+        { busqueda: `%${busqueda}%` },
+      );
+    }
+
+    const [tasks, total] = await query
+      .orderBy('task.id', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return TasksMapper.toListResponse(tasks, total, page, limit);
   }
 
-  async findOne(id: number) {
+  async findOne(id: number): Promise<TaskResponseDto> {
     const task = await this.taskRepository.findOneBy({ id });
 
     if (!task) {
-      throw new NotFoundException(`Task con id ${id} no existe`);
+      throw new NotFoundException(`Tarea con id ${id} no existe`);
+    }
+
+    return TasksMapper.toResponse(task);
+  }
+
+  async update(id: number, dto: UpdateTaskDto): Promise<TaskResponseDto> {
+    const task = await this.findTask(id);
+
+    if (task.estado === TaskStatus.DELETED) {
+      throw new BadRequestException(
+        'No se puede modificar una tarea dada de baja',
+      );
+    }
+
+    if (dto.proyectoId !== undefined) {
+      task.project = await this.findProject(dto.proyectoId);
+      task.proyectoId = dto.proyectoId;
+    }
+
+    if (dto.descripcion !== undefined) {
+      task.descripcion = dto.descripcion;
+    }
+
+    if (dto.estado !== undefined) {
+      task.estado = dto.estado;
+    }
+
+    const saved = await this.taskRepository.save(task);
+    return TasksMapper.toResponse(saved);
+  }
+
+  async remove(id: number): Promise<TaskResponseDto> {
+    const task = await this.findTask(id);
+
+    if (task.estado === TaskStatus.DELETED) {
+      throw new BadRequestException('La tarea ya esta dada de baja');
+    }
+
+    task.estado = TaskStatus.DELETED;
+    const saved = await this.taskRepository.save(task);
+    return TasksMapper.toResponse(saved);
+  }
+
+  private async findTask(id: number): Promise<Task> {
+    const task = await this.taskRepository.findOne({ where: { id } });
+
+    if (!task) {
+      throw new NotFoundException(`Tarea con id ${id} no existe`);
     }
 
     return task;
   }
 
-  async update(id: number, dto: UpdateTaskDto) {
-    await this.findOne(id);
+  private async findProject(id: number): Promise<Project> {
+    const project = await this.projectRepository.findOneBy({ id });
 
-    await this.taskRepository.update(id, dto);
+    if (!project) {
+      throw new NotFoundException(`Proyecto con id ${id} no existe`);
+    }
 
-    return this.findOne(id);
+    return project;
   }
 
-  async remove(id: number) {
-    await this.findOne(id);
-
-    await this.taskRepository.delete(id);
-
-    return {
-      success: true,
-      message: `Task ${id} eliminada correctamente`,
-    };
+  private isValidStatus(status: string): status is TaskStatus {
+    return Object.values(TaskStatus).includes(status as TaskStatus);
   }
 }

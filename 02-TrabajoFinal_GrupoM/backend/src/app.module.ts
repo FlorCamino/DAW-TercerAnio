@@ -12,7 +12,10 @@ import { TasksModule } from './modules/tasks/tasks.module';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot(databaseConfig()),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: databaseConfig,
+    }),
     ClientsModule,
     ProjectsModule,
     TasksModule,
