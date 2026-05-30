@@ -3,9 +3,8 @@
   <div class="detail-card">
     <h1>
       {{ project()!.name }}
-
       @if (project()!.isOverdue) {
-      <span class="badge-overdue">Retrasado</span>
+        <span class="badge-overdue">Retrasado</span>
       }
     </h1>
 
@@ -25,16 +24,42 @@
     </div>
 
     <div class="detail-actions">
-      <a [routerLink]="['/projects', project()!.id, 'edit']" class="primary-button">
-        Editar
-      </a>
-
-      <a routerLink="/projects" class="secondary-button">
-        Volver
-      </a>
+      <a [routerLink]="['/projects', project()!.id, 'edit']" class="primary-button">Editar</a>
+      <a routerLink="/projects" class="secondary-button">Volver</a>
     </div>
   </div>
+
+  <div class="detail-card" style="margin-top: 24px;">
+    <h2>Tareas</h2>
+    @if (tasks().length === 0) {
+      <p style="color: #6a7e84;">Este proyecto no tiene tareas.</p>
+    } @else {
+      <table class="projects-table">
+        <thead>
+          <tr>
+            <th>Descripción</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (task of tasks(); track task.id) {
+            <tr>
+              <td>{{ task.descripcion }}</td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'badge-activo': task.estado === 'pendiente',
+                  'badge-finalizado': task.estado === 'finalizado',
+                  'badge-baja': task.estado === 'baja'
+                }">{{ task.estado }}</span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  </div>
+
   } @else {
-  <p>Cargando...</p>
+    <p>Cargando...</p>
   }
 </div>
