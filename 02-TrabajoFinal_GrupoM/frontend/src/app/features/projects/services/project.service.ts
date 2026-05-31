@@ -24,13 +24,16 @@ export class ProjectService {
     );
   }
 
-  create(payload: { name: string; clientId?: number | null }): Observable<Project> {
+  create(payload: { name: string; clientId?: number | null; endDate?: string | null }): Observable<Project> {
     return this.http.post<{ success: boolean; data: Project }>(this.apiUrl, payload).pipe(
       map(res => res.data)
     );
   }
 
-  update(id: number, payload: { name?: string; status?: string; clientId?: number | null }): Observable<Project> {
+  update(
+    id: number,
+    payload: { name?: string; status?: string; clientId?: number | null; endDate?: string | null },
+  ): Observable<Project> {
     return this.http.put<{ success: boolean; data: Project }>(`${this.apiUrl}/${id}`, payload).pipe(
       map(res => res.data)
     );

@@ -12,9 +12,9 @@ import { TasksService } from '../../services/tasks.service';
     selector: 'app-task-create',
     standalone: true,
     imports: [CommonModule, FormsModule, RouterLink],
-    templateUrl: './task-create.component.html',
-    styleUrl: './task-create.component.css',
+    templateUrl: './task-create.component.html'
 })
+
 export class TaskCreateComponent implements OnInit {
     tarea = {
         descripcion: '',

@@ -3,17 +3,17 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { ClientFormData } from '../../models/client.model';
 import { ClientsService } from '../../services/clients.service';
 
 @Component({
   selector: 'app-cliente-create',
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
-  templateUrl: './cliente-create.component.html',
-  styleUrl: './cliente-create.component.css',
+  templateUrl: './client-create.component.html'
 })
-export class ClienteCreateComponent {
-  cliente = {
+export class ClientCreateComponent {
+  cliente: ClientFormData = {
     nombre: '',
     email: '',
     telefono: '',

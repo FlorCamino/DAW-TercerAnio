@@ -1,38 +1,47 @@
-<form (ngSubmit)="onSubmit()">
-  <div class="form-group">
-    <label>Nombre</label>
-    <input type="text" [ngModel]="name()" (ngModelChange)="name.set($event)" name="name" required
-      placeholder="Nombre del proyecto" />
+<form class="project-form" (ngSubmit)="submit()">
+  <div class="management-form-grid project-form-grid">
+    <label class="field-control">
+      <span>Nombre</span>
+
+      <input name="name" [(ngModel)]="form.name" placeholder="Nombre del proyecto" required />
+    </label>
+
+    <label class="field-control">
+      <span>Cliente</span>
+
+      <select name="clientId" [(ngModel)]="form.clientId" [disabled]="cargandoClientes || clientes.length === 0">
+        <option [ngValue]="null">
+          {{
+          cargandoClientes
+          ? 'Cargando clientes...'
+          : clientes.length === 0
+          ? 'No hay clientes activos disponibles'
+          : 'Seleccione un cliente'
+          }}
+        </option>
+
+        <option *ngFor="let cliente of clientes" [ngValue]="cliente.id">
+          {{ cliente.nombre }}
+        </option>
+      </select>
+    </label>
+
+    <label class="field-control">
+      <span>Fecha de finalización</span>
+
+      <input name="endDate" type="date" [(ngModel)]="form.endDate" />
+    </label>
   </div>
 
-  @if (initialData()) {
-  <div class="form-group">
-    <label>Estado</label>
-    <select [ngModel]="status()" (ngModelChange)="status.set($event)" name="status">
-      @for (s of statuses; track s) {
-      <option [value]="s">{{ s }}</option>
-      }
-    </select>
-  </div>
-  }
+  <p class="form-alert error" *ngIf="errorClientes">
+    {{ errorClientes }}
+  </p>
 
-  <div class="form-group">
-    <label>Cliente (opcional)</label>
-    <select [ngModel]="clientId()" (ngModelChange)="clientId.set(+$event || null)" name="clientId">
-      <option [value]="null">Sin cliente (proyecto interno)</option>
-      @for (client of clients(); track client.id) {
-      <option [value]="client.id">{{ client.nombre }}</option>
-      }
-    </select>
-  </div>
+  <div class="form-actions management-form-actions">
+    <button class="primary-button" type="submit" [disabled]="!form.name.trim() || cargandoClientes">
+      {{ submitLabel }}
+    </button>
 
-  <div class="form-group">
-    <label>Fecha de finalización (opcional)</label>
-    <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event || null)" name="endDate" />
-  </div>
-
-  <div class="form-actions">
-    <button type="submit" class="primary-button">{{ submitLabel() }}</button>
-    <ng-content />
+    <ng-content></ng-content>
   </div>
 </form>

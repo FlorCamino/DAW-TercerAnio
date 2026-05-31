@@ -1,8 +1,19 @@
-<div class="projects-container">
-  <div class="form-card">
-    <h1>Nuevo proyecto</h1>
+<main class="management-container management-form-page">
+  <section class="form-card management-form-card">
+    <div class="management-form-header">
+      <span class="form-eyebrow">Proyectos</span>
+
+      <h1>Nuevo proyecto</h1>
+
+      <p>
+        Complete los datos principales para registrar un nuevo proyecto.
+      </p>
+    </div>
+
     <app-project-form submitLabel="Crear proyecto" (formSubmit)="onSubmit($event)">
-      <a routerLink="/projects" class="secondary-button">Cancelar</a>
+      <a routerLink="/projects" class="secondary-button">
+        Cancelar
+      </a>
     </app-project-form>
-  </div>
-</div>
+  </section>
+</main>

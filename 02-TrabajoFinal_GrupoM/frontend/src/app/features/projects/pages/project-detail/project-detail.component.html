@@ -1,12 +1,29 @@
-<div class="projects-container">
-  @if (project()) {
-  <div class="detail-card">
-    <h1>
-      {{ project()!.name }}
-      @if (project()!.isOverdue) {
-        <span class="badge-overdue">Retrasado</span>
-      }
-    </h1>
+<main class="management-container">
+  @if (loading()) {
+  <p class="management-message">
+    Cargando proyecto...
+  </p>
+  } @else if (error()) {
+  <p class="management-message error">
+    {{ error() }}
+  </p>
+  } @else if (project()) {
+  <section class="detail-card">
+    <div class="detail-header">
+      <div>
+        <span class="detail-eyebrow">Detalle del proyecto</span>
+
+        <h1>
+          {{ project()!.name }}
+
+          @if (project()!.isOverdue) {
+          <span class="badge-overdue">
+            Retrasado
+          </span>
+          }
+        </h1>
+      </div>
+    </div>
 
     <div class="detail-row">
       <span class="detail-label">Estado</span>
@@ -23,43 +40,55 @@
       <span>{{ project()!.endDate ?? '—' }}</span>
     </div>
 
+    <section class="related-section" aria-label="Tareas asociadas al proyecto">
+      <div class="related-header">
+        <div>
+          <span class="detail-eyebrow">Tareas asociadas</span>
+          <h2>{{ tareasAsociadas.length }} tarea(s)</h2>
+        </div>
+      </div>
+
+      @if (tareasAsociadas.length > 0) {
+      <div class="related-list">
+        @for (task of tareasAsociadas; track task.id) {
+        <article class="related-card">
+          <div>
+            <h3>{{ task.descripcion }}</h3>
+
+            <span class="status-pill" [class.pending]="normalizarEstadoTarea(task.estado) === 'pendiente'"
+              [class.done]="normalizarEstadoTarea(task.estado) === 'finalizado'"
+              [class.inactive]="normalizarEstadoTarea(task.estado) === 'baja'">
+              {{ obtenerTextoEstadoTarea(task.estado) }}
+            </span>
+          </div>
+
+          <div class="related-meta">
+            <span>ID tarea</span>
+            <strong>#{{ task.id }}</strong>
+          </div>
+
+          <a class="action-button action-view" [routerLink]="['/tareas', task.id]">
+            Ver tarea
+          </a>
+        </article>
+        }
+      </div>
+      } @else {
+      <p class="related-empty">
+        Este proyecto no tiene tareas asociadas.
+      </p>
+      }
+    </section>
+
     <div class="detail-actions">
-      <a [routerLink]="['/projects', project()!.id, 'edit']" class="primary-button">Editar</a>
-      <a routerLink="/projects" class="secondary-button">Volver</a>
+      <a [routerLink]="['/projects', project()!.id, 'edit']" class="primary-button">
+        Editar
+      </a>
+
+      <a routerLink="/projects" class="secondary-button">
+        Volver
+      </a>
     </div>
-  </div>
-
-  <div class="detail-card" style="margin-top: 24px;">
-    <h2>Tareas</h2>
-    @if (tasks().length === 0) {
-      <p style="color: #6a7e84;">Este proyecto no tiene tareas.</p>
-    } @else {
-      <table class="projects-table">
-        <thead>
-          <tr>
-            <th>Descripción</th>
-            <th>Estado</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (task of tasks(); track task.id) {
-            <tr>
-              <td>{{ task.descripcion }}</td>
-              <td>
-                <span class="badge" [ngClass]="{
-                  'badge-activo': task.estado === 'pendiente',
-                  'badge-finalizado': task.estado === 'finalizado',
-                  'badge-baja': task.estado === 'baja'
-                }">{{ task.estado }}</span>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    }
-  </div>
-
-  } @else {
-    <p>Cargando...</p>
+  </section>
   }
-</div>
+</main>

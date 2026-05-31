@@ -1,13 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { RouterLink } from '@angular/router';
+import { Observable, Subject, debounceTime, finalize, takeUntil } from 'rxjs';
+
+import { Project } from '../../../projects/models/project.model';
+import { ProjectService } from '../../../projects/services/project.service';
 import { Task, TaskFormData, TaskStatus } from '../../models/task.model';
 import { TasksService } from '../../services/tasks.service';
 
 type AlertType = 'info' | 'error' | 'confirm';
+type TaskState = TaskStatus;
 
 interface TaskAlert {
   title: string;
@@ -24,10 +28,10 @@ interface TaskAlert {
   standalone: true,
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './task-list.component.html',
-  styleUrl: './task-list.component.css',
 })
 export class TaskListComponent implements OnInit, OnDestroy {
   listaTareas: Task[] = [];
+  proyectos: Project[] = [];
 
   filtros = {
     estado: '',
@@ -40,6 +44,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
   mostrandoFormulario = false;
   estadoDropdownAbierto = false;
   alerta: TaskAlert | null = null;
+  cambiandoEstadoId: number | null = null;
 
   totalTareas = 0;
   paginaActual = 1;
@@ -51,6 +56,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   constructor(
     private readonly tasksService: TasksService,
+    private readonly projectService: ProjectService,
     private readonly cdr: ChangeDetectorRef,
   ) { }
 
@@ -62,6 +68,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
         this.cargarTareas(this.hayFiltrosActivos());
       });
 
+    this.cargarProyectos();
     this.cargarTodas();
   }
 
@@ -105,19 +112,6 @@ export class TaskListComponent implements OnInit, OnDestroy {
     return 'Todos los estados';
   }
 
-  nuevaTarea(): void {
-    this.tareaEditada = this.crearTareaVacia();
-    this.editando = false;
-    this.mostrandoFormulario = true;
-
-    setTimeout(() => {
-      document.querySelector('.task-form')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center',
-      });
-    });
-  }
-
   editar(tarea: Task): void {
     if (this.estaDeBaja(tarea)) {
       this.mostrarAviso(
@@ -136,9 +130,10 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
     this.editando = true;
     this.mostrandoFormulario = true;
+    this.cdr.detectChanges();
 
     setTimeout(() => {
-      document.querySelector('.task-form')?.scrollIntoView({
+      document.querySelector('.management-edit-card')?.scrollIntoView({
         behavior: 'smooth',
         block: 'center',
       });
@@ -146,92 +141,81 @@ export class TaskListComponent implements OnInit, OnDestroy {
   }
 
   guardar(): void {
-    const descripcion = this.tareaEditada.descripcion.trim();
-
-    if (!descripcion) {
-      this.mostrarAviso('Datos incompletos', 'Debe ingresar una descripción para la tarea.');
+    if (!this.tareaEditada.descripcion.trim()) {
+      this.mostrarAviso(
+        'Datos incompletos',
+        'La descripción de la tarea es obligatoria.',
+      );
       return;
     }
 
     if (!this.tareaEditada.proyectoId) {
-      this.mostrarAviso('Datos incompletos', 'Debe ingresar el ID del proyecto asociado.');
+      this.mostrarAviso(
+        'Datos incompletos',
+        'Debe seleccionar un proyecto para la tarea.',
+      );
       return;
     }
 
-    this.tasksService
-      .guardarTarea({
-        ...this.tareaEditada,
-        descripcion,
-        proyectoId: Number(this.tareaEditada.proyectoId),
-      })
-      .subscribe({
-        next: () => {
-          this.limpiarFormulario();
-          this.limpiarFiltros();
-        },
-        error: (err: HttpErrorResponse) => {
-          this.mostrarError(
-            err,
-            this.editando ? 'No se pudo actualizar la tarea.' : 'No se pudo crear la tarea.',
-          );
-        },
-      });
-  }
+    this.tasksService.guardarTarea(this.tareaEditada).subscribe({
+      next: () => {
+        this.limpiar();
 
-  eliminar(tarea: Task): void {
-    this.pedirConfirmacion({
-      title: 'Dar de baja tarea',
-      message: `¿Está seguro que desea dar de baja la tarea "${tarea.descripcion}"?`,
-      confirmText: 'Dar de baja',
-      confirmDanger: true,
-      onConfirm: () => {
-        this.tasksService.eliminarTarea(tarea.id).subscribe({
-          next: () => this.limpiarFiltros(),
-          error: (err: HttpErrorResponse) => {
-            this.mostrarError(err, 'No se pudo dar de baja la tarea.');
-          },
-        });
+        this.mostrarAviso(
+          'Tarea actualizada',
+          'Los datos de la tarea se guardaron correctamente.',
+        );
+
+        this.cargarTareas(this.hayFiltrosActivos());
       },
-    });
-  }
-
-  finalizar(tarea: Task): void {
-    this.tasksService.cambiarEstado(tarea.id, 'finalizado').subscribe({
-      next: () => this.cargarTareas(this.hayFiltrosActivos()),
       error: (err: HttpErrorResponse) => {
-        this.mostrarError(err, 'No se pudo finalizar la tarea.');
+        this.mostrarError(err, 'No se pudo actualizar la tarea.');
       },
     });
   }
 
-  reactivar(tarea: Task): void {
-    this.tasksService.cambiarEstado(tarea.id, 'pendiente').subscribe({
-      next: () => this.cargarTareas(this.hayFiltrosActivos()),
-      error: (err: HttpErrorResponse) => {
-        this.mostrarError(err, 'No se pudo reactivar la tarea.');
-      },
-    });
-  }
-
-  limpiarFormulario(): void {
+  limpiar(): void {
     this.tareaEditada = this.crearTareaVacia();
     this.editando = false;
     this.mostrandoFormulario = false;
+    this.cdr.detectChanges();
   }
 
-  limpiarFiltros(): void {
-    this.filtros = {
-      estado: '',
-      busqueda: '',
-    };
+  normalizarEstadoTarea(estado: string): TaskState {
+    const estadoNormalizado = String(estado ?? '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
 
-    this.estadoDropdownAbierto = false;
-    this.paginaActual = 1;
-    this.cargarTodas();
+    if (estadoNormalizado === 'finalizado') {
+      return 'finalizado';
+    }
+
+    if (estadoNormalizado === 'baja') {
+      return 'baja';
+    }
+
+    return 'pendiente';
   }
 
-  hayFiltrosActivos(): boolean {
-    return Object.values(this.filtros).some((value) => value.trim() !== '');
+  solicitarCambioEstado(tarea: Task, nuevoEstado: TaskState): void {
+    const estadoActual = this.normalizarEstadoTarea(tarea.estado);
+
+    if (estadoActual === nuevoEstado) {
+      return;
+    }
+
+    this.pedirConfirmacion({
+      title: this.obtenerTituloCambioEstado(nuevoEstado),
+      message: `¿Está seguro que desea cambiar el estado de la tarea "${tarea.descripcion}" a "${this.obtenerTextoEstado(nuevoEstado)}"?`,
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      confirmDanger: nuevoEstado === 'baja',
+      onConfirm: () => {
+        this.actualizarEstadoTarea(tarea, nuevoEstado);
+      },
+    });
   }
 
   cambiarCantidadPorPagina(): void {
@@ -253,21 +237,52 @@ export class TaskListComponent implements OnInit, OnDestroy {
     }
   }
 
+  limpiarFiltros(): void {
+    this.filtros = {
+      estado: '',
+      busqueda: '',
+    };
+
+    this.estadoDropdownAbierto = false;
+    this.paginaActual = 1;
+    this.cargarTodas();
+  }
+
+  hayFiltrosActivos(): boolean {
+    return Object.values(this.filtros).some((value) => value.trim() !== '');
+  }
+
   estaPendiente(tarea: Task): boolean {
-    return tarea.estado?.toLowerCase() === 'pendiente';
+    return this.normalizarEstadoTarea(tarea.estado) === 'pendiente';
   }
 
   estaFinalizada(tarea: Task): boolean {
-    return tarea.estado?.toLowerCase() === 'finalizado';
+    return this.normalizarEstadoTarea(tarea.estado) === 'finalizado';
   }
 
   estaDeBaja(tarea: Task): boolean {
-    return tarea.estado?.toLowerCase() === 'baja';
+    return this.normalizarEstadoTarea(tarea.estado) === 'baja';
   }
 
   obtenerProyecto(tarea: Task): string {
     if (tarea.proyectoNombre) {
       return tarea.proyectoNombre;
+    }
+
+    if (tarea.proyecto?.name) {
+      return tarea.proyecto.name;
+    }
+
+    if (tarea.proyecto?.nombre) {
+      return tarea.proyecto.nombre;
+    }
+
+    if (tarea.project?.name) {
+      return tarea.project.name;
+    }
+
+    if (tarea.project?.nombre) {
+      return tarea.project.nombre;
     }
 
     if (tarea.proyectoId) {
@@ -279,12 +294,68 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   cerrarAlerta(): void {
     this.alerta = null;
+    this.cdr.detectChanges();
   }
 
   confirmarAlerta(): void {
-    const onConfirm = this.alerta?.onConfirm;
-    this.cerrarAlerta();
+    if (!this.alerta) {
+      return;
+    }
+
+    if (this.alerta.type !== 'confirm') {
+      this.cerrarAlerta();
+      return;
+    }
+
+    const onConfirm = this.alerta.onConfirm;
+
+    this.alerta = null;
+    this.cdr.detectChanges();
+
     onConfirm?.();
+  }
+
+  private actualizarEstadoTarea(tarea: Task, nuevoEstado: TaskState): void {
+    this.cambiandoEstadoId = tarea.id;
+
+    const request$: Observable<unknown> =
+      nuevoEstado === 'baja'
+        ? this.tasksService.eliminarTarea(tarea.id)
+        : this.tasksService.cambiarEstado(tarea.id, nuevoEstado);
+
+    request$
+      .pipe(
+        finalize(() => {
+          this.cambiandoEstadoId = null;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          this.mostrarAviso(
+            'Estado actualizado',
+            `La tarea "${tarea.descripcion}" fue actualizada correctamente.`,
+          );
+
+          this.cargarTareas(this.hayFiltrosActivos());
+        },
+        error: (err: HttpErrorResponse) => {
+          this.mostrarError(err, 'No se pudo actualizar el estado de la tarea.');
+          this.cargarTareas(this.hayFiltrosActivos());
+        },
+      });
+  }
+
+  private obtenerTituloCambioEstado(estado: TaskState): string {
+    if (estado === 'finalizado') {
+      return 'Finalizar tarea';
+    }
+
+    if (estado === 'baja') {
+      return 'Dar de baja tarea';
+    }
+
+    return 'Reabrir tarea';
   }
 
   private cargarTareas(conFiltros: boolean): void {
@@ -303,6 +374,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
           this.paginaActual = response.page;
           this.cantidadPorPagina = response.limit;
           this.totalPaginas = response.totalPages;
+
           this.cdr.detectChanges();
         },
         error: (err: HttpErrorResponse) => {
@@ -313,8 +385,23 @@ export class TaskListComponent implements OnInit, OnDestroy {
           if (!conFiltros || err.status !== 400) {
             this.mostrarError(err, 'No se pudieron cargar las tareas.');
           }
+
+          this.cdr.detectChanges();
         },
       });
+  }
+
+  private cargarProyectos(): void {
+    this.projectService.getAll().subscribe({
+      next: (projects: Project[]) => {
+        this.proyectos = projects;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.proyectos = [];
+        this.cdr.detectChanges();
+      },
+    });
   }
 
   private crearTareaVacia(): TaskFormData {
@@ -326,15 +413,15 @@ export class TaskListComponent implements OnInit, OnDestroy {
     };
   }
 
-  private mostrarError(error: HttpErrorResponse, titulo: string): void {
-    const detalle = this.obtenerMensajeError(error);
-
+  private mostrarError(error: unknown, mensajePorDefecto: string): void {
     this.alerta = {
-      title: titulo,
-      message: detalle,
+      title: 'Ocurrió un error',
+      message: this.obtenerMensajeError(error, mensajePorDefecto),
       type: 'error',
       confirmText: 'Entendido',
     };
+
+    this.cdr.detectChanges();
   }
 
   private mostrarAviso(title: string, message: string): void {
@@ -344,6 +431,8 @@ export class TaskListComponent implements OnInit, OnDestroy {
       type: 'info',
       confirmText: 'Entendido',
     };
+
+    this.cdr.detectChanges();
   }
 
   private pedirConfirmacion(alerta: Omit<TaskAlert, 'type'>): void {
@@ -353,19 +442,27 @@ export class TaskListComponent implements OnInit, OnDestroy {
       confirmText: 'Aceptar',
       ...alerta,
     };
+
+    this.cdr.detectChanges();
   }
 
-  private obtenerMensajeError(error: HttpErrorResponse): string {
-    const message = error.error?.message ?? error.message;
+  private obtenerMensajeError(error: unknown, mensajePorDefecto: string): string {
+    if (error instanceof HttpErrorResponse) {
+      const backendMessage = error.error?.message;
 
-    if (Array.isArray(message)) {
-      return message.join('\n');
+      if (Array.isArray(backendMessage)) {
+        return backendMessage.join('. ');
+      }
+
+      if (typeof backendMessage === 'string' && backendMessage.trim()) {
+        return backendMessage;
+      }
+
+      if (typeof error.error === 'string' && error.error.trim()) {
+        return error.error;
+      }
     }
 
-    if (typeof message === 'string') {
-      return message;
-    }
-
-    return '';
+    return mensajePorDefecto;
   }
 }

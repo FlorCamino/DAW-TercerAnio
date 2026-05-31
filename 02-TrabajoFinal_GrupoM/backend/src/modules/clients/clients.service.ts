@@ -40,7 +40,7 @@ export class ClientsService {
 
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-  ) {}
+  ) { }
 
   async create(dto: CreateClientDto): Promise<ClientResponseDto> {
     const client = this.clientRepository.create({
@@ -81,9 +81,19 @@ export class ClientsService {
     };
   }
 
-  async findOne(id: number): Promise<ClientResponseDto> {
-    const client = await this.findClientOrFail(id);
-    return ClientsMapper.toResponse(client);
+  async findOne(id: number) {
+    const client = await this.clientRepository.findOne({
+      where: { id },
+      relations: {
+        proyectos: true,
+      },
+    });
+
+    if (!client) {
+      throw new NotFoundException('Cliente no encontrado');
+    }
+
+    return client;
   }
 
   async update(id: number, dto: UpdateClientDto): Promise<ClientResponseDto> {

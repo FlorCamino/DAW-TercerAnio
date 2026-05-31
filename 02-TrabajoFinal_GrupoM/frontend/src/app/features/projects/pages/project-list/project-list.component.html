@@ -1,4 +1,4 @@
-<div class="projects-container">
+<div class="management-container">
   <section class="management-header">
     <div class="management-title-block">
       <h1>Proyectos</h1>
@@ -10,60 +10,190 @@
     </a>
   </section>
 
+  <section class="management-toolbar" aria-label="Búsqueda de proyectos">
+    <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
+      <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
+        aria-label="Filtrar por estado">
+        <span>{{ obtenerTextoEstado(filtros.estado) }}</span>
+        <span class="custom-status-arrow">▾</span>
+      </button>
+
+      <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
+        <button type="button" class="custom-status-option" [class.selected]="filtros.estado === ''"
+          (click)="seleccionarEstado('')">
+          Todos los estados
+        </button>
+
+        <button type="button" class="custom-status-option" [class.selected]="filtros.estado === 'activo'"
+          (click)="seleccionarEstado('activo')">
+          Activo
+        </button>
+
+        <button type="button" class="custom-status-option done" [class.selected]="filtros.estado === 'finalizado'"
+          (click)="seleccionarEstado('finalizado')">
+          Finalizado
+        </button>
+
+        <button type="button" class="custom-status-option danger" [class.selected]="filtros.estado === 'baja'"
+          (click)="seleccionarEstado('baja')">
+          Baja
+        </button>
+      </div>
+    </div>
+
+    <input class="management-search" [(ngModel)]="filtros.busqueda" (ngModelChange)="actualizarBusqueda()"
+      placeholder="Buscar por nombre, cliente o fecha..." />
+
+    <button class="primary-button" type="button" (click)="buscarProyectos()">
+      Buscar
+    </button>
+
+    <button class="secondary-button" type="button" (click)="limpiarFiltros()">
+      Limpiar
+    </button>
+  </section>
+
+  <p class="management-message" *ngIf="mensajeEdicion">{{ mensajeEdicion }}</p>
+  <p class="management-message error" *ngIf="errorEdicion">{{ errorEdicion }}</p>
+
+  <section class="form-card management-edit-card" aria-label="Formulario de ediciÃ³n de proyecto" aria-live="polite"
+    *ngIf="editando">
+    <div class="edit-panel-header">
+      <span class="edit-eyebrow">Modo edición</span>
+      <strong>{{ proyectoEditado.name || 'Proyecto seleccionado' }}</strong>
+    </div>
+
+    <div class="form-grid">
+      <label class="field-control">
+        <span>Nombre</span>
+        <input [(ngModel)]="proyectoEditado.name" placeholder="Nombre del proyecto" />
+      </label>
+
+      <label class="field-control">
+        <span>Cliente</span>
+        <select [(ngModel)]="proyectoEditado.clientId">
+          <option [ngValue]="null">Sin cliente</option>
+          <option *ngFor="let client of clientesActivos" [ngValue]="client.id">
+            {{ client.nombre }}
+          </option>
+        </select>
+      </label>
+
+      <label class="field-control">
+        <span>Finalización</span>
+        <input type="date" [(ngModel)]="proyectoEditado.endDate" />
+      </label>
+
+      <div class="edit-actions">
+        <button class="primary-button" type="button" (click)="guardar()" [disabled]="guardando">
+          {{ guardando ? 'Actualizando...' : 'Actualizar' }}
+        </button>
+
+        <button class="secondary-button" type="button" (click)="limpiar()" [disabled]="guardando">
+          Cancelar
+        </button>
+      </div>
+    </div>
+  </section>
+
   @if (loading()) {
-  <p class="project-list-message">Cargando proyectos...</p>
+  <p class="management-message">Cargando proyectos...</p>
   } @else if (error()) {
-  <p class="project-list-message error">{{ error() }}</p>
+  <p class="management-message error">{{ error() }}</p>
   } @else {
-  <table class="projects-table">
-    <thead>
-      <tr>
-        <th>Nombre</th>
-        <th>Estado</th>
-        <th>Cliente</th>
-        <th>Finalización</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
+  <section class="management-table-wrapper" aria-label="Listado de proyectos">
+    <table class="management-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Estado</th>
+          <th>Cliente</th>
+          <th>Finalización</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
 
-    <tbody>
-      @for (project of projects(); track project.id) {
-      <tr>
-        <td>
-          {{ project.name }}
+      <tbody>
+        @for (project of listaProyectos; track project.id) {
+        <tr [class.editing-row]="editando && project.id === proyectoEditado.id">
+          <td>
+            {{ project.name }}
 
-          @if (project.isOverdue) {
-          <span class="badge-overdue">Retrasado</span>
-          }
-        </td>
+            @if (project.isOverdue) {
+            <span class="badge-overdue">Retrasado</span>
+            }
+          </td>
 
-        <td>
-          <app-project-status-badge [status]="project.status" />
-        </td>
+          <td>
+            <select class="status-select" [class.done]="normalizarEstadoProyecto(project.status) === 'finalizado'"
+              [class.inactive]="normalizarEstadoProyecto(project.status) === 'baja'"
+              [ngModel]="normalizarEstadoProyecto(project.status)" (ngModelChange)="cambiarEstado(project, $event)"
+              [disabled]="cambiandoEstadoId === project.id" aria-label="Cambiar estado del proyecto">
+              <option value="activo">Activo</option>
+              <option value="finalizado">Finalizado</option>
+              <option value="baja">Baja</option>
+            </select>
+          </td>
 
-        <td>{{ project.client?.nombre ?? 'Sin cliente' }}</td>
-        <td>{{ project.endDate ?? '—' }}</td>
+          <td>{{ project.client?.nombre ?? 'Sin cliente' }}</td>
+          <td>{{ project.endDate ?? '—' }}</td>
 
-        <td>
-          <div class="table-actions">
-            <a [routerLink]="['/projects', project.id]" class="action-button action-view">
-              Ver
-            </a>
+          <td>
+            <div class="table-actions">
+              <a [routerLink]="['/projects', project.id]" class="action-button action-view">
+                Ver
+              </a>
 
-            <a [routerLink]="['/projects', project.id, 'edit']" class="action-button action-edit">
-              Editar
-            </a>
-          </div>
-        </td>
-      </tr>
-      } @empty {
-      <tr>
-        <td colspan="5" class="project-empty-row">
-          No hay proyectos cargados.
-        </td>
-      </tr>
-      }
-    </tbody>
-  </table>
+              <button type="button" class="action-button action-edit" (click)="editar(project)"
+                [disabled]="estaDeBaja(project)">
+                Editar
+              </button>
+            </div>
+          </td>
+        </tr>
+        } @empty {
+        <tr>
+          <td colspan="5" class="management-empty-row">
+            {{
+            hayFiltrosActivos()
+            ? 'No hay proyectos que coincidan con los filtros seleccionados.'
+            : 'No hay proyectos cargados.'
+            }}
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+
+    @if (totalProyectos > 0) {
+    <div class="pagination-bar">
+      <div class="page-size-control">
+        <span>Proyectos por página</span>
+
+        <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
+          <option [ngValue]="6">6</option>
+          <option [ngValue]="5">5</option>
+          <option [ngValue]="10">10</option>
+          <option [ngValue]="20">20</option>
+        </select>
+      </div>
+
+      <span class="pagination-summary">
+        Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalProyectos }} proyectos
+      </span>
+
+      <div class="pagination-actions">
+        <button class="secondary-button" type="button" (click)="paginaAnterior()" [disabled]="paginaActual <= 1">
+          Anterior
+        </button>
+
+        <button class="secondary-button" type="button" (click)="paginaSiguiente()"
+          [disabled]="paginaActual >= totalPaginas">
+          Siguiente
+        </button>
+      </div>
+    </div>
+    }
+  </section>
   }
 </div>

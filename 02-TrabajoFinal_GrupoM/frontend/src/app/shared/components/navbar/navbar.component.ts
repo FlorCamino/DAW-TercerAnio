@@ -11,11 +11,18 @@ import { IsActiveMatchOptions, RouterLink, RouterLinkActive } from '@angular/rou
 export class NavbarComponent {
   protected menuOpen = false;
 
-  protected readonly activeLinkOptions: IsActiveMatchOptions = {
+  protected readonly dashboardLinkOptions: IsActiveMatchOptions = {
     paths: 'exact',
     queryParams: 'ignored',
     matrixParams: 'ignored',
-    fragment: 'exact',
+    fragment: 'ignored',
+  };
+
+  protected readonly sectionLinkOptions: IsActiveMatchOptions = {
+    paths: 'subset',
+    queryParams: 'ignored',
+    matrixParams: 'ignored',
+    fragment: 'ignored',
   };
 
   protected toggleMenu(): void {
@@ -24,5 +31,12 @@ export class NavbarComponent {
 
   protected closeMenu(): void {
     this.menuOpen = false;
+  }
+
+  protected logout(): void {
+    this.closeMenu();
+
+    // TODO: Implement real logout when authentication is available.
+    // For now, this avoids changing the URL to #cerrar-sesion.
   }
 }

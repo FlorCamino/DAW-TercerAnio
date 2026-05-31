@@ -1,20 +1,26 @@
 import { Routes } from '@angular/router';
-import { ClienteCreateComponent } from './features/clients/components/cliente-create/cliente-create.component';
-import { ClientesListComponent } from './features/clients/components/clientes-list/clientes-list.component';
-import { HomeComponent } from './features/home/components/home/home.component';
+
+import { ClientCreateComponent } from './features/clients/pages/client-create/client-create.component';
+import { ClientDetailComponent } from './features/clients/pages/client-detail/client-detail.component';
+import { ClientListComponent } from './features/clients/pages/client-list/client-list.component';
+import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard.component';
 
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
+    component: DashboardComponent,
   },
   {
     path: 'clientes',
-    component: ClientesListComponent,
+    component: ClientListComponent,
   },
   {
     path: 'clientes/crear',
-    component: ClienteCreateComponent,
+    component: ClientCreateComponent,
+  },
+  {
+    path: 'clientes/:id',
+    component: ClientDetailComponent,
   },
   {
     path: 'clients/create',
@@ -41,6 +47,13 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'tareas/:id',
+    loadComponent: () =>
+      import('./features/tasks/pages/task-detail/task-detail.component').then(
+        (m) => m.TaskDetailComponent,
+      ),
+  },
+  {
     path: 'projects',
     loadComponent: () =>
       import('./features/projects/pages/project-list/project-list.component').then(
@@ -61,11 +74,9 @@ export const routes: Routes = [
         (m) => m.ProjectDetailComponent,
       ),
   },
+
   {
-    path: 'projects/:id/edit',
-    loadComponent: () =>
-      import('./features/projects/pages/project-edit/project-edit.component').then(
-        (m) => m.ProjectEditComponent,
-      ),
+    path: '**',
+    redirectTo: '',
   },
 ];

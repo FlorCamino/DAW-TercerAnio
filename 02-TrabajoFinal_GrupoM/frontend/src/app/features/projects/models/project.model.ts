@@ -1,10 +1,6 @@
-export type ProjectStatus = 'activo' | 'finalizado' | 'baja';
+import { Client } from '../../clients/models/client.model';
 
-export interface Client {
-  id: number;
-  nombre: string;
-  estado: string;
-}
+export type ProjectStatus = 'activo' | 'finalizado' | 'baja';
 
 export interface Project {
   id: number;

@@ -2,31 +2,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
+import { Client, ClientFilters, ClientFormData, PaginatedClients } from '../models/client.model';
 
 interface ApiResponse<T> {
   success: boolean;
   data: T;
 }
 
-export interface ClientFilters {
-  estado?: string;
-  busqueda?: string;
-  nombre?: string;
-  email?: string;
-  telefono?: string;
-  page?: number;
-  limit?: number;
-}
-
-export interface PaginatedClients {
-  data: any[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-type ClientsApiResponse = ApiResponse<PaginatedClients | any[]> | PaginatedClients | any[];
+type ClientsApiResponse = ApiResponse<PaginatedClients | Client[]> | PaginatedClients | Client[];
+type ClientApiResponse = ApiResponse<Client> | Client;
 
 @Injectable({
   providedIn: 'root',
@@ -36,7 +20,7 @@ export class ClientsService {
 
   constructor(private readonly http: HttpClient) { }
 
-  getClientes(filters: ClientFilters = {}): Observable<any[]> {
+  getClientes(filters: ClientFilters = {}): Observable<Client[]> {
     return this.getClientesPaginados(filters).pipe(
       map((response: PaginatedClients) => response.data),
     );
@@ -52,22 +36,47 @@ export class ClientsService {
       );
   }
 
-  crearCliente(cliente: any): Observable<any> {
+  getClientePorId(id: number): Observable<Client> {
+    return this.http.get<ClientApiResponse>(`${this.apiUrl}/${id}`).pipe(
+      map((response: ClientApiResponse) => {
+        if (
+          response &&
+          typeof response === 'object' &&
+          'success' in response &&
+          'data' in response
+        ) {
+          return response.data;
+        }
+
+        return response;
+      }),
+    );
+  }
+
+  crearCliente(cliente: ClientFormData): Observable<Client> {
     if (cliente.id) {
       const { id, ...clienteActualizado } = cliente;
-      return this.http.patch(`${this.apiUrl}/${id}`, clienteActualizado);
+      return this.http.patch<ClientApiResponse>(`${this.apiUrl}/${id}`, clienteActualizado).pipe(
+        map((response: ClientApiResponse) => this.getSingleResponsePayload(response)),
+      );
     }
 
     const { id, estado, ...nuevoCliente } = cliente;
-    return this.http.post(this.apiUrl, nuevoCliente);
+    return this.http.post<ClientApiResponse>(this.apiUrl, nuevoCliente).pipe(
+      map((response: ClientApiResponse) => this.getSingleResponsePayload(response)),
+    );
   }
 
-  cambiarEstado(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  cambiarEstado(id: number): Observable<Client> {
+    return this.http.delete<ClientApiResponse>(`${this.apiUrl}/${id}`).pipe(
+      map((response: ClientApiResponse) => this.getSingleResponsePayload(response)),
+    );
   }
 
-  activarCliente(id: number): Observable<any> {
-    return this.http.patch(`${this.apiUrl}/${id}`, { estado: 'activo' });
+  activarCliente(id: number): Observable<Client> {
+    return this.http.patch<ClientApiResponse>(`${this.apiUrl}/${id}`, { estado: 'activo' }).pipe(
+      map((response: ClientApiResponse) => this.getSingleResponsePayload(response)),
+    );
   }
 
   private buildParams(filters: ClientFilters): HttpParams {
@@ -111,7 +120,7 @@ export class ClientsService {
     return this.toPaginatedResponse([], filters);
   }
 
-  private getResponsePayload(response: ClientsApiResponse): PaginatedClients | any[] {
+  private getResponsePayload(response: ClientsApiResponse): PaginatedClients | Client[] {
     if (Array.isArray(response)) {
       return response;
     }
@@ -123,7 +132,15 @@ export class ClientsService {
     return response;
   }
 
-  private toPaginatedResponse(data: any[], filters: ClientFilters): PaginatedClients {
+  private getSingleResponsePayload(response: ClientApiResponse): Client {
+    if ('success' in response && 'data' in response) {
+      return response.data;
+    }
+
+    return response;
+  }
+
+  private toPaginatedResponse(data: Client[], filters: ClientFilters): PaginatedClients {
     const limit = filters.limit ?? data.length;
 
     return {
