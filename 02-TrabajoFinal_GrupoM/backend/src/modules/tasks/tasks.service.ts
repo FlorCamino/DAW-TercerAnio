@@ -29,7 +29,7 @@ export class TasksService {
 
     @InjectRepository(Project)
     private readonly projectRepository: Repository<Project>,
-  ) {}
+  ) { }
 
   async create(dto: CreateTaskDto): Promise<TaskResponseDto> {
     const project = await this.findProject(dto.proyectoId);
@@ -42,14 +42,18 @@ export class TasksService {
     });
 
     const saved = await this.taskRepository.save(task);
-    return TasksMapper.toResponse(saved);
+    const taskWithProject = await this.findTaskWithProject(saved.id);
+
+    return TasksMapper.toResponse(taskWithProject);
   }
 
   async findAll(filters: TaskFilters): Promise<TaskListResponseDto> {
     const page =
       Number.isFinite(filters.page) && filters.page > 0 ? filters.page : 1;
+
     const limit =
       Number.isFinite(filters.limit) && filters.limit > 0 ? filters.limit : 10;
+
     const estado = filters.estado?.trim();
     const busqueda = filters.busqueda?.trim();
 
@@ -82,19 +86,29 @@ export class TasksService {
   }
 
   async findOne(id: number): Promise<TaskResponseDto> {
-    const task = await this.taskRepository.findOneBy({ id });
-
-    if (!task) {
-      throw new NotFoundException(`Tarea con id ${id} no existe`);
-    }
+    const task = await this.findTaskWithProject(id);
 
     return TasksMapper.toResponse(task);
   }
 
   async update(id: number, dto: UpdateTaskDto): Promise<TaskResponseDto> {
-    const task = await this.findTask(id);
+    const task = await this.findTaskWithProject(id);
 
-    if (task.estado === TaskStatus.DELETED) {
+    const onlyChangingStatus =
+      dto.estado !== undefined &&
+      dto.descripcion === undefined &&
+      dto.proyectoId === undefined;
+
+    const isReactivatingDeletedTask =
+      task.estado === TaskStatus.DELETED &&
+      dto.estado !== undefined &&
+      dto.estado !== TaskStatus.DELETED;
+
+    if (
+      task.estado === TaskStatus.DELETED &&
+      !onlyChangingStatus &&
+      !isReactivatingDeletedTask
+    ) {
       throw new BadRequestException(
         'No se puede modificar una tarea dada de baja',
       );
@@ -110,27 +124,41 @@ export class TasksService {
     }
 
     if (dto.estado !== undefined) {
+      if (!this.isValidStatus(dto.estado)) {
+        throw new BadRequestException('El estado indicado no es valido');
+      }
+
       task.estado = dto.estado;
     }
 
     const saved = await this.taskRepository.save(task);
-    return TasksMapper.toResponse(saved);
+    const taskWithProject = await this.findTaskWithProject(saved.id);
+
+    return TasksMapper.toResponse(taskWithProject);
   }
 
   async remove(id: number): Promise<TaskResponseDto> {
-    const task = await this.findTask(id);
+    const task = await this.findTaskWithProject(id);
 
     if (task.estado === TaskStatus.DELETED) {
       throw new BadRequestException('La tarea ya esta dada de baja');
     }
 
     task.estado = TaskStatus.DELETED;
+
     const saved = await this.taskRepository.save(task);
-    return TasksMapper.toResponse(saved);
+    const taskWithProject = await this.findTaskWithProject(saved.id);
+
+    return TasksMapper.toResponse(taskWithProject);
   }
 
-  private async findTask(id: number): Promise<Task> {
-    const task = await this.taskRepository.findOne({ where: { id } });
+  private async findTaskWithProject(id: number): Promise<Task> {
+    const task = await this.taskRepository.findOne({
+      where: { id },
+      relations: {
+        project: true,
+      },
+    });
 
     if (!task) {
       throw new NotFoundException(`Tarea con id ${id} no existe`);

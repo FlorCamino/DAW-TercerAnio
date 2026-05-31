@@ -1,13 +1,16 @@
-<main class="clients-page">
-  <section class="clients-header">
-    <div>
+<main class="management-container">
+  <section class="management-header">
+    <div class="management-title-block">
       <h1>Clientes</h1>
       <p>Administra contactos, estados y datos principales de cada cliente.</p>
     </div>
-    <a class="primary-button new-client-button" routerLink="/clientes/crear">+ Nuevo cliente</a>
+
+    <a class="primary-button" routerLink="/clientes/crear">
+      + Nuevo cliente
+    </a>
   </section>
 
-  <section class="clients-toolbar" aria-label="Búsqueda de clientes">
+  <section class="management-toolbar" aria-label="Búsqueda de clientes">
     <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
       <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
         aria-label="Filtrar por estado">
@@ -32,15 +35,23 @@
         </button>
       </div>
     </div>
-    <input class="relative-search" [(ngModel)]="filtros.busqueda" (ngModelChange)="actualizarBusqueda()"
-      placeholder="Buscar por parte del nombre, email o telefono..." />
-    <button class="primary-button" (click)="buscarClientes()">Buscar</button>
-    <button class="secondary-button" (click)="limpiarFiltros()">Limpiar</button>
+
+    <input class="management-search" [(ngModel)]="filtros.busqueda" (ngModelChange)="actualizarBusqueda()"
+      placeholder="Buscar por parte del nombre, email o teléfono..." />
+
+    <button class="primary-button" (click)="buscarClientes()">
+      Buscar
+    </button>
+
+    <button class="secondary-button" (click)="limpiarFiltros()">
+      Limpiar
+    </button>
   </section>
 
-  <section class="client-form" aria-label="Formulario de cliente" aria-live="polite" *ngIf="editando">
+  <section class="form-card management-edit-card" aria-label="Formulario de cliente" aria-live="polite"
+    *ngIf="editando">
     <div class="edit-panel-header">
-      <span class="edit-eyebrow">Modo edicion</span>
+      <span class="edit-eyebrow">Modo edición</span>
       <strong>{{ clienteEditado.nombre || 'Cliente seleccionado' }}</strong>
     </div>
 
@@ -49,24 +60,32 @@
         <span>Nombre</span>
         <input [(ngModel)]="clienteEditado.nombre" placeholder="Nombre" />
       </label>
+
       <label class="field-control">
         <span>Email</span>
         <input [(ngModel)]="clienteEditado.email" placeholder="Email" />
       </label>
+
       <label class="field-control">
-        <span>Telefono</span>
-        <input [(ngModel)]="clienteEditado.telefono" placeholder="Telefono" inputmode="numeric" minlength="7"
+        <span>Teléfono</span>
+        <input [(ngModel)]="clienteEditado.telefono" placeholder="Teléfono" inputmode="numeric" minlength="7"
           maxlength="15" pattern="[0-9]{7,15}" />
       </label>
+
       <div class="edit-actions">
-        <button class="primary-button" (click)="guardar()">Actualizar</button>
-        <button class="secondary-button" (click)="limpiar()">Cancelar</button>
+        <button class="primary-button" (click)="guardar()">
+          Actualizar
+        </button>
+
+        <button class="secondary-button" (click)="limpiar()">
+          Cancelar
+        </button>
       </div>
     </div>
   </section>
 
-  <section class="clients-table" aria-label="Listado de clientes">
-    <table>
+  <section class="management-table-wrapper" aria-label="Listado de clientes">
+    <table class="management-table">
       <thead>
         <tr>
           <th>Nombre</th>
@@ -76,30 +95,37 @@
           <th>Acciones</th>
         </tr>
       </thead>
+
       <tbody>
         <tr *ngFor="let cliente of listaClientes" [class.editing-row]="editando && cliente.id === clienteEditado.id">
           <td>{{ cliente.nombre }}</td>
           <td>{{ cliente.email || 'Sin email' }}</td>
-          <td>{{ cliente.telefono || 'Sin telefono' }}</td>
+          <td>{{ cliente.telefono || 'Sin teléfono' }}</td>
+
           <td>
-            <span class="status-pill" [class.inactive]="estaDeBaja(cliente)">
-              {{ cliente.estado }}
-            </span>
+            <select class="status-select" [class.inactive]="normalizarEstado(cliente.estado) === 'baja'"
+              [ngModel]="normalizarEstado(cliente.estado)" (ngModelChange)="solicitarCambioEstado(cliente, $event)"
+              [disabled]="cambiandoEstadoId === cliente.id" aria-label="Cambiar estado del cliente">
+              <option value="activo">Activo</option>
+              <option value="baja">Baja</option>
+            </select>
           </td>
-          <td class="actions-cell">
-            <button class="action-button action-edit" (click)="editar(cliente)" [disabled]="estaDeBaja(cliente)">
-              Editar
-            </button>
-            <button class="action-button action-danger" (click)="eliminar(cliente)" [disabled]="estaDeBaja(cliente)">
-              Baja
-            </button>
-            <button class="action-button action-success" *ngIf="estaDeBaja(cliente)" (click)="activar(cliente.id)">
-              Alta
-            </button>
+
+          <td>
+            <div class="table-actions">
+              <a class="action-button action-view" [routerLink]="['/clientes', cliente.id]">
+                Ver
+              </a>
+
+              <button class="action-button action-edit" (click)="editar(cliente)" [disabled]="estaDeBaja(cliente)">
+                Editar
+              </button>
+            </div>
           </td>
         </tr>
+
         <tr *ngIf="listaClientes.length === 0">
-          <td colspan="5" class="empty-row">
+          <td colspan="5" class="management-empty-row">
             {{
             hayFiltrosActivos()
             ? 'No hay clientes que coincidan con los filtros seleccionados.'
@@ -113,6 +139,7 @@
     <div class="pagination-bar" *ngIf="totalClientes > 0">
       <div class="page-size-control">
         <span>Clientes por página</span>
+
         <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
           <option [ngValue]="6">6</option>
           <option [ngValue]="5">5</option>
@@ -122,13 +149,14 @@
       </div>
 
       <span class="pagination-summary">
-        Pagina {{ paginaActual }} de {{ totalPaginas }} - {{ totalClientes }} clientes
+        Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalClientes }} clientes
       </span>
 
       <div class="pagination-actions">
         <button class="secondary-button" (click)="paginaAnterior()" [disabled]="paginaActual <= 1">
           Anterior
         </button>
+
         <button class="secondary-button" (click)="paginaSiguiente()" [disabled]="paginaActual >= totalPaginas">
           Siguiente
         </button>
@@ -136,21 +164,25 @@
     </div>
   </section>
 
-  <div class="client-alert-backdrop" *ngIf="alerta as alertaActual">
-    <section class="client-alert" [class.error]="alertaActual.type === 'error'">
-      <div class="client-alert-header">
-        <span class="client-alert-icon">
+  <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+    <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+      <div class="management-alert-header">
+        <span class="management-alert-icon">
           {{ alertaActual.type === 'error' ? '!' : '?' }}
         </span>
+
         <h2>{{ alertaActual.title }}</h2>
       </div>
 
-      <p *ngIf="alertaActual.message">{{ alertaActual.message }}</p>
+      <p *ngIf="alertaActual.message">
+        {{ alertaActual.message }}
+      </p>
 
-      <div class="client-alert-actions">
+      <div class="management-alert-actions">
         <button class="secondary-button" *ngIf="alertaActual.type === 'confirm'" (click)="cerrarAlerta()">
           {{ alertaActual.cancelText }}
         </button>
+
         <button [class.primary-button]="!alertaActual.confirmDanger" [class.danger-button]="alertaActual.confirmDanger"
           (click)="confirmarAlerta()">
           {{ alertaActual.confirmText }}

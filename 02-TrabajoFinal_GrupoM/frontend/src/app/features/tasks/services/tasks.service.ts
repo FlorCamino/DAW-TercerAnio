@@ -2,31 +2,15 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Task, TaskFormData } from '../models/task.model';
+import { PaginatedTasks, Task, TaskFilters, TaskFormData, TaskStatus } from '../models/task.model';
 
 interface ApiResponse<T> {
   success: boolean;
   data: T;
 }
 
-export interface TaskFilters {
-  estado?: string;
-  busqueda?: string;
-  descripcion?: string;
-  proyectoId?: number | string | null;
-  page?: number;
-  limit?: number;
-}
-
-export interface PaginatedTasks {
-  data: Task[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
 type TasksApiResponse = ApiResponse<PaginatedTasks | Task[]> | PaginatedTasks | Task[];
+type TaskApiResponse = ApiResponse<Task> | Task;
 
 @Injectable({
   providedIn: 'root',
@@ -52,22 +36,36 @@ export class TasksService {
       );
   }
 
+  getTareaPorId(id: number): Observable<Task> {
+    return this.http.get<TaskApiResponse>(`${this.apiUrl}/${id}`).pipe(
+      map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+    );
+  }
+
   guardarTarea(tarea: TaskFormData): Observable<Task> {
     if (tarea.id) {
       const { id, ...tareaActualizada } = tarea;
-      return this.http.patch<Task>(`${this.apiUrl}/${id}`, tareaActualizada);
+      return this.http.patch<TaskApiResponse>(`${this.apiUrl}/${id}`, tareaActualizada).pipe(
+        map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+      );
     }
 
     const { id, ...nuevaTarea } = tarea;
-    return this.http.post<Task>(this.apiUrl, nuevaTarea);
+    return this.http.post<TaskApiResponse>(this.apiUrl, nuevaTarea).pipe(
+      map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+    );
   }
 
-  cambiarEstado(id: number, estado: string): Observable<Task> {
-    return this.http.patch<Task>(`${this.apiUrl}/${id}`, { estado });
+  cambiarEstado(id: number, estado: TaskStatus): Observable<Task> {
+    return this.http.patch<TaskApiResponse>(`${this.apiUrl}/${id}`, { estado }).pipe(
+      map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+    );
   }
 
-  eliminarTarea(id: number): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  eliminarTarea(id: number): Observable<Task> {
+    return this.http.delete<TaskApiResponse>(`${this.apiUrl}/${id}`).pipe(
+      map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+    );
   }
 
   private buildParams(filters: TaskFilters): HttpParams {
@@ -116,6 +114,14 @@ export class TasksService {
       return response;
     }
 
+    if ('success' in response && 'data' in response) {
+      return response.data;
+    }
+
+    return response;
+  }
+
+  private getSingleResponsePayload(response: TaskApiResponse): Task {
     if ('success' in response && 'data' in response) {
       return response.data;
     }

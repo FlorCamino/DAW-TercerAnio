@@ -8,14 +8,13 @@ import { ProjectFormComponent, ProjectFormValue } from '../../components/project
   selector: 'app-project-create',
   standalone: true,
   imports: [CommonModule, RouterLink, ProjectFormComponent],
-  templateUrl: './project-create.component.html',
-  styleUrl: '../../projects.styles.css',
+  templateUrl: './project-create.component.html'
 })
 export class ProjectCreateComponent {
   constructor(
     private projectService: ProjectService,
     private router: Router,
-  ) {}
+  ) { }
 
   onSubmit(value: ProjectFormValue): void {
     this.projectService.create(value).subscribe(() => {

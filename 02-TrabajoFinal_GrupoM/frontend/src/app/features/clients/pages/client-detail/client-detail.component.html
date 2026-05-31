@@ -1,0 +1,98 @@
+<div class="management-container entity-detail-container">
+    @if (loading()) {
+    <p class="management-message">Cargando cliente...</p>
+    } @else if (error()) {
+    <p class="management-message error">{{ error() }}</p>
+    } @else if (cliente()) {
+    <section class="detail-card entity-detail-card">
+        <div class="entity-detail-header">
+            <div class="entity-avatar" aria-hidden="true">
+                {{ cliente()!.nombre.charAt(0) || 'C' }}
+            </div>
+
+            <div class="entity-title-block">
+                <span class="detail-eyebrow">Detalle de cliente</span>
+
+                <div class="entity-title-row">
+                    <h1>{{ cliente()!.nombre }}</h1>
+
+                    <span class="status-pill" [class.inactive]="estaDeBaja(cliente()!.estado)">
+                        {{ obtenerEstado(cliente()!.estado) }}
+                    </span>
+                </div>
+
+                <p>
+                    Información general del cliente registrado en el sistema.
+                </p>
+            </div>
+        </div>
+
+        <div class="entity-detail-grid">
+            <article class="entity-info-item">
+                <span class="info-label">Nombre</span>
+                <strong>{{ cliente()!.nombre }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Email</span>
+                <strong>{{ cliente()!.email || 'Sin email' }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Teléfono</span>
+                <strong>{{ cliente()!.telefono || 'Sin teléfono' }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Estado</span>
+                <strong>{{ obtenerEstado(cliente()!.estado) }}</strong>
+            </article>
+        </div>
+
+        <section class="related-section">
+            <div class="related-header">
+                <div>
+                    <span class="detail-eyebrow">Proyectos asociados</span>
+                    <h2>{{ proyectosAsociados.length }} proyecto(s)</h2>
+                </div>
+            </div>
+
+            @if (proyectosAsociados.length > 0) {
+            <div class="related-list">
+                @for (project of proyectosAsociados; track project.id) {
+                <article class="related-card">
+                    <div>
+                        <h3>{{ project.name }}</h3>
+
+                        <span class="status-pill" [class.done]="esProyectoFinalizado(project.status)"
+                            [class.inactive]="esProyectoBaja(project.status)">
+                            {{ obtenerEstadoProyecto(project.status) }}
+                        </span>
+                    </div>
+
+                    <div class="related-meta">
+                        <span>Finalización</span>
+                        <strong>{{ project.endDate || 'Sin fecha' }}</strong>
+                    </div>
+
+                    <a class="action-button action-view" [routerLink]="['/projects', project.id]">
+                        Ver proyecto
+                    </a>
+                </article>
+                }
+            </div>
+            } @else {
+            <p class="related-empty">
+                Este cliente no tiene proyectos asociados.
+            </p>
+            }
+        </section>
+
+        <div class="detail-actions entity-detail-actions">
+            <a routerLink="/clientes" class="secondary-button">
+                Volver
+            </a>
+        </div>
+    </section>
+    }
+</div>

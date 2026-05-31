@@ -113,7 +113,13 @@ export class ProjectsService {
     if (!project) {
       throw new NotFoundException(`Proyecto con id ${id} no encontrado`);
     }
-    if (project.status === ProjectStatus.INACTIVE) {
+    const onlyChangingStatus =
+      dto.status !== undefined &&
+      dto.name === undefined &&
+      dto.clientId === undefined &&
+      dto.endDate === undefined;
+
+    if (project.status === ProjectStatus.INACTIVE && !onlyChangingStatus) {
       throw new BadRequestException(
         'No se puede modificar un proyecto dado de baja',
       );

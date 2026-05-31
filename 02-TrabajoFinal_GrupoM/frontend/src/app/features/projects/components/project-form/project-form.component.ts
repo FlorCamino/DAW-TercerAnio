@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, input, output, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+
 import { ClientsService } from '../../../clients/services/clients.service';
-import { Client, Project, ProjectStatus } from '../../models/project.model';
 
 export interface ProjectFormValue {
   name: string;
-  status: ProjectStatus;
   clientId: number | null;
   endDate: string | null;
 }
@@ -16,64 +15,73 @@ export interface ProjectFormValue {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './project-form.component.html',
-  styleUrl: '../../projects.styles.css',
 })
 export class ProjectFormComponent implements OnInit {
-  initialData = input<Project | null>(null);
-  submitLabel = input<string>('Guardar');
+  @Input() submitLabel = 'Guardar proyecto';
 
-  formSubmit = output<ProjectFormValue>();
+  @Input() initialValue: ProjectFormValue = {
+    name: '',
+    clientId: null,
+    endDate: null,
+  };
 
-  name = signal('');
-  status = signal<ProjectStatus>('activo');
-  clientId = signal<number | null>(null);
-  endDate = signal<string | null>(null);
-  clients = signal<Client[]>([]);
+  @Output() formSubmit = new EventEmitter<ProjectFormValue>();
 
-  statuses: ProjectStatus[] = ['activo', 'finalizado', 'baja'];
+  form: ProjectFormValue = {
+    name: '',
+    clientId: null,
+    endDate: null,
+  };
+
+  clientes: any[] = [];
+  cargandoClientes = false;
+  errorClientes = '';
 
   constructor(private readonly clientsService: ClientsService) { }
 
   ngOnInit(): void {
-    this.loadActiveClients();
-    this.loadInitialData();
+    this.form = {
+      name: this.initialValue.name ?? '',
+      clientId: this.initialValue.clientId ?? null,
+      endDate: this.initialValue.endDate ?? null,
+    };
+
+    this.cargarClientes();
   }
 
-  onSubmit(): void {
-    const projectName = this.name().trim();
-
-    if (!projectName) {
-      return;
-    }
-
+  submit(): void {
     this.formSubmit.emit({
-      name: projectName,
-      status: this.status(),
-      clientId: this.clientId() ? Number(this.clientId()) : null,
-      endDate: this.endDate() || null,
+      name: this.form.name.trim(),
+      clientId: this.form.clientId ? Number(this.form.clientId) : null,
+      endDate: this.form.endDate || null,
     });
   }
 
-  private loadActiveClients(): void {
-    this.clientsService.getClientes().subscribe((data: Client[]) => {
-      const activeClients = data.filter((client: Client) => {
-        return client.estado?.toLowerCase() === 'activo';
-      });
-
-      this.clients.set(activeClients);
-    });
+  estaDeBaja(cliente: any): boolean {
+    return String(cliente?.estado ?? '').toLowerCase() === 'baja';
   }
 
-  private loadInitialData(): void {
-    const data = this.initialData();
+  private cargarClientes(): void {
+    this.cargandoClientes = true;
+    this.errorClientes = '';
 
-    if (!data) {
-      return;
-    }
+    this.clientsService.getClientesPaginados({
+      estado: 'activo',
+      page: 1,
+      limit: 1000,
+    }).subscribe({
+      next: (response) => {
+        this.clientes = (response.data ?? []).filter(
+          (cliente) => String(cliente.estado ?? '').toLowerCase() === 'activo',
+        );
 
-    this.name.set(data.name);
-    this.status.set(data.status);
-    this.clientId.set(data.clientId);
-    this.endDate.set(data.endDate);
+        this.cargandoClientes = false;
+      },
+      error: () => {
+        this.clientes = [];
+        this.errorClientes = 'No se pudieron cargar los clientes activos.';
+        this.cargandoClientes = false;
+      },
+    });
   }
 }
