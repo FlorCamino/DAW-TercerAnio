@@ -15,6 +15,13 @@ import { CreateProjectDto } from './dtos/input/create-project.dto';
 import { UpdateProjectDto } from './dtos/input/update-project.dto';
 import { ProjectsService } from './projects.service';
 
+// Para manejo de roles
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../common/guards/auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { UserRole } from '../../common/enums/user-role.enum';
+import { Roles } from '../../common/decorators/roles.decorator';
+
 @ApiTags('Projects')
 @Controller('projects')
 export class ProjectsController {
@@ -102,7 +109,10 @@ export class ProjectsController {
     return this.projectsService.update(id, dto);
   }
 
+  // Solo administradores puede eliminar (manejo de roles)
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.remove(id);
   }

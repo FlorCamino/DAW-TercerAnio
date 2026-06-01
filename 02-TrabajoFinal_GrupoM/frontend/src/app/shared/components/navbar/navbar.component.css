@@ -282,3 +282,26 @@
     font-size: 0.9rem;
   }
 }
+
+.nav-user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border-right: 1px solid #d3dfda;
+  margin-right: 8px;
+  line-height: 1.3;
+}
+
+.nav-user-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: #14372f;
+}
+
+.nav-user-role {
+  font-size: 0.75rem;
+  color: #5b7078;
+  text-transform: capitalize;
+}

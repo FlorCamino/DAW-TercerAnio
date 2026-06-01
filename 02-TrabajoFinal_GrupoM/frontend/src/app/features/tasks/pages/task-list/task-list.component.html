@@ -115,7 +115,7 @@
                             [class.inactive]="normalizarEstadoTarea(tarea.estado) === 'baja'"
                             [ngModel]="normalizarEstadoTarea(tarea.estado)"
                             (ngModelChange)="solicitarCambioEstado(tarea, $event)"
-                            [disabled]="cambiandoEstadoId === tarea.id" aria-label="Cambiar estado de la tarea">
+                            [disabled]="cambiandoEstadoId === tarea.id || !esAdmin()" aria-label="Cambiar estado de la tarea">
                             <option value="pendiente">Pendiente</option>
                             <option value="finalizado">Finalizado</option>
                             <option value="baja">Baja</option>
@@ -129,7 +129,8 @@
                             </a>
 
                             <button class="action-button action-edit" type="button" (click)="editar(tarea)"
-                                [disabled]="estaDeBaja(tarea)">
+                                [disabled]="estaDeBaja(tarea)"
+                                *ngIf="esAdmin()">
                                 Editar
                             </button>
                         </div>

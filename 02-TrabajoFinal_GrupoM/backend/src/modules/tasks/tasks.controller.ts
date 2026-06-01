@@ -16,6 +16,13 @@ import { CreateTaskDto } from './dtos/input/create-task.dto';
 import { UpdateTaskDto } from './dtos/input/update-task.dto';
 import { TasksService } from './tasks.service';
 
+// Para manejo de roles
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../common/guards/auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { UserRole } from '../../common/enums/user-role.enum';
+import { Roles } from '../../common/decorators/roles.decorator';
+
 @ApiTags('Tasks')
 @Controller('tasks')
 export class TasksController {
@@ -88,7 +95,10 @@ export class TasksController {
     return this.tasksService.update(id, dto);
   }
 
+  // Solo los administradores pueden eliminar (manejo de roles)
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.tasksService.remove(id);
   }

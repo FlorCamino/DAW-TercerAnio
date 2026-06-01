@@ -1,0 +1,103 @@
+<div class="management-container entity-detail-container">
+    @if (loading()) {
+    <p class="management-message">Cargando usuario...</p>
+    } @else if (error()) {
+    <p class="management-message error">{{ error() }}</p>
+    } @else if (usuario()) {
+    <section class="detail-card entity-detail-card">
+        <div class="entity-detail-header">
+            <div class="entity-avatar" aria-hidden="true">
+                {{ usuario()!.nombre.charAt(0).toUpperCase() }}
+            </div>
+
+            <div class="entity-title-block">
+                <span class="detail-eyebrow">Detalle de usuario</span>
+
+                <div class="entity-title-row">
+                    <h1>{{ usuario()!.nombre }}</h1>
+
+                    <span class="status-pill" [class.inactive]="usuario()!.estado === 'baja'">
+                        {{ usuario()!.estado === 'baja' ? 'Baja' : 'Activo' }}
+                    </span>
+                </div>
+
+                <p>Información general del usuario registrado en el sistema.</p>
+            </div>
+        </div>
+
+        <p class="management-message" *ngIf="mensaje">{{ mensaje }}</p>
+        <p class="management-message error" *ngIf="errorAction">{{ errorAction }}</p>
+
+        <div class="entity-detail-grid">
+            <article class="entity-info-item">
+                <span class="info-label">Nombre</span>
+                <strong>{{ usuario()!.nombre }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Rol</span>
+                @if (esAdmin()) {
+                <select class="status-select" [ngModel]="usuario()!.rol" (ngModelChange)="cambiarRol($event)" [disabled]="cambiando">
+                    <option value="administrador">Administrador</option>
+                    <option value="usuario">Usuario</option>
+                </select>
+                } @else {
+                <strong>{{ usuario()!.rol }}</strong>
+                }
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Estado</span>
+                @if (esAdmin()) {
+                <select class="status-select" [class.inactive]="usuario()!.estado === 'baja'" [ngModel]="usuario()!.estado" (ngModelChange)="cambiarEstado($event)" [disabled]="cambiando">
+                    <option value="activo">Activo</option>
+                    <option value="baja">Baja</option>
+                </select>
+                } @else {
+                <strong>{{ usuario()!.estado === 'baja' ? 'Baja' : 'Activo' }}</strong>
+                }
+            </article>
+        </div>
+
+        @if (esMiUsuario || esAdmin()) {
+            <section class="related-section">
+                <div class="related-header">
+                    <div>
+                        <span class="detail-eyebrow">Seguridad</span>
+                        <h2>Cambiar contraseña</h2>
+                    </div>
+                </div>
+
+                <div class="form-grid">
+                    <label class="field-control">
+                        <span>Contraseña actual</span>
+                        <input type="password" [(ngModel)]="clave.actual" placeholder="Contraseña actual" />
+                    </label>
+
+                    <label class="field-control">
+                        <span>Contraseña nueva</span>
+                        <input type="password" [(ngModel)]="clave.nueva" placeholder="Entre 6 o más caracteres" />
+                    </label>
+
+                    <label class="field-control">
+                        <span>Confirmar nueva contraseña</span>
+                        <input type="password" [(ngModel)]="clave.confirmar" placeholder="Escriba nuevamente su contraseña nueva" />
+                    </label>
+
+                    <p class="management-message error" *ngIf="errorClave">{{ errorClave }}</p>
+                    <p class="management-message" *ngIf="mensajeClave">{{ mensajeClave }}</p>
+
+                    <div class="edit-actions">
+                        <button class="primary-button" type="button" (click)="guardarClave()" [disabled]="cambiandoClave">
+                            {{ cambiandoClave ? "Guardando..." : "Cambiar Contraseña" }}
+                        </button>
+                    </div>
+                </div>
+            </section>
+        }
+        <div class="detail-actions entity-detail-actions">
+            <a routerLink="/usuarios" class="secondary-button">Volver</a>
+        </div>
+    </section>
+    }
+</div>
