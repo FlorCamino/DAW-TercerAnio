@@ -6,10 +6,12 @@ import { Project } from '../projects/entities/project.entity';
 
 import { TasksService } from './tasks.service';
 import { TasksController } from './tasks.controller';
+import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Task, Project]), // 👈 AQUÍ ESTÁ EL FIX
+    TypeOrmModule.forFeature([Task, Project]),
+    AuthModule // 👈 AQUÍ ESTÁ EL FIX
   ],
   controllers: [TasksController],
   providers: [TasksService],
