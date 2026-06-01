@@ -10,6 +10,9 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { Task, TaskFormData, TaskStatus } from '../../models/task.model';
 import { TasksService } from '../../services/tasks.service';
 
+// Manejo de roles
+import { AuthService } from '../../../../../core/services/auth.service';
+
 type AlertType = 'info' | 'error' | 'confirm';
 type TaskState = TaskStatus;
 
@@ -58,7 +61,12 @@ export class TaskListComponent implements OnInit, OnDestroy {
     private readonly tasksService: TasksService,
     private readonly projectService: ProjectService,
     private readonly cdr: ChangeDetectorRef,
+    private readonly authService: AuthService,
   ) { }
+
+  esAdmin(): boolean {
+    return this.authService.esAdmin();
+  }
 
   ngOnInit(): void {
     this.filtrosChange$

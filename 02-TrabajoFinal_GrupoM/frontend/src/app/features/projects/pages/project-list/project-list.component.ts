@@ -8,6 +8,9 @@ import { ClientsService } from '../../../clients/services/clients.service';
 import { Project, ProjectStatus } from '../../models/project.model';
 import { ProjectService } from '../../services/project.service';
 
+// Manejo de roles
+import { AuthService } from '../../../../../core/services/auth.service';
+
 interface ProjectEditForm {
   id: number | null;
   name: string;
@@ -53,7 +56,12 @@ export class ProjectListComponent implements OnInit {
     private readonly projectService: ProjectService,
     private readonly clientsService: ClientsService,
     private readonly cdr: ChangeDetectorRef,
+    private readonly authService: AuthService,
   ) { }
+
+  esAdmin(): boolean {
+    return this.authService.esAdmin();
+  }
 
   ngOnInit(): void {
     this.loadActiveClients();
