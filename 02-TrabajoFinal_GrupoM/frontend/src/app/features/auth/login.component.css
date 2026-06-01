@@ -1,0 +1,105 @@
+.login-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f4f7f6;
+    font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+    padding: 20px;
+}
+
+.login-card {
+    background: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    border: 1px solid #d9e4df;
+    box-shadow: 0 8px 24px rgba(16, 37, 31, 0.05);
+    width: 100%;
+    max-width: 420px;
+}
+
+.login-header-block h2 {
+    margin: 0 0 10px 0;
+    color: #12211d;
+    font-size: 1.8rem;
+    font-weight: 800;
+    text-align: center;
+}
+
+.login-header-block p {
+    margin: 0 0 30px 0;
+    color: #5b7078;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    text-align: center;
+}
+
+.field-control {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.field-control label {
+    color: #1c2730;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.field-control input {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 1px solid #d9e4df;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #12211d;
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+}
+
+.field-control input:focus {
+    outline: none;
+    border-color: #154d3a;
+    box-shadow: 0 0 0 3px rgba(16, 37, 31, 0.05);
+}
+
+.btn-login-submit {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 8px;
+    color: #ffffff;
+    background: #10251f;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 10px;
+}
+
+.btn-login-submit:hover {
+    background: #336431;
+}
+
+.btn-login-submit:disabled {
+    background: #b8c6c1;
+    color: #536970;
+    cursor: not-allowed;
+}
+
+.auth-error-alert {
+    background: #f3e4e4;
+    color: #8f3d3d;
+    padding: 12px 14px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
