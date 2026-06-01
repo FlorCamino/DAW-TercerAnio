@@ -18,6 +18,8 @@ export class AuthService {
             tap(respuesta => {
                 if (respuesta && respuesta.accessToken) {
                     localStorage.setItem("token_session", respuesta.accessToken);
+                    localStorage.setItem("user_rol", respuesta.rol);
+                    localStorage.setItem("user_nombre", respuesta.nombre);
                 }
             })
         );
@@ -27,6 +29,8 @@ export class AuthService {
         return this.http.delete(`${this.apiUrl}/logout`).pipe(
             tap(() => {
                 localStorage.removeItem("token_session");
+                localStorage.removeItem("user_rol");
+                localStorage.removeItem("user_nombre");
             })
         );
     }
@@ -37,5 +41,17 @@ export class AuthService {
 
     estaLogueado(): boolean {
         return !!localStorage.getItem("token_session");
+    }
+
+    obtenerRol(): string | null {
+        return localStorage.getItem("user_rol");
+    }
+
+    esAdmin(): boolean {
+        return this.obtenerRol() === "administrador";
+    }
+
+    obtenerNombre(): string | null {
+        return localStorage.getItem("user_nombre");
     }
 }

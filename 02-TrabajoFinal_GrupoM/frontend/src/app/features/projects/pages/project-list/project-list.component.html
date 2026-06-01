@@ -128,7 +128,7 @@
             <select class="status-select" [class.done]="normalizarEstadoProyecto(project.status) === 'finalizado'"
               [class.inactive]="normalizarEstadoProyecto(project.status) === 'baja'"
               [ngModel]="normalizarEstadoProyecto(project.status)" (ngModelChange)="cambiarEstado(project, $event)"
-              [disabled]="cambiandoEstadoId === project.id" aria-label="Cambiar estado del proyecto">
+              [disabled]="cambiandoEstadoId === project.id" || !esAdmin() aria-label="Cambiar estado del proyecto">
               <option value="activo">Activo</option>
               <option value="finalizado">Finalizado</option>
               <option value="baja">Baja</option>
@@ -145,7 +145,8 @@
               </a>
 
               <button type="button" class="action-button action-edit" (click)="editar(project)"
-                [disabled]="estaDeBaja(project)">
+                [disabled]="estaDeBaja(project)"
+                *ngIf="esAdmin()">
                 Editar
               </button>
             </div>

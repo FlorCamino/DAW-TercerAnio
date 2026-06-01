@@ -8,6 +8,7 @@ import { UsersService } from "../users/users.service";
 import { CreateUserDto } from "../users/dtos/input/create-user.dto";
 import { Session } from "./entities/session.entity";
 import { User } from "../users/entities/user.entity";
+import { AuthResponseDto } from "./dtos/output/auth-response.dto";
 
 @Injectable()
 export class AuthService {
@@ -28,7 +29,7 @@ export class AuthService {
         });
     }
 
-    async login(dto: LoginDto): Promise<{ accessToken: string }> {
+    async login(dto: LoginDto): Promise<AuthResponseDto> {
         const user = await this.usersService.findByUsernameActivo(dto.nombre);
 
         if (!user) {
@@ -48,7 +49,9 @@ export class AuthService {
         await this.sessionRepository.save(nuevaSesion);
 
         return {
-            accessToken: tokenGenerado
+            accessToken: tokenGenerado,
+            rol: user.rol,
+            nombre: user.nombre
         };
     }
 

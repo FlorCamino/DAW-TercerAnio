@@ -5,4 +5,6 @@ export interface LoginDto {
 
 export interface AuthResponseDto {
     accessToken: string;
+    rol: "administrador" | "usuario";
+    nombre: string;
 }

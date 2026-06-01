@@ -105,7 +105,7 @@
           <td>
             <select class="status-select" [class.inactive]="normalizarEstado(cliente.estado) === 'baja'"
               [ngModel]="normalizarEstado(cliente.estado)" (ngModelChange)="solicitarCambioEstado(cliente, $event)"
-              [disabled]="cambiandoEstadoId === cliente.id" aria-label="Cambiar estado del cliente">
+              [disabled]="cambiandoEstadoId === cliente.id" || !esAdmin() aria-label="Cambiar estado del cliente">
               <option value="activo">Activo</option>
               <option value="baja">Baja</option>
             </select>

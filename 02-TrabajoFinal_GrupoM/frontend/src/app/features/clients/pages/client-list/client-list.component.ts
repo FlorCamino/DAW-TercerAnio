@@ -7,6 +7,9 @@ import { Subject, debounceTime, finalize, takeUntil } from 'rxjs';
 import { Client, ClientFormData, ClientStatus, PaginatedClients } from '../../models/client.model';
 import { ClientsService } from '../../services/clients.service';
 
+// Manejo de roles
+import { AuthService } from '../../../../../core/services/auth.service';
+
 type AlertType = 'info' | 'error' | 'confirm';
 
 interface ClientAlert {
@@ -50,7 +53,12 @@ export class ClientListComponent implements OnInit, OnDestroy {
   constructor(
     private api: ClientsService,
     private cdr: ChangeDetectorRef,
+    private readonly authService: AuthService,
   ) { }
+
+  esAdmin(): boolean {
+    return this.authService.esAdmin();
+  }
 
   ngOnInit(): void {
     this.filtrosChange$
