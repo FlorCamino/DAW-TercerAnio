@@ -37,10 +37,10 @@
       <span>Clientes</span>
     </a>
 
-    <span class="nav-item nav-disabled" aria-disabled="true" title="Módulo pendiente">
+    <a routerLink="/usuarios" routerLinkActive="active-link" [routerLinkActiveOptions]="sectionLinkOptions" (click)="closeMenu()">
       <i class="pi pi-users" aria-hidden="true"></i>
       <span>Usuarios</span>
-    </span>
+    </a>
 
     <div class="nav-user-info">
       <span class="nav-user-name">{{ nombreUsuario }}</span>

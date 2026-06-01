@@ -1,9 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import * as bcrypt from "bcrypt";
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserStatus } from '../../common/enums/user-status.enum';
 import { CreateUserDto } from './dtos/input/create-user.dto';
+import { UserRole } from '../../common/enums/user-role.enum';
 
 interface UserFilters {
     estado?: string;
@@ -47,7 +49,7 @@ export class UsersService {
         const limit = this.parseOptionalPositiveInt(filters.limit, 'limite');
 
         if (estado) {
-            query.andWhere('user.status = :estado', { estado });
+            query.andWhere('user.estado = :estado', { estado });
         }
 
         if (busqueda) {
@@ -75,8 +77,31 @@ export class UsersService {
         return this.userRepository.findOne({
             where: { nombre,
             estado: UserStatus.ACTIVO },
-            select: ['id', 'nombre', 'clave', 'estado'],
+            select: ['id', 'nombre', 'clave', 'estado', 'rol'],
         });
+    }
+
+    async cambiarEstado(id: number, estado: UserStatus): Promise<User> {
+        const user = await this.findOne(id);
+        user.estado = estado;
+        return await this.userRepository.save(user);
+    }
+
+    async cambiarRol(id: number, rol: UserRole): Promise<User> {
+        const user = await this.findOne(id);
+        user.rol = rol;
+        return await this.userRepository.save(user);
+    }
+
+    async cambiarClave(id: number, claveActual: string, claveNueva: string): Promise<void> {
+        const user = await this.findOne(id);
+
+        if (!bcrypt.compareSync(claveActual, user.clave)) {
+            throw new UnauthorizedException("La clave actual es incorrecta");
+        }
+        
+        user.clave = bcrypt.hashSync(claveNueva, 10);
+        await this.userRepository.save(user);
     }
 
     private normalizeStatus(estado?: string): UserStatus | undefined {

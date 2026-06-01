@@ -91,6 +91,21 @@ export const routes: Routes = [
               (m) => m.ProjectDetailComponent,
             ),
         },
+        {
+          path: "usuarios",
+          loadComponent: () =>
+            import("./features/users/pages/user-list/user-list.component").then(m => m.UserListComponent),
+        },
+        {
+          path: "usuarios/crear",
+          loadComponent: () =>
+            import("./features/users/pages/user-create/user-create.component").then(m => m.UserCreateComponent),
+        },
+        {
+          path: "usuarios/:id",
+          loadComponent: () =>
+            import("./features/users/pages/user-detail/user-detail.component").then(m => m.UserDetailComponent),
+        }
     ]
   },
   

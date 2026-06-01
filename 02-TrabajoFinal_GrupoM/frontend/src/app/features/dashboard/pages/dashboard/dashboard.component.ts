@@ -9,6 +9,7 @@ import { Project } from '../../../projects/models/project.model';
 import { ProjectService } from '../../../projects/services/project.service';
 import { Task } from '../../../tasks/models/task.model';
 import { TasksService } from '../../../tasks/services/tasks.service';
+import { UsersService } from '../../../users/services/users.service';
 
 interface DashboardKpi {
   label: string;
@@ -90,6 +91,7 @@ export class DashboardComponent implements OnInit {
     private readonly tasksService: TasksService,
     private readonly router: Router,
     private readonly cdr: ChangeDetectorRef,
+    private readonly usersService: UsersService,
   ) { }
 
   ngOnInit(): void {
@@ -138,10 +140,14 @@ export class DashboardComponent implements OnInit {
           return of(this.emptyPaginatedResponse<Task>());
         }),
       ),
+      
+      usersResponse: this.usersService.getUsuariosPaginados({ page: 1, limit: 1000 }).pipe(
+        catchError(() => of(this.emptyPaginatedResponse<any>()))
+      ),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ clientsResponse, projects, tasksResponse }) => {
+        next: ({ clientsResponse, projects, tasksResponse, usersResponse }) => {
           try {
             const clients = Array.isArray(clientsResponse.data)
               ? clientsResponse.data
@@ -158,7 +164,7 @@ export class DashboardComponent implements OnInit {
             this.totalClients = clientsResponse.total ?? clients.length;
             this.totalProjects = projectList.length;
             this.totalTasks = tasksResponse.total ?? tasks.length;
-            this.totalUsers = 0;
+            this.totalUsers = usersResponse.total ?? 0;
 
             this.kpiCards = this.buildKpiCards();
             this.taskStatusBars = this.buildTaskStatusBars(tasks);
@@ -204,9 +210,8 @@ export class DashboardComponent implements OnInit {
       {
         label: 'Usuarios',
         value: this.totalUsers,
-        detail: 'módulo pendiente',
+        detail: 'usuarios registrados',
         icon: 'pi pi-users',
-        type: 'pending',
       },
     ];
   }

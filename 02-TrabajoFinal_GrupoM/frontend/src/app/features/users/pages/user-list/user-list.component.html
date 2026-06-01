@@ -1,0 +1,93 @@
+<main class="management-container">
+    <section class="management-header">
+        <div class="management-title-block">
+            <h1>Usuarios</h1>
+            <p>Administra usuarios, roles y estados.</p>
+        </div>
+
+        <a class="primary-button" routerLink="/usuarios/crear" *ngIf="esAdmin()">
+            + Nuevo usuario
+        </a>
+    </section>
+
+    <section class="management-toolbar" aria-label="Búsqueda de usuarios">
+        <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
+            <button type="button" class="custom-status-trigger"
+                (click)="estadoDropdownAbierto = !estadoDropdownAbierto">
+                <span>{{ obtenerTextoEstado(filtros.estado ?? '') }}</span>
+                <span class="custom-status-arrow">▾</span>
+            </button>
+            <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
+                <button type="button" class="custom-status-option"
+                    [class.selected]="filtros.estado === ''"
+                    (click)="seleccionarEstado('')">Todos los estados</button>
+                <button type="button" class="custom-status-option"
+                    [class.selected]="filtros.estado === 'activo'"
+                    (click)="seleccionarEstado('activo')">Activo</button>
+                <button type="button" class="custom-status-option danger"
+                    [class.selected]="filtros.estado === 'baja'"
+                    (click)="seleccionarEstado('baja')">Baja</button>
+            </div>
+        </div>
+
+        <input class="management-search" [(ngModel)]="filtros.busqueda" placeholder="Buscar por nombre..." />
+        <button class="primary-button" type="button" (click)="buscar()">Buscar</button>
+        <button class="secondary-button" type="button" (click)="limpiarFiltros()">Limpiar</button>
+    </section>
+
+    <p class="management-message" *ngIf="mensaje">{{ mensaje }}</p>
+    <p class="management-message error" *ngIf="error">{{ error }}</p>
+
+    <section class="management-table-wrapper">
+        <table class="management-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr *ngFor="let usuario of listaUsuarios">
+                    <td>{{ usuario.nombre }}</td>
+                    <td>{{ usuario.rol }}</td>
+                    <td>
+                        <span class="status-pill" [class.inactive]="usuario.estado === 'baja'">
+                            {{ usuario.estado === "baja" ? "Baja": "Activo "}}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="table-actions">
+                            <a class="action-button action-view" [routerLink]="['/usuarios/', usuario.id]">Ver</a>
+                        </div>
+                    </td>
+                </tr>
+                <tr *ngIf="listaUsuarios.length === 0">
+                    <td colspan="4" class="management-empty-row">
+                        {{ hayFiltrosActivos() ? "No hay usuarios que coincidan" : "No hay usuarios cargados" }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination-bar" *ngIf="totalUsuarios > 0">
+            <div class="page-size-control">
+                <span>Usuarios por página</span>
+                <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
+                    <option [ngValue]="6">6</option>
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="20">20</option>
+                </select>
+            </div>
+            <span class="pagination-summary">
+                Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalUsuarios }} usuarios
+            </span>
+            <div class="pagination-actions">
+                <button class="secondary-button" (click)="paginaAnterior()" [disabled]="paginaActual <= 1">Anterior</button>
+                <button class="secondary-button" (click)="paginaSiguiente()" [disabled]="paginaActual >= totalPaginas">Siguiente</button>
+            </div>
+        </div>
+    </section>
+
+</main>

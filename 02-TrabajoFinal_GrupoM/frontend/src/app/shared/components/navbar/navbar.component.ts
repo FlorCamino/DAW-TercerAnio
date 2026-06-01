@@ -2,11 +2,12 @@ import { Component } from '@angular/core';
 import { IsActiveMatchOptions, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, CommonModule],
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })

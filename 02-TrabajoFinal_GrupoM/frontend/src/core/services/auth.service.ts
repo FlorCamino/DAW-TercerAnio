@@ -13,13 +13,14 @@ export class AuthService {
 
     private apiUrl = `${environment.apiUrl}/auth`;
 
-    login(credenciales: LoginDto): Observable<AuthResponseDto> {
-        return this.http.post<AuthResponseDto>(`${this.apiUrl}/login`, credenciales).pipe(
+    login(credenciales: LoginDto): Observable<any> {
+        return this.http.post<any>(`${this.apiUrl}/login`, credenciales).pipe(
             tap(respuesta => {
-                if (respuesta && respuesta.accessToken) {
-                    localStorage.setItem("token_session", respuesta.accessToken);
-                    localStorage.setItem("user_rol", respuesta.rol);
-                    localStorage.setItem("user_nombre", respuesta.nombre);
+                const data = respuesta?.data ?? respuesta;
+                if (data?.accessToken) {
+                    localStorage.setItem("token_session", data.accessToken);
+                    localStorage.setItem("user_rol", data.rol ?? "usuario");
+                    localStorage.setItem("user_nombre", data.nombre ?? "");
                 }
             })
         );
@@ -33,6 +34,10 @@ export class AuthService {
                 localStorage.removeItem("user_nombre");
             })
         );
+    }
+
+    registrar(datos: { nombre: string; clave: string; rol?: string }): Observable<any> {
+        return this.http.post(`${this.apiUrl}/registrar`, datos);
     }
 
     obtenerToken(): string | null {
