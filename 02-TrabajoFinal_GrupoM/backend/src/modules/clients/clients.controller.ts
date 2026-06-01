@@ -20,6 +20,13 @@ import { CreateClientDto } from './dtos/input/create-client.dto';
 import { UpdateClientDto } from './dtos/input/update-client.dto';
 import { ClientStatus } from '../../common/enums/client-status.enum';
 
+// Para manejo de roles
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../common/guards/auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { UserRole } from '../../common/enums/user-role.enum';
+import { Roles } from '../../common/decorators/roles.decorator';
+
 @ApiTags('Clients')
 @Controller('clients')
 export class ClientsController {
@@ -79,7 +86,10 @@ export class ClientsController {
     return this.clientsService.findOne(id);
   }
 
+  // Solo administradores pueden eliminar (manejo de roles)
   @Delete(':id')
+  @UseGuards(AuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.clientsService.remove(id);
   }
