@@ -4,12 +4,12 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   ParseIntPipe,
   Post,
-  Put,
   Query,
 } from '@nestjs/common';
-import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ProjectStatus } from '../../common/enums/project-status.enum';
 import { CreateProjectDto } from './dtos/input/create-project.dto';
 import { UpdateProjectDto } from './dtos/input/update-project.dto';
@@ -23,6 +23,9 @@ import { UserRole } from '../../common/enums/user-role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Projects')
+@ApiBearerAuth('access-token')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(UserRole.USER, UserRole.ADMIN)
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) {}
@@ -49,35 +52,33 @@ export class ProjectsController {
     },
   })
   @Post()
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Crear proyecto' })
   create(@Body() dto: CreateProjectDto) {
     return this.projectsService.create(dto);
   }
 
   @ApiQuery({ name: 'estado', enum: ProjectStatus, required: false })
   @ApiQuery({
-    name: 'status',
-    enum: ProjectStatus,
+    name: 'nombre',
     required: false,
-    description: 'Alias de estado para compatibilidad.',
+    example: 'Sistema',
+    description: 'Filtro parcial sin distinguir mayusculas ni acentos.',
   })
-  @ApiQuery({ name: 'busqueda', required: false, example: 'gestion' })
-  @ApiQuery({ name: 'nombre', required: false, example: 'Sistema' })
   @ApiQuery({ name: 'clientId', required: false, example: 1 })
-  @ApiQuery({ name: 'page', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, example: 6 })
+  @ApiQuery({ name: 'page', required: true, example: 1, schema: { default: 1 } })
+  @ApiQuery({ name: 'limit', required: true, example: 6, schema: { default: 6 } })
   @Get()
+  @ApiOperation({ summary: 'Listar proyectos' })
   findAll(
     @Query('estado') estado?: string,
-    @Query('status') status?: string,
-    @Query('busqueda') busqueda?: string,
     @Query('nombre') nombre?: string,
     @Query('clientId') clientId?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '6',
   ) {
     return this.projectsService.findAll({
-      estado: estado ?? status,
-      busqueda,
+      estado,
       nombre,
       clientId,
       page,
@@ -86,6 +87,7 @@ export class ProjectsController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener proyecto por ID' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.findOne(id);
   }
@@ -104,15 +106,17 @@ export class ProjectsController {
       },
     },
   })
-  @Put(':id')
+  @Patch(':id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Modificar proyecto' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectsService.update(id, dto);
   }
 
   // Solo administradores puede eliminar (manejo de roles)
   @Delete(':id')
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Dar de baja proyecto' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.remove(id);
   }

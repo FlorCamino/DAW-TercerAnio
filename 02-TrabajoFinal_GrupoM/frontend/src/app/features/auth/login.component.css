@@ -47,7 +47,8 @@
     font-weight: 600;
 }
 
-.field-control input {
+.field-control input,
+.field-control select {
     min-height: 44px;
     padding: 0 14px;
     border: 1px solid #d9e4df;
@@ -59,7 +60,12 @@
     transition: all 0.2s ease;
 }
 
-.field-control input:focus {
+.field-control select {
+    cursor: pointer;
+}
+
+.field-control input:focus,
+.field-control select:focus {
     outline: none;
     border-color: #154d3a;
     box-shadow: 0 0 0 3px rgba(16, 37, 31, 0.05);

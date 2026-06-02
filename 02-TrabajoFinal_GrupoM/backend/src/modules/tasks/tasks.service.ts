@@ -13,10 +13,12 @@ import { UpdateTaskDto } from './dtos/input/update-task.dto';
 import { TaskStatus } from '../../common/enums/task-status.enum';
 import { TasksMapper, TaskListResponseDto } from './mappers/tasks.mapper';
 import { TaskResponseDto } from './dtos/output/task-response.dto';
+import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
 
 interface TaskFilters {
   estado?: string;
-  busqueda?: string;
+  descripcion?: string;
+  proyectoId?: string;
   page: number;
   limit: number;
 }
@@ -55,7 +57,8 @@ export class TasksService {
       Number.isFinite(filters.limit) && filters.limit > 0 ? filters.limit : 10;
 
     const estado = filters.estado?.trim();
-    const busqueda = filters.busqueda?.trim();
+    const descripcion = filters.descripcion?.trim();
+    const proyectoId = this.parseOptionalPositiveInt(filters.proyectoId, 'proyecto');
 
     if (estado && !this.isValidStatus(estado)) {
       throw new BadRequestException('El estado indicado no es valido');
@@ -69,11 +72,12 @@ export class TasksService {
       query.andWhere('task.estado = :estado', { estado });
     }
 
-    if (busqueda) {
-      query.andWhere(
-        '(LOWER(task.descripcion) LIKE LOWER(:busqueda) OR LOWER(project.name) LIKE LOWER(:busqueda))',
-        { busqueda: `%${busqueda}%` },
-      );
+    if (descripcion) {
+      addAccentInsensitiveLike(query, 'task.descripcion', 'descripcion', descripcion);
+    }
+
+    if (proyectoId) {
+      query.andWhere('task.proyectoId = :proyectoId', { proyectoId });
     }
 
     const [tasks, total] = await query
@@ -179,5 +183,24 @@ export class TasksService {
 
   private isValidStatus(status: string): status is TaskStatus {
     return Object.values(TaskStatus).includes(status as TaskStatus);
+  }
+
+  private parseOptionalPositiveInt(
+    value: string | undefined,
+    fieldName: string,
+  ): number | undefined {
+    if (value === undefined || value.trim() === '') {
+      return undefined;
+    }
+
+    const parsedValue = Number(value);
+
+    if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
+      throw new BadRequestException(
+        `El ${fieldName} debe ser un numero positivo`,
+      );
+    }
+
+    return parsedValue;
   }
 }

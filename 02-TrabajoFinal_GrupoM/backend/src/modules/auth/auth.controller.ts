@@ -1,29 +1,48 @@
-import { Controller, Post, Body, Delete, Headers } from "@nestjs/common";
+import { Controller, Post, Body, Delete, Headers, UseGuards } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { LoginDto } from "./dtos/input/login.dto";
-import { CreateUserDto } from "../users/dtos/input/create-user.dto";
 import { AuthResponseDto } from "./dtos/output/auth-response.dto";
-import { ApiTags, ApiOperation, ApiResponse} from "@nestjs/swagger";
+import { ApiBearerAuth, ApiBody, ApiTags, ApiOperation, ApiResponse } from "@nestjs/swagger";
+import { AuthGuard } from "../../common/guards/auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles } from "../../common/decorators/roles.decorator";
+import { UserRole } from "../../common/enums/user-role.enum";
 
 @ApiTags("Auth")
-@Controller("Auth")
+@Controller("auth")
 export class AuthController {
-    constructor(private readonly authService: AuthService) {}
-
-    @Post("registrar")
-    @ApiOperation({ summary: "Registrar un nuevo usuario "})
-    registrar(@Body() createUserDto: CreateUserDto) {
-        return this.authService.registrar(createUserDto);
-    }
+    constructor(private readonly authService: AuthService) { }
 
     @Post("login")
     @ApiOperation({ summary: "Iniciar sesión" })
+    @ApiBody({
+        type: LoginDto,
+        examples: {
+            administrador: {
+                summary: "Usuario administrador de prueba",
+                value: {
+                    nombre: "micazalazar",
+                    clave: "mica123456",
+                },
+            },
+            usuario: {
+                summary: "Usuario estandar de prueba",
+                value: {
+                    nombre: "usuariotest",
+                    clave: "usuariotest123",
+                },
+            },
+        },
+    })
     @ApiResponse({ status: 200, description: "Login exitoso", type: AuthResponseDto })
     async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
         return this.authService.login(loginDto);
     }
 
     @Delete("logout")
+    @ApiBearerAuth('access-token')
+    @UseGuards(AuthGuard, RolesGuard)
+    @Roles(UserRole.USER, UserRole.ADMIN)
     @ApiOperation({ summary: "Cerrar sesión" })
     async logout(@Headers("authorization") authHeader: string) {
         const token = authHeader?.replace("Bearer ", "");

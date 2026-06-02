@@ -27,12 +27,14 @@ export class TasksService {
   }
 
   getTareasPaginadas(filters: TaskFilters = {}): Observable<PaginatedTasks> {
+    const normalizedFilters = this.withDefaultPagination(filters);
+
     return this.http
       .get<TasksApiResponse>(this.apiUrl, {
-        params: this.buildParams(filters),
+        params: this.buildParams(normalizedFilters),
       })
       .pipe(
-        map((response: TasksApiResponse) => this.normalizeTasksResponse(response, filters)),
+        map((response: TasksApiResponse) => this.normalizeTasksResponse(response, normalizedFilters)),
       );
   }
 
@@ -80,6 +82,14 @@ export class TasksService {
     }
 
     return params.set('_t', Date.now().toString());
+  }
+
+  private withDefaultPagination(filters: TaskFilters): TaskFilters {
+    return {
+      ...filters,
+      page: filters.page ?? 1,
+      limit: filters.limit ?? 10,
+    };
   }
 
   private normalizeTasksResponse(

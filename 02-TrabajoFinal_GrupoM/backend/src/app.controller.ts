@@ -1,8 +1,10 @@
 import { Controller, Get } from '@nestjs/common';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller()
 export class AppController {
   @Get()
+  @ApiOperation({ summary: 'Ver estado de la API' })
   getApiInfo() {
     return {
       message: 'API de gestion de proyectos corriendo correctamente.',

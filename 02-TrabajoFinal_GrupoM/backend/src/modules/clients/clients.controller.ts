@@ -11,7 +11,9 @@ import {
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
+  ApiBearerAuth,
   ApiBody,
+  ApiOperation,
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
@@ -28,6 +30,9 @@ import { UserRole } from '../../common/enums/user-role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Clients')
+@ApiBearerAuth('access-token')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(UserRole.USER, UserRole.ADMIN)
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) {}
@@ -46,33 +51,33 @@ export class ClientsController {
     },
   })
   @Post()
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Crear cliente' })
   create(@Body() dto: CreateClientDto) {
     return this.clientsService.create(dto);
   }
 
   @ApiQuery({ name: 'estado', enum: ClientStatus, required: false })
-  @ApiQuery({ name: 'busqueda', required: false })
   @ApiQuery({ name: 'nombre', required: false })
   @ApiQuery({ name: 'email', required: false })
   @ApiQuery({ name: 'telefono', required: false })
-  @ApiQuery({ name: 'page', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, example: 6 })
+  @ApiQuery({ name: 'page', required: true, example: 1, schema: { default: 1 } })
+  @ApiQuery({ name: 'limit', required: true, example: 6, schema: { default: 6 } })
   @ApiBadRequestResponse({
     description: 'No se encontraron clientes con los filtros ingresados',
   })
   @Get()
+  @ApiOperation({ summary: 'Listar clientes' })
   findAll(
     @Query('estado') estado?: string,
-    @Query('busqueda') busqueda?: string,
     @Query('nombre') nombre?: string,
     @Query('email') email?: string,
     @Query('telefono') telefono?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '6',
   ) {
     return this.clientsService.findAll({
       estado,
-      busqueda,
       nombre,
       email,
       telefono,
@@ -82,14 +87,15 @@ export class ClientsController {
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener cliente por ID' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.clientsService.findOne(id);
   }
 
   // Solo administradores pueden eliminar (manejo de roles)
   @Delete(':id')
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Dar de baja cliente' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.clientsService.remove(id);
   }
@@ -109,6 +115,8 @@ export class ClientsController {
     },
   })
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Modificar cliente' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateClientDto) {
     return this.clientsService.update(id, dto);
   }

@@ -27,12 +27,14 @@ export class ClientsService {
   }
 
   getClientesPaginados(filters: ClientFilters = {}): Observable<PaginatedClients> {
+    const normalizedFilters = this.withDefaultPagination(filters);
+
     return this.http
       .get<ClientsApiResponse>(this.apiUrl, {
-        params: this.buildParams(filters),
+        params: this.buildParams(normalizedFilters),
       })
       .pipe(
-        map((response: ClientsApiResponse) => this.normalizeClientsResponse(response, filters)),
+        map((response: ClientsApiResponse) => this.normalizeClientsResponse(response, normalizedFilters)),
       );
   }
 
@@ -91,6 +93,14 @@ export class ClientsService {
     }
 
     return params.set('_t', Date.now().toString());
+  }
+
+  private withDefaultPagination(filters: ClientFilters): ClientFilters {
+    return {
+      ...filters,
+      page: filters.page ?? 1,
+      limit: filters.limit ?? 6,
+    };
   }
 
   private normalizeClientsResponse(

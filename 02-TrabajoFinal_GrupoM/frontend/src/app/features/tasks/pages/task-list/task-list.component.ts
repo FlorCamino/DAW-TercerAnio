@@ -38,7 +38,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   filtros = {
     estado: '',
-    busqueda: '',
+    descripcion: '',
   };
 
   tareaEditada: TaskFormData = this.crearTareaVacia();
@@ -248,7 +248,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
   limpiarFiltros(): void {
     this.filtros = {
       estado: '',
-      busqueda: '',
+      descripcion: '',
     };
 
     this.estadoDropdownAbierto = false;
@@ -400,7 +400,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
   }
 
   private cargarProyectos(): void {
-    this.projectService.getAll().subscribe({
+    this.projectService.getAll({ limit: 1000 }).subscribe({
       next: (projects: Project[]) => {
         this.proyectos = projects;
         this.cdr.detectChanges();

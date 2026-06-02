@@ -3,7 +3,8 @@ import { HttpErrorResponse } from "@angular/common/http";
 import { ChangeDetectorRef, Component } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router, RouterLink } from "@angular/router";
-import { AuthService } from "../../../../../core/services/auth.service";
+import { UsersService } from "../../services/users.service";
+import { UserRole } from "../../models/user.model";
 
 @Component({
     selector: "app-user-create",
@@ -16,7 +17,7 @@ export class UserCreateComponent {
     usuario = {
         nombre: "",
         clave: "",
-        rol: "usuario",
+        rol: "usuario" as UserRole,
     };
 
     error = "";
@@ -24,7 +25,7 @@ export class UserCreateComponent {
     guardando = false;
 
     constructor(
-        private readonly authService: AuthService,
+        private readonly usersService: UsersService,
         private readonly router: Router,
         private readonly cdr: ChangeDetectorRef,
     ) {}
@@ -45,7 +46,7 @@ export class UserCreateComponent {
 
         this.guardando = true;
 
-        this.authService.registrar(this.usuario).subscribe({
+        this.usersService.crearUsuario(this.usuario).subscribe({
             next: () => {
                 this.guardando = false;
                 this.success = "Usuario creado exitosamente";

@@ -85,7 +85,7 @@ export class TaskCreateComponent implements OnInit {
     private cargarProyectos(): void {
         this.cargandoProyectos = true;
 
-        this.projectService.getAll().subscribe({
+        this.projectService.getAll({ limit: 1000 }).subscribe({
             next: (proyectos: Project[]) => {
                 this.proyectos = proyectos.filter((proyecto) => {
                     return proyecto.status?.toLowerCase() !== 'baja';

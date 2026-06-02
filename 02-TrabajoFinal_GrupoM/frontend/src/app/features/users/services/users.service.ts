@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable, map } from "rxjs";
 import { environment } from "../../../../environments/environment";
-import { User, UserFilters, PaginatedUsers } from "../models/user.model";
+import { User, UserFilters, PaginatedUsers, UserFormData } from "../models/user.model";
 
 interface ApiResponse<T> {
     success: boolean;
@@ -31,28 +31,57 @@ export class UsersService {
     }
 
     getUsuariosPaginados(filters: UserFilters = {}): Observable<PaginatedUsers> {
+        const normalizedFilters = this.withDefaultPagination(filters);
+
         return this.http
-        .get<UsersApiResponse>(this.apiUrl, {
-            params: this.buildParams(filters),
-        }).pipe(
-            map((response: UsersApiResponse) => this.normalizeUsersResponse(response, filters)),
+            .get<UsersApiResponse>(this.apiUrl, {
+                params: this.buildParams(normalizedFilters),
+            }).pipe(
+                map((response: UsersApiResponse) => this.normalizeUsersResponse(response, normalizedFilters)),
+            );
+    }
+
+    crearUsuario(usuario: UserFormData): Observable<User> {
+        const { id, estado, ...nuevoUsuario } = usuario;
+        return this.http.post<UserApiResponse>(this.apiUrl, nuevoUsuario).pipe(
+            map((response: UserApiResponse) => this.getSingleResponsePayload(response)),
+        );
+    }
+
+    actualizarUsuario(
+        id: number,
+        payload: {
+            rol?: string;
+            estado?: string;
+            clave?: string;
+        },
+    ): Observable<User> {
+        return this.http.patch<{ success: boolean; data: User }>(
+            `${this.apiUrl}/${id}`,
+            payload,
+        ).pipe(
+            map((response) => response.data),
         );
     }
 
     cambiarEstado(id: number, estado: string): Observable<User> {
-        return this.http.patch<UserApiResponse>(`${this.apiUrl}/${id}/estado`, { estado }).pipe(
-            map((response: UserApiResponse) => this.getSingleResponsePayload(response)),
-        );
+        return this.actualizarUsuario(id, { estado });
     }
 
     cambiarRol(id: number, rol: string): Observable<User> {
-        return this.http.patch<UserApiResponse>(`${this.apiUrl}/${id}/rol`, { rol }).pipe(
-            map((response: UserApiResponse) => this.getSingleResponsePayload(response)),
-        );
+        return this.actualizarUsuario(id, { rol: rol as UserFormData["rol"] });
     }
 
-    cambiarClave(id: number, claveActual: string, claveNueva: string): Observable <void> {
-        return this.http.patch<void>(`${this.apiUrl}/${id}/clave`, { claveActual, claveNueva});
+    cambiarClave(id: number, _claveActual: string, claveNueva: string): Observable<User> {
+        return this.actualizarUsuario(id, { clave: claveNueva });
+    }
+
+    private withDefaultPagination(filters: UserFilters): UserFilters {
+        return {
+            ...filters,
+            page: filters.page ?? 1,
+            limit: filters.limit ?? 6,
+        };
     }
 
     private buildParams(filters: UserFilters): HttpParams {
@@ -80,7 +109,7 @@ export class UsersService {
         ) {
             return this.toPaginatedResponseFromPayload(response.data, filters);
         }
-        
+
         const payload = this.getResponsePayload(response);
 
         if (Array.isArray(payload)) {
@@ -94,7 +123,7 @@ export class UsersService {
         return this.toPaginatedResponse([], filters);
     }
 
-    private getResponsePayload(response: UsersApiResponse): PaginatedUsers | User [] {
+    private getResponsePayload(response: UsersApiResponse): PaginatedUsers | User[] {
         if (Array.isArray(response)) return response;
         if ("success" in response && "data" in response) return response.data;
         return response;

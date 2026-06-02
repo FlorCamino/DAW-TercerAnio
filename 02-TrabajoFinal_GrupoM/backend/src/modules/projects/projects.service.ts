@@ -14,10 +14,10 @@ import { ProjectListResponseDto } from './dtos/output/project-list-response.dto'
 import { ProjectStatus } from '../../common/enums/project-status.enum';
 import { Client } from '../clients/entities/client.entity';
 import { ClientStatus } from '../../common/enums/client-status.enum';
+import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
 
 interface ProjectFilters {
   estado?: string;
-  busqueda?: string;
   nombre?: string;
   clientId?: string;
   page?: string;
@@ -55,7 +55,6 @@ export class ProjectsService {
       .leftJoinAndSelect('project.client', 'client');
 
     const estado = this.normalizeStatus(filters.estado);
-    const busqueda = filters.busqueda?.trim();
     const nombre = filters.nombre?.trim();
     const clientId = this.parseOptionalPositiveInt(filters.clientId, 'cliente');
     const page = this.parsePositiveInt(filters.page, 1);
@@ -65,17 +64,8 @@ export class ProjectsService {
       query.andWhere('project.status = :estado', { estado });
     }
 
-    if (busqueda) {
-      query.andWhere(
-        '(LOWER(project.name) LIKE LOWER(:busqueda) OR LOWER(client.nombre) LIKE LOWER(:busqueda))',
-        { busqueda: `%${busqueda}%` },
-      );
-    }
-
     if (nombre) {
-      query.andWhere('LOWER(project.name) LIKE LOWER(:nombre)', {
-        nombre: `%${nombre}%`,
-      });
+      addAccentInsensitiveLike(query, 'project.name', 'nombre', nombre);
     }
 
     if (clientId) {

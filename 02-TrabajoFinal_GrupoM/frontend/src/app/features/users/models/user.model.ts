@@ -10,9 +10,18 @@ export interface User {
 
 export interface UserFilters {
     estado?: string;
-    busqueda?: string;
+    nombre?: string;
+    rol?: string;
     page?: number;
     limit?: number;
+}
+
+export interface UserFormData {
+    id?: number | null;
+    nombre: string;
+    clave?: string;
+    estado?: UserStatus;
+    rol?: UserRole;
 }
 
 export interface PaginatedUsers {

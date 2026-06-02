@@ -5,13 +5,22 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { UserStatus } from '../../common/enums/user-status.enum';
 import { CreateUserDto } from './dtos/input/create-user.dto';
+import { UpdateUserDto } from './dtos/input/update-user.dto';
 import { UserRole } from '../../common/enums/user-role.enum';
+import { UserResponseDto } from './dtos/output/user-response.dto';
+import { UsersMapper } from './mappers/users.mapper';
+import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
 
 interface UserFilters {
     estado?: string;
-    busqueda?: string;
+    nombre?: string;
+    rol?: string;
     page?: string;
     limit?: string;
+    currentUser?: {
+        id: number;
+        rol: UserRole;
+    };
 }
 
 @Injectable()
@@ -21,55 +30,65 @@ export class UsersService {
         private readonly userRepository: Repository<User>,
     ) {}
 
-    async create(createUserDto: CreateUserDto): Promise<User> {
+    async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
         const user = this.userRepository.create({
             ...createUserDto,
+            clave: bcrypt.hashSync(createUserDto.clave, 10),
             estado: UserStatus.ACTIVO,
         });
 
-        return await this.userRepository.save(user);
+        const saved = await this.userRepository.save(user);
+        return UsersMapper.toResponse(saved);
     }
 
-    async findOne(id: number): Promise<User> {
+    async findOne(id: number): Promise<UserResponseDto> {
         const user = await this.userRepository.findOne({ where: { id }});
 
         if (!user) {
             throw new NotFoundException('Usuario no encontrado');
         }
 
-        return user;
+        return UsersMapper.toResponse(user);
     }
 
     async findAll(filters: UserFilters = {}) {
         const query = this.userRepository.createQueryBuilder('user');
         
         const estado = this.normalizeStatus(filters.estado);
-        const busqueda = filters.busqueda?.trim();
+        const nombre = filters.nombre?.trim();
+        const rol = this.normalizeRole(filters.rol);
         const page = this.parsePositiveInt(filters.page, 1);
-        const limit = this.parseOptionalPositiveInt(filters.limit, 'limite');
+        const limit = this.parsePositiveInt(filters.limit, 6);
+
+        if (filters.currentUser && filters.currentUser.rol !== UserRole.ADMIN) {
+            query.andWhere('user.id = :currentUserId', {
+                currentUserId: filters.currentUser.id,
+            });
+        }
 
         if (estado) {
             query.andWhere('user.estado = :estado', { estado });
         }
 
-        if (busqueda) {
-            query.andWhere('LOWER(user.nombre) LIKE LOWER(:busqueda)', { busqueda: `%${busqueda}%` });
+        if (nombre) {
+            addAccentInsensitiveLike(query, 'user.nombre', 'nombre', nombre);
+        }
+
+        if (rol) {
+            query.andWhere('user.rol = :rol', { rol });
         }
 
         query.orderBy('user.id', 'DESC');
-
-        if (limit) {
-            query.skip((page - 1) * limit).take(limit);
-        }
+        query.skip((page - 1) * limit).take(limit);
 
         const [users, total] = await query.getManyAndCount();
 
         return {
-            data: users,
+            data: users.map((user) => UsersMapper.toResponse(user)),
             total,
             page,
-            limit: limit ?? total,
-            totalPages: limit ? Math.ceil(total / limit) : total > 0 ? 1 : 0,
+            limit,
+            totalPages: Math.ceil(total / limit),
         };
     }
 
@@ -81,20 +100,41 @@ export class UsersService {
         });
     }
 
-    async cambiarEstado(id: number, estado: UserStatus): Promise<User> {
-        const user = await this.findOne(id);
+    async cambiarEstado(id: number, estado: UserStatus): Promise<UserResponseDto> {
+        const user = await this.findUserOrFail(id);
         user.estado = estado;
-        return await this.userRepository.save(user);
+        const saved = await this.userRepository.save(user);
+        return UsersMapper.toResponse(saved);
     }
 
-    async cambiarRol(id: number, rol: UserRole): Promise<User> {
-        const user = await this.findOne(id);
+    async cambiarRol(id: number, rol: UserRole): Promise<UserResponseDto> {
+        const user = await this.findUserOrFail(id);
         user.rol = rol;
-        return await this.userRepository.save(user);
+        const saved = await this.userRepository.save(user);
+        return UsersMapper.toResponse(saved);
+    }
+
+    async update(id: number, dto: UpdateUserDto): Promise<UserResponseDto> {
+        const user = await this.findUserOrFail(id);
+
+        if (dto.estado !== undefined) {
+            user.estado = dto.estado;
+        }
+
+        if (dto.rol !== undefined) {
+            user.rol = dto.rol;
+        }
+
+        if (dto.clave !== undefined) {
+            user.clave = bcrypt.hashSync(dto.clave, 10);
+        }
+
+        const saved = await this.userRepository.save(user);
+        return UsersMapper.toResponse(saved);
     }
 
     async cambiarClave(id: number, claveActual: string, claveNueva: string): Promise<void> {
-        const user = await this.findOne(id);
+        const user = await this.findUserOrFail(id);
 
         if (!bcrypt.compareSync(claveActual, user.clave)) {
             throw new UnauthorizedException("La clave actual es incorrecta");
@@ -102,6 +142,16 @@ export class UsersService {
         
         user.clave = bcrypt.hashSync(claveNueva, 10);
         await this.userRepository.save(user);
+    }
+
+    private async findUserOrFail(id: number): Promise<User> {
+        const user = await this.userRepository.findOne({ where: { id }});
+
+        if (!user) {
+            throw new NotFoundException('Usuario no encontrado');
+        }
+
+        return user;
     }
 
     private normalizeStatus(estado?: string): UserStatus | undefined {
@@ -115,6 +165,19 @@ export class UsersService {
         }
 
         return normalizedStatus;
+    }
+
+    private normalizeRole(rol?: string): UserRole | undefined {
+        const trimmedRole = rol?.trim();
+        if (!trimmedRole) return undefined;
+
+        const normalizedRole = trimmedRole.toLowerCase() as UserRole;
+
+        if (!Object.values(UserRole).includes(normalizedRole)) {
+            throw new BadRequestException('Rol de usuario invalido');
+        }
+
+        return normalizedRole;
     }
 
     private parsePositiveInt(value: string | undefined, defaultValue: number): number {

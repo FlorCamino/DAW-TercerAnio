@@ -9,7 +9,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
-import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 import { TaskStatus } from '../../common/enums/task-status.enum';
 import { CreateTaskDto } from './dtos/input/create-task.dto';
@@ -24,31 +24,43 @@ import { UserRole } from '../../common/enums/user-role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Tasks')
+@ApiBearerAuth('access-token')
+@UseGuards(AuthGuard, RolesGuard)
+@Roles(UserRole.USER, UserRole.ADMIN)
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @ApiQuery({ name: 'estado', enum: TaskStatus, required: false })
-  @ApiQuery({ name: 'busqueda', required: false, example: 'modelo' })
-  @ApiQuery({ name: 'page', required: false, example: 1 })
-  @ApiQuery({ name: 'limit', required: false, example: 6 })
+  @ApiQuery({
+    name: 'descripcion',
+    required: false,
+    example: 'modelo',
+    description: 'Filtro parcial sin distinguir mayusculas ni acentos.',
+  })
+  @ApiQuery({ name: 'proyectoId', required: false, example: 1 })
+  @ApiQuery({ name: 'page', required: true, example: 1, schema: { default: 1 } })
+  @ApiQuery({ name: 'limit', required: true, example: 10, schema: { default: 10 } })
   @Get()
+  @ApiOperation({ summary: 'Listar tareas' })
   findAll(
     @Query('estado') estado?: string,
-    @Query('status') status?: string,
-    @Query('busqueda') busqueda?: string,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
+    @Query('descripcion') descripcion?: string,
+    @Query('proyectoId') proyectoId?: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
   ) {
     return this.tasksService.findAll({
-      estado: estado ?? status,
-      busqueda,
+      estado,
+      descripcion,
+      proyectoId,
       page: Number(page ?? 1),
       limit: Number(limit ?? 10),
     });
   }
 
   @Get(':id')
+  @ApiOperation({ summary: 'Obtener tarea por ID' })
   findOne(@Param('id', ParseIntPipe) id: number) {
     return this.tasksService.findOne(id);
   }
@@ -67,6 +79,8 @@ export class TasksController {
     },
   })
   @Post()
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Crear tarea' })
   create(@Body() dto: CreateTaskDto) {
     return this.tasksService.create(dto);
   }
@@ -91,14 +105,16 @@ export class TasksController {
     },
   })
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Modificar tarea' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTaskDto) {
     return this.tasksService.update(id, dto);
   }
 
   // Solo los administradores pueden eliminar (manejo de roles)
   @Delete(':id')
-  @UseGuards(AuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
+  @ApiOperation({ summary: 'Dar de baja tarea' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.tasksService.remove(id);
   }

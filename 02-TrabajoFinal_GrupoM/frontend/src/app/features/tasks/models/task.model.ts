@@ -25,7 +25,6 @@ export interface TaskFormData {
 
 export interface TaskFilters {
     estado?: string;
-    busqueda?: string;
     descripcion?: string;
     proyectoId?: number | string | null;
     page?: number;
