@@ -72,7 +72,7 @@ export class ProjectListComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
 
-    this.projectService.getAll().subscribe({
+    this.projectService.getAll({ limit: 1000 }).subscribe({
       next: (data: Project[]) => {
         this.projects.set(data);
         this.aplicarFiltrosYPaginado();

@@ -32,7 +32,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
 
   filtros = {
     estado: '',
-    busqueda: '',
+    nombre: '',
   };
 
   clienteEditado: ClientFormData = { id: null, nombre: '', email: '', telefono: '' };
@@ -110,7 +110,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
   limpiarFiltros(): void {
     this.filtros = {
       estado: '',
-      busqueda: '',
+      nombre: '',
     };
 
     this.estadoDropdownAbierto = false;

@@ -36,7 +36,7 @@
       </div>
     </div>
 
-    <input class="management-search" [(ngModel)]="filtros.busqueda" (ngModelChange)="actualizarBusqueda()"
+        <input class="management-search" [(ngModel)]="filtros.nombre" (ngModelChange)="actualizarBusqueda()"
       placeholder="Buscar por parte del nombre, email o teléfono..." />
 
     <button class="primary-button" (click)="buscarClientes()">
@@ -117,7 +117,11 @@
                 Ver
               </a>
 
-              <button class="action-button action-edit" (click)="editar(cliente)" [disabled]="estaDeBaja(cliente)">
+              <button
+                class="action-button action-edit"
+                (click)="editar(cliente)"
+                [disabled]="estaDeBaja(cliente)"
+                *ngIf="esAdmin()">
                 Editar
               </button>
             </div>

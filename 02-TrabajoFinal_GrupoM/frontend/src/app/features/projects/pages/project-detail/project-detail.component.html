@@ -1,4 +1,4 @@
-<main class="management-container">
+<main class="management-container entity-detail-container">
   @if (loading()) {
   <p class="management-message">
     Cargando proyecto...
@@ -8,36 +8,55 @@
     {{ error() }}
   </p>
   } @else if (project()) {
-  <section class="detail-card">
-    <div class="detail-header">
-      <div>
+  <section class="detail-card entity-detail-card">
+    <div class="entity-detail-header">
+      <div class="entity-avatar" aria-hidden="true">
+        {{ project()!.name.charAt(0).toUpperCase() }}
+      </div>
+
+      <div class="entity-title-block">
         <span class="detail-eyebrow">Detalle del proyecto</span>
 
-        <h1>
-          {{ project()!.name }}
+        <div class="entity-title-row">
+          <h1>
+            {{ project()!.name }}
+          </h1>
+
+          <app-project-status-badge [status]="project()!.status" />
 
           @if (project()!.isOverdue) {
           <span class="badge-overdue">
             Retrasado
           </span>
           }
-        </h1>
+        </div>
+
+        <p>
+          Información general del proyecto y tareas asociadas.
+        </p>
       </div>
     </div>
 
-    <div class="detail-row">
-      <span class="detail-label">Estado</span>
-      <app-project-status-badge [status]="project()!.status" />
-    </div>
+    <div class="entity-detail-grid">
+      <article class="entity-info-item">
+        <span class="info-label">Nombre</span>
+        <strong>{{ project()!.name }}</strong>
+      </article>
 
-    <div class="detail-row">
-      <span class="detail-label">Cliente</span>
-      <span>{{ project()!.client?.nombre ?? 'Sin cliente' }}</span>
-    </div>
+      <article class="entity-info-item">
+        <span class="info-label">Cliente</span>
+        <strong>{{ project()!.client?.nombre ?? 'Sin cliente' }}</strong>
+      </article>
 
-    <div class="detail-row">
-      <span class="detail-label">Finalización</span>
-      <span>{{ project()!.endDate ?? '—' }}</span>
+      <article class="entity-info-item">
+        <span class="info-label">Finalización</span>
+        <strong>{{ project()!.endDate ?? '—' }}</strong>
+      </article>
+
+      <article class="entity-info-item">
+        <span class="info-label">Tareas asociadas</span>
+        <strong>{{ tareasAsociadas.length }} tarea(s)</strong>
+      </article>
     </div>
 
     <section class="related-section" aria-label="Tareas asociadas al proyecto">
@@ -80,11 +99,7 @@
       }
     </section>
 
-    <div class="detail-actions">
-      <a [routerLink]="['/projects', project()!.id, 'edit']" class="primary-button">
-        Editar
-      </a>
-
+    <div class="detail-actions entity-detail-actions">
       <a routerLink="/projects" class="secondary-button">
         Volver
       </a>

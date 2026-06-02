@@ -124,7 +124,7 @@ export class DashboardComponent implements OnInit {
         }),
       ),
 
-      projects: this.projectService.getAll().pipe(
+      projects: this.projectService.getAll({ limit: 1000 }).pipe(
         catchError(() => {
           this.dashboardError = 'No se pudieron cargar algunos indicadores del dashboard.';
           return of([] as Project[]);

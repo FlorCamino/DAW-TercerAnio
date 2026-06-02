@@ -7,6 +7,20 @@
 
         <form (ngSubmit)="iniciarSesion()" class="project-form">
             <div class="field-control">
+                <label for="seed-user">Usuario de prueba</label>
+                <select
+                    id="seed-user"
+                    name="seedUser"
+                    [ngModel]="usuarioSeleccionado"
+                    (ngModelChange)="seleccionarUsuario($event)">
+                    <option value="">Seleccionar usuario</option>
+                    <option *ngFor="let usuario of usuariosSeed" [value]="usuario.nombre">
+                        {{ usuario.label }}
+                    </option>
+                </select>
+            </div>
+
+            <div class="field-control">
                 <label for="username">Usuario</label>
                 <input
                     type="text"
@@ -20,7 +34,7 @@
             <div class="field-control">
                 <label for="password">Contraseña</label>
                 <input
-                    type="text"
+                    type="password"
                     id="password"
                     name="clave"
                     [(ngModel)]="credenciales.clave"

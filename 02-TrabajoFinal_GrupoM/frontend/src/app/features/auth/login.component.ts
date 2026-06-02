@@ -17,6 +17,21 @@ export class LoginComponent {
     private authService = inject(AuthService);
     private router = inject(Router);
 
+    usuariosSeed = [
+        {
+            label: "micazalazar - Admin",
+            nombre: "micazalazar",
+            clave: "mica123456"
+        },
+        {
+            label: "usuariotest - Usuario",
+            nombre: "usuariotest",
+            clave: "usuariotest123"
+        }
+    ];
+
+    usuarioSeleccionado = "";
+
     credenciales: LoginDto = {
         nombre: "",
         clave: ""
@@ -24,6 +39,25 @@ export class LoginComponent {
 
     errorMessage: string | null = null;
     loading: boolean = false;
+
+    seleccionarUsuario(nombre: string) {
+        this.usuarioSeleccionado = nombre;
+        const usuario = this.usuariosSeed.find((item) => item.nombre === nombre);
+
+        if (!usuario) {
+            this.credenciales = {
+                nombre: "",
+                clave: ""
+            };
+            return;
+        }
+
+        this.credenciales = {
+            nombre: usuario.nombre,
+            clave: usuario.clave
+        };
+        this.errorMessage = null;
+    }
 
     iniciarSesion() {
         if (!this.credenciales.nombre || !this.credenciales.clave) {

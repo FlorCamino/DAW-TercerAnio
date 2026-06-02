@@ -16,7 +16,6 @@ import { ProjectStatus } from '../../common/enums/project-status.enum';
 
 interface ClientFilters {
   estado?: string;
-  busqueda?: string;
   nombre?: string;
   email?: string;
   telefono?: string;
@@ -171,23 +170,12 @@ export class ClientsService {
   ): FindOptionsWhere<Client> | FindOptionsWhere<Client>[] {
     const where: FindOptionsWhere<Client> = {};
     const normalizedStatus = this.normalizeStatus(filters.estado);
-    const busqueda = filters.busqueda?.trim();
     const nombre = filters.nombre?.trim();
     const email = filters.email?.trim();
     const telefono = filters.telefono?.trim();
 
     if (normalizedStatus) {
       where.estado = normalizedStatus;
-    }
-
-    if (busqueda) {
-      const relativeSearch = ILike(`%${busqueda}%`);
-
-      return [
-        { ...where, nombre: relativeSearch },
-        { ...where, email: relativeSearch },
-        { ...where, telefono: relativeSearch },
-      ];
     }
 
     if (nombre) {
@@ -208,7 +196,6 @@ export class ClientsService {
   private hasSearchFilters(filters: ClientFilters): boolean {
     return [
       filters.estado,
-      filters.busqueda,
       filters.nombre,
       filters.email,
       filters.telefono,

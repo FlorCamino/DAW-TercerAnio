@@ -7,6 +7,7 @@ export class UsersMapper {
             id: user.id,
             nombre: user.nombre,
             estado: user.estado,
+            rol: user.rol,
         };
     }
 }

@@ -27,7 +27,6 @@ export interface ClientFormData {
 
 export interface ClientFilters {
   estado?: string;
-  busqueda?: string;
   nombre?: string;
   email?: string;
   telefono?: string;

@@ -12,33 +12,88 @@
 
     <section class="management-toolbar" aria-label="Búsqueda de usuarios">
         <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
-            <button type="button" class="custom-status-trigger"
-                (click)="estadoDropdownAbierto = !estadoDropdownAbierto">
+            <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
+                aria-label="Filtrar por estado">
                 <span>{{ obtenerTextoEstado(filtros.estado ?? '') }}</span>
                 <span class="custom-status-arrow">▾</span>
             </button>
+
             <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
-                <button type="button" class="custom-status-option"
-                    [class.selected]="filtros.estado === ''"
-                    (click)="seleccionarEstado('')">Todos los estados</button>
-                <button type="button" class="custom-status-option"
-                    [class.selected]="filtros.estado === 'activo'"
-                    (click)="seleccionarEstado('activo')">Activo</button>
-                <button type="button" class="custom-status-option danger"
-                    [class.selected]="filtros.estado === 'baja'"
-                    (click)="seleccionarEstado('baja')">Baja</button>
+                <button type="button" class="custom-status-option" [class.selected]="filtros.estado === ''"
+                    (click)="seleccionarEstado('')">
+                    Todos los estados
+                </button>
+
+                <button type="button" class="custom-status-option" [class.selected]="filtros.estado === 'activo'"
+                    (click)="seleccionarEstado('activo')">
+                    Activo
+                </button>
+
+                <button type="button" class="custom-status-option danger" [class.selected]="filtros.estado === 'baja'"
+                    (click)="seleccionarEstado('baja')">
+                    Baja
+                </button>
             </div>
         </div>
 
-        <input class="management-search" [(ngModel)]="filtros.busqueda" placeholder="Buscar por nombre..." />
-        <button class="primary-button" type="button" (click)="buscar()">Buscar</button>
-        <button class="secondary-button" type="button" (click)="limpiarFiltros()">Limpiar</button>
+        <input class="management-search" [(ngModel)]="filtros.nombre" placeholder="Buscar por nombre..." />
+
+        <button class="primary-button" type="button" (click)="buscar()">
+            Buscar
+        </button>
+
+        <button class="secondary-button" type="button" (click)="limpiarFiltros()">
+            Limpiar
+        </button>
+    </section>
+
+    <section class="form-card management-edit-card" aria-label="Formulario de usuario" aria-live="polite"
+        *ngIf="editando">
+        <div class="edit-panel-header">
+            <span class="edit-eyebrow">Modo edición</span>
+            <strong>{{ usuarioEditado.nombre || 'Usuario seleccionado' }}</strong>
+        </div>
+
+        <div class="form-grid">
+            <label class="field-control">
+                <span>Nombre de usuario</span>
+                <input [value]="usuarioEditado.nombre" disabled />
+            </label>
+
+            <label class="field-control">
+                <span>Rol</span>
+                <select [(ngModel)]="usuarioEditado.rol">
+                    <option value="usuario">Usuario</option>
+                    <option value="administrador">Administrador</option>
+                </select>
+            </label>
+
+            <label class="field-control">
+                <span>Nueva clave</span>
+                <input type="password" [(ngModel)]="usuarioEditado.clave" placeholder="Dejar vacío para no cambiar" />
+            </label>
+
+            <label class="field-control">
+                <span>Confirmar clave</span>
+                <input type="password" [(ngModel)]="usuarioEditado.confirmarClave" placeholder="Repetir nueva clave" />
+            </label>
+
+            <div class="edit-actions">
+                <button class="primary-button" type="button" (click)="guardar()" [disabled]="guardando">
+                    {{ guardando ? 'Guardando...' : 'Actualizar' }}
+                </button>
+
+                <button class="secondary-button" type="button" (click)="limpiar()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
     </section>
 
     <p class="management-message" *ngIf="mensaje">{{ mensaje }}</p>
     <p class="management-message error" *ngIf="error">{{ error }}</p>
 
-    <section class="management-table-wrapper">
+    <section class="management-table-wrapper" aria-label="Listado de usuarios">
         <table class="management-table">
             <thead>
                 <tr>
@@ -48,24 +103,50 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
+
             <tbody>
-                <tr *ngFor="let usuario of listaUsuarios">
+                <tr *ngFor="let usuario of listaUsuarios"
+                    [class.editing-row]="editando && usuario.id === usuarioEditado.id">
                     <td>{{ usuario.nombre }}</td>
-                    <td>{{ usuario.rol }}</td>
+
+                    <td>{{ obtenerTextoRol(usuario.rol) }}</td>
+
                     <td>
+                        @if (esAdmin()) {
+                        <select class="status-select" [class.inactive]="usuario.estado === 'baja'"
+                            [ngModel]="usuario.estado" (ngModelChange)="cambiarEstado(usuario, $event)"
+                            [disabled]="cambiandoEstadoId === usuario.id" aria-label="Cambiar estado del usuario">
+                            <option value="activo">Activo</option>
+                            <option value="baja">Baja</option>
+                        </select>
+                        } @else {
                         <span class="status-pill" [class.inactive]="usuario.estado === 'baja'">
-                            {{ usuario.estado === "baja" ? "Baja": "Activo "}}
+                            {{ usuario.estado === 'baja' ? 'Baja' : 'Activo' }}
                         </span>
+                        }
                     </td>
+
                     <td>
                         <div class="table-actions">
-                            <a class="action-button action-view" [routerLink]="['/usuarios/', usuario.id]">Ver</a>
+                            <a class="action-button action-view" [routerLink]="['/usuarios', usuario.id]">
+                                Ver
+                            </a>
+
+                            <button class="action-button action-edit" type="button" (click)="editar(usuario)"
+                                [disabled]="usuario.estado === 'baja'" *ngIf="esAdmin()">
+                                Editar
+                            </button>
                         </div>
                     </td>
                 </tr>
+
                 <tr *ngIf="listaUsuarios.length === 0">
                     <td colspan="4" class="management-empty-row">
-                        {{ hayFiltrosActivos() ? "No hay usuarios que coincidan" : "No hay usuarios cargados" }}
+                        {{
+                        hayFiltrosActivos()
+                        ? 'No hay usuarios que coincidan con los filtros seleccionados.'
+                        : 'No hay usuarios cargados.'
+                        }}
                     </td>
                 </tr>
             </tbody>
@@ -74,20 +155,29 @@
         <div class="pagination-bar" *ngIf="totalUsuarios > 0">
             <div class="page-size-control">
                 <span>Usuarios por página</span>
+
                 <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
                     <option [ngValue]="6">6</option>
                     <option [ngValue]="10">10</option>
                     <option [ngValue]="20">20</option>
                 </select>
             </div>
+
             <span class="pagination-summary">
                 Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalUsuarios }} usuarios
             </span>
+
             <div class="pagination-actions">
-                <button class="secondary-button" (click)="paginaAnterior()" [disabled]="paginaActual <= 1">Anterior</button>
-                <button class="secondary-button" (click)="paginaSiguiente()" [disabled]="paginaActual >= totalPaginas">Siguiente</button>
+                <button class="secondary-button" type="button" (click)="paginaAnterior()"
+                    [disabled]="paginaActual <= 1">
+                    Anterior
+                </button>
+
+                <button class="secondary-button" type="button" (click)="paginaSiguiente()"
+                    [disabled]="paginaActual >= totalPaginas">
+                    Siguiente
+                </button>
             </div>
         </div>
     </section>
-
 </main>

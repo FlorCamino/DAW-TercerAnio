@@ -1,7 +1,7 @@
 import { Injectable, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Observable, tap } from "rxjs";
-import { LoginDto, AuthResponseDto } from "../models/auth.models";
+import { LoginDto } from "../models/auth.models";
 import { environment } from "../../environments/environment";
 
 @Injectable({
@@ -34,10 +34,6 @@ export class AuthService {
                 localStorage.removeItem("user_nombre");
             })
         );
-    }
-
-    registrar(datos: { nombre: string; clave: string; rol?: string }): Observable<any> {
-        return this.http.post(`${this.apiUrl}/registrar`, datos);
     }
 
     obtenerToken(): string | null {
