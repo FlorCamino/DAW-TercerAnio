@@ -17,8 +17,8 @@ import { ClientStatus } from '../../common/enums/client-status.enum';
 import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
 
 interface ProjectFilters {
-  estado?: string;
-  nombre?: string;
+  status?: string;
+  name?: string;
   clientId?: string;
   page?: string;
   limit?: string;
@@ -32,7 +32,7 @@ export class ProjectsService {
 
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
-  ) {}
+  ) { }
 
   async create(dto: CreateProjectDto): Promise<ProjectResponseDto> {
     if (dto.clientId) {
@@ -45,8 +45,10 @@ export class ProjectsService {
       clientId: dto.clientId ?? null,
       endDate: dto.endDate ?? null,
     });
+
     const saved = await this.projectRepository.save(project);
-    return ProjectsMapper.toResponse(saved);
+
+    return this.findOne(saved.id);
   }
 
   async findAll(filters: ProjectFilters = {}): Promise<ProjectListResponseDto> {
@@ -54,18 +56,18 @@ export class ProjectsService {
       .createQueryBuilder('project')
       .leftJoinAndSelect('project.client', 'client');
 
-    const estado = this.normalizeStatus(filters.estado);
-    const nombre = filters.nombre?.trim();
+    const status = this.normalizeStatus(filters.status);
+    const name = filters.name?.trim();
     const clientId = this.parseOptionalPositiveInt(filters.clientId, 'cliente');
     const page = this.parsePositiveInt(filters.page, 1);
     const limit = this.parseOptionalPositiveInt(filters.limit, 'limite');
 
-    if (estado) {
-      query.andWhere('project.status = :estado', { estado });
+    if (status) {
+      query.andWhere('project.status = :status', { status });
     }
 
-    if (nombre) {
-      addAccentInsensitiveLike(query, 'project.name', 'nombre', nombre);
+    if (name) {
+      addAccentInsensitiveLike(query, 'project.name', 'name', name);
     }
 
     if (clientId) {
@@ -91,18 +93,33 @@ export class ProjectsService {
   }
 
   async findOne(id: number): Promise<ProjectResponseDto> {
-    const project = await this.projectRepository.findOne({ where: { id } });
+    const project = await this.projectRepository.findOne({
+      where: { id },
+      relations: {
+        client: true,
+        tasks: true,
+      },
+      order: {
+        tasks: {
+          id: 'ASC',
+        },
+      },
+    });
+
     if (!project) {
       throw new NotFoundException(`Proyecto con id ${id} no encontrado`);
     }
+
     return ProjectsMapper.toResponse(project);
   }
 
   async update(id: number, dto: UpdateProjectDto): Promise<ProjectResponseDto> {
     const project = await this.projectRepository.findOne({ where: { id } });
+
     if (!project) {
       throw new NotFoundException(`Proyecto con id ${id} no encontrado`);
     }
+
     const onlyChangingStatus =
       dto.status !== undefined &&
       dto.name === undefined &&
@@ -115,13 +132,32 @@ export class ProjectsService {
       );
     }
 
-    if (dto.clientId) {
-      await this.validateActiveClient(dto.clientId);
+    if (dto.name !== undefined) {
+      project.name = dto.name;
     }
 
-    Object.assign(project, dto);
-    const saved = await this.projectRepository.save(project);
-    return ProjectsMapper.toResponse(saved);
+    if (dto.status !== undefined) {
+      project.status = dto.status;
+    }
+
+    if (dto.endDate !== undefined) {
+      project.endDate = dto.endDate;
+    }
+
+    if (dto.clientId !== undefined) {
+      if (dto.clientId === null) {
+        project.clientId = null;
+        project.client = null;
+      } else {
+        const client = await this.validateActiveClient(dto.clientId);
+        project.clientId = client.id;
+        project.client = client;
+      }
+    }
+
+    await this.projectRepository.save(project);
+
+    return this.findOne(id);
   }
 
   async remove(id: number): Promise<ProjectResponseDto> {
@@ -137,7 +173,7 @@ export class ProjectsService {
     return ProjectsMapper.toResponse(saved);
   }
 
-  private async validateActiveClient(clientId: number): Promise<void> {
+  private async validateActiveClient(clientId: number): Promise<Client> {
     const client = await this.clientRepository.findOne({
       where: { id: clientId },
     });
@@ -146,11 +182,13 @@ export class ProjectsService {
       throw new NotFoundException(`Cliente con id ${clientId} no encontrado`);
     }
 
-    if (client.estado !== ClientStatus.ACTIVO) {
+    if (client.status !== ClientStatus.ACTIVO) {
       throw new BadRequestException(
         'Solo se puede asociar un cliente en estado activo',
       );
     }
+
+    return client;
   }
 
   private normalizeStatus(status?: string): ProjectStatus | undefined {

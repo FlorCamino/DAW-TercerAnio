@@ -10,6 +10,6 @@ export class UpdateClientDto extends PartialType(CreateClientDto) {
   @Transform(({ value }) =>
     typeof value === 'string' ? value.toLowerCase() : value,
   )
-  @IsEnum(ClientStatus, { message: 'El estado del cliente no es valido' })
-  estado?: ClientStatus;
+  @IsEnum(ClientStatus, { message: 'El estado del cliente no es válido' })
+  status?: ClientStatus;
 }

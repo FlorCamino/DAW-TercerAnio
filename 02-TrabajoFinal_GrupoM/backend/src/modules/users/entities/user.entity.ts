@@ -11,22 +11,22 @@ export class User {
     @Column({
         unique: true,
     })
-    nombre!: string;
+    name!: string;
 
     @Column()
-    clave!: string;
+    password!: string;
 
     @Column({
         type: 'enum',
         enum: UserStatus,
         default: UserStatus.ACTIVO,
     })
-    estado!: UserStatus;
+    status!: UserStatus;
 
     @Column({
         type: 'enum',
         enum: UserRole,
         default: UserRole.USER,
     })
-    rol!: UserRole;
+    role!: UserRole;
 }

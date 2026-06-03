@@ -3,7 +3,7 @@ import { AuthService } from "../../modules/auth/auth.service";
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-    constructor(private readonly authService: AuthService) {}
+    constructor(private readonly authService: AuthService) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const request = context.switchToHttp().getRequest();
@@ -13,12 +13,12 @@ export class AuthGuard implements CanActivate {
             throw new UnauthorizedException("No se proporcionó un token de acceso válido");
         }
 
-        const usuarioValido = await this.authService.validarToken(token);
+        const validUser = await this.authService.validarToken(token);
 
-        if (!usuarioValido) {
+        if (!validUser) {
             throw new UnauthorizedException("La sesión caducó o el token es inválido");
         }
-        request["user"] = usuarioValido;
+        request["user"] = validUser;
         return true;
     }
 

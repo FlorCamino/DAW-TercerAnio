@@ -15,29 +15,29 @@ async function bootstrap() {
     const userRepo = app.get<Repository<User>>(getRepositoryToken(User));
 
     console.log("Iniciando creación de usuarios de testeo");
-    
-    const usuarios = [
+
+    const users = [
         {
-            nombre: "micazalazar",
-            clave: bcrypt.hashSync("mica123456", 10),
-            rol: UserRole.ADMIN,
-            estado: UserStatus.ACTIVO,
+            name: "micazalazar",
+            password: bcrypt.hashSync("mica123456", 10),
+            role: UserRole.ADMIN,
+            status: UserStatus.ACTIVO,
         },
         {
-            nombre: "usuariotest",
-            clave: bcrypt.hashSync("usuariotest123", 10),
-            rol: UserRole.USER,
-            estado: UserStatus.ACTIVO,
+            name: "usuariotest",
+            password: bcrypt.hashSync("usuariotest123", 10),
+            role: UserRole.USER,
+            status: UserStatus.ACTIVO,
         },
     ];
 
-    for (const u of usuarios) {
-        const existe = await userRepo.findOne({ where: { nombre: u.nombre } });
+    for (const u of users) {
+        const existe = await userRepo.findOne({ where: { name: u.name } });
         if (!existe) {
             await userRepo.save(userRepo.create(u));
-            console.log(`Usuario creado: ${u.nombre} - Rol: ${u.rol}`);
+            console.log(`Usuario creado: ${u.name} - Rol: ${u.role}`);
         } else {
-            console.log(`El usuario ${u.nombre} ya existe`);
+            console.log(`El usuario ${u.name} ya existe`);
         }
     }
 

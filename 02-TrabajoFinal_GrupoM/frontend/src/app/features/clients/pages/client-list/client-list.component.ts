@@ -7,7 +7,6 @@ import { Subject, debounceTime, finalize, takeUntil } from 'rxjs';
 import { Client, ClientFormData, ClientStatus, PaginatedClients } from '../../models/client.model';
 import { ClientsService } from '../../services/clients.service';
 
-// Manejo de roles
 import { AuthService } from '../../../../../core/services/auth.service';
 
 type AlertType = 'info' | 'error' | 'confirm';

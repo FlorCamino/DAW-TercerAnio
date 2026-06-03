@@ -9,15 +9,15 @@ export class Session {
     @Column({ type: "varchar", unique: true, name: "token" })
     token!: string;
 
-    @CreateDateColumn({ name: "creado" })
-    creado!: Date;
+    @CreateDateColumn({ name: "created_at" })
+    createdAt!: Date;
 
     @Column({
         type: "timestamp",
-        name: "expira_en",
+        name: "expires_at",
         default: () => "CURRENT_TIMESTAMP + INTERVAL '8 hours'",
     })
-    expiraEn!: Date;
+    expiresAt!: Date;
 
     @ManyToOne(() => User, { onDelete: "CASCADE" })
     @JoinColumn({ name: "user_id" })

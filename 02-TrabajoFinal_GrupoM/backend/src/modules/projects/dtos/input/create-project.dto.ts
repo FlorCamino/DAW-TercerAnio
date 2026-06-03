@@ -14,14 +14,16 @@ import { ProjectStatus } from '../../../../common/enums/project-status.enum';
 
 export class CreateProjectDto {
   @ApiProperty({ example: 'Sistema de gestion interna' })
-  @IsString()
+  @IsString({ message: 'El nombre del proyecto debe ser un texto' })
   @IsNotEmpty({ message: 'El nombre del proyecto es obligatorio' })
-  @MaxLength(150)
-  name: string;
+  @MaxLength(150, {
+    message: 'El nombre del proyecto no puede superar los 150 caracteres',
+  })
+  name!: string;
 
   @ApiPropertyOptional({ enum: ProjectStatus, example: ProjectStatus.ACTIVE })
   @IsOptional()
-  @IsEnum(ProjectStatus, { message: 'Estado invalido' })
+  @IsEnum(ProjectStatus, { message: 'El estado tiene un valor inválido' })
   status?: ProjectStatus;
 
   @ApiPropertyOptional({
@@ -31,8 +33,8 @@ export class CreateProjectDto {
   })
   @Type(() => Number)
   @IsOptional()
-  @IsInt()
-  @IsPositive()
+  @IsInt({ message: 'El clientId debe ser un numero entero' })
+  @IsPositive({ message: 'El clientId debe ser un numero positivo' })
   clientId?: number | null;
 
   @ApiPropertyOptional({

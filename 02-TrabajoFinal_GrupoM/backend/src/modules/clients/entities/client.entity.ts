@@ -2,28 +2,27 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { ClientStatus } from '../../../common/enums/client-status.enum';
 import { Project } from '../../projects/entities/project.entity';
 
-@Entity('clientes')
+@Entity('clients')
 export class Client {
   @PrimaryGeneratedColumn()
   id!: number;
 
   @Column({ length: 150, unique: true })
-  nombre: string;
+  name!: string;
 
   @Column({
     type: 'enum',
     enum: ClientStatus,
-    name: 'estado',
     default: ClientStatus.ACTIVO,
   })
-  estado: ClientStatus;
+  status!: ClientStatus;
 
-  @Column({ length: 150, nullable: true })
-  email: string;
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  email!: string | null;
 
-  @Column({ length: 30, nullable: true })
-  telefono: string;
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  phone!: string | null;
 
   @OneToMany(() => Project, (project) => project.client)
-  proyectos!: Project[];
+  projects!: Project[];
 }

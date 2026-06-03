@@ -10,7 +10,6 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { Task, TaskFormData, TaskStatus } from '../../models/task.model';
 import { TasksService } from '../../services/tasks.service';
 
-// Manejo de roles
 import { AuthService } from '../../../../../core/services/auth.service';
 
 type AlertType = 'info' | 'error' | 'confirm';

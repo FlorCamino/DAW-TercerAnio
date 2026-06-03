@@ -17,32 +17,32 @@ import { UseGuards } from "@nestjs/common";
 @Roles(UserRole.USER, UserRole.ADMIN)
 @Controller("users")
 export class UsersController {
-    constructor(private readonly usersService: UsersService) {}
+    constructor(private readonly usersService: UsersService) { }
 
-    @ApiQuery({ name: "estado", enum: UserStatus, required: false })
+    @ApiQuery({ name: "status", enum: UserStatus, required: false })
     @ApiQuery({
-        name: "nombre",
+        name: "name",
         required: false,
         example: "mica",
         description: "Filtro parcial sin distinguir mayusculas ni acentos. Los usuarios comunes solo ven su propio usuario.",
     })
-    @ApiQuery({ name: "rol", enum: UserRole, required: false })
+    @ApiQuery({ name: "role", enum: UserRole, required: false })
     @ApiQuery({ name: "page", required: true, example: 1, schema: { default: 1 } })
     @ApiQuery({ name: "limit", required: true, example: 6, schema: { default: 6 } })
     @Get()
     @ApiOperation({ summary: "Listar usuarios" })
     async findAll(
-        @Query("estado") estado?: string,
-        @Query("nombre") nombre?: string,
-        @Query("rol") rol?: string,
+        @Query("status") status?: string,
+        @Query("name") name?: string,
+        @Query("role") role?: string,
         @Query("page") page: string = "1",
         @Query("limit") limit: string = "6",
-        @Req() request?: { user: { id: number; rol: UserRole } },
+        @Req() request?: { user: { id: number; role: UserRole } },
     ) {
         return this.usersService.findAll({
-            estado,
-            nombre,
-            rol,
+            status,
+            name,
+            role,
             page,
             limit,
             currentUser: request?.user,
@@ -53,9 +53,9 @@ export class UsersController {
     @ApiOperation({ summary: "Obtener usuario por ID" })
     async findOne(
         @Param("id", ParseIntPipe) id: number,
-        @Req() request?: { user: { id: number; rol: UserRole } },
+        @Req() request?: { user: { id: number; role: UserRole } },
     ): Promise<UserResponseDto> {
-        if (request?.user.rol !== UserRole.ADMIN && request?.user.id !== id) {
+        if (request?.user.role !== UserRole.ADMIN && request?.user.id !== id) {
             throw new ForbiddenException("Solo puede consultar su propio usuario");
         }
 
