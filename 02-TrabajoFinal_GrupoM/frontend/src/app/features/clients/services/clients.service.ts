@@ -9,8 +9,25 @@ interface ApiResponse<T> {
   data: T;
 }
 
-type ClientsApiResponse = ApiResponse<PaginatedClients | Client[]> | PaginatedClients | Client[];
-type ClientApiResponse = ApiResponse<Client> | Client;
+interface ApiClient {
+  id: number;
+  name: string;
+  status: Client['estado'];
+  email: string | null;
+  phone: string | null;
+  projects?: Client['proyectos'];
+}
+
+interface ApiPaginatedClients {
+  data: ApiClient[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+type ClientsApiResponse = ApiResponse<ApiPaginatedClients | ApiClient[]> | ApiPaginatedClients | ApiClient[];
+type ClientApiResponse = ApiResponse<ApiClient> | ApiClient;
 
 @Injectable({
   providedIn: 'root',
@@ -47,10 +64,10 @@ export class ClientsService {
           'success' in response &&
           'data' in response
         ) {
-          return response.data;
+          return this.toClient(response.data);
         }
 
-        return response;
+        return this.toClient(response);
       }),
     );
   }
@@ -58,33 +75,32 @@ export class ClientsService {
   crearCliente(cliente: ClientFormData): Observable<Client> {
     if (cliente.id) {
       const { id, ...clienteActualizado } = cliente;
-      return this.http.patch<ClientApiResponse>(`${this.apiUrl}/${id}`, clienteActualizado).pipe(
-        map((response: ClientApiResponse) => this.getSingleResponsePayload(response)),
+      return this.http.patch<ClientApiResponse>(`${this.apiUrl}/${id}`, this.toApiWritePayload(clienteActualizado)).pipe(
+        map((response: ClientApiResponse) => this.toClient(this.getSingleResponsePayload(response))),
       );
     }
 
-    const { id, estado, ...nuevoCliente } = cliente;
-    return this.http.post<ClientApiResponse>(this.apiUrl, nuevoCliente).pipe(
-      map((response: ClientApiResponse) => this.getSingleResponsePayload(response)),
+    return this.http.post<ClientApiResponse>(this.apiUrl, this.toApiWritePayload(cliente)).pipe(
+      map((response: ClientApiResponse) => this.toClient(this.getSingleResponsePayload(response))),
     );
   }
 
   cambiarEstado(id: number): Observable<Client> {
     return this.http.delete<ClientApiResponse>(`${this.apiUrl}/${id}`).pipe(
-      map((response: ClientApiResponse) => this.getSingleResponsePayload(response)),
+      map((response: ClientApiResponse) => this.toClient(this.getSingleResponsePayload(response))),
     );
   }
 
   activarCliente(id: number): Observable<Client> {
-    return this.http.patch<ClientApiResponse>(`${this.apiUrl}/${id}`, { estado: 'activo' }).pipe(
-      map((response: ClientApiResponse) => this.getSingleResponsePayload(response)),
+    return this.http.patch<ClientApiResponse>(`${this.apiUrl}/${id}`, { status: 'activo' }).pipe(
+      map((response: ClientApiResponse) => this.toClient(this.getSingleResponsePayload(response))),
     );
   }
 
   private buildParams(filters: ClientFilters): HttpParams {
     let params = new HttpParams();
 
-    for (const [key, value] of Object.entries(filters)) {
+    for (const [key, value] of Object.entries(this.toApiFilters(filters))) {
       const trimmedValue = typeof value === 'string' ? value.trim() : value?.toString();
 
       if (trimmedValue) {
@@ -130,7 +146,7 @@ export class ClientsService {
     return this.toPaginatedResponse([], filters);
   }
 
-  private getResponsePayload(response: ClientsApiResponse): PaginatedClients | Client[] {
+  private getResponsePayload(response: ClientsApiResponse): ApiPaginatedClients | ApiClient[] {
     if (Array.isArray(response)) {
       return response;
     }
@@ -142,7 +158,7 @@ export class ClientsService {
     return response;
   }
 
-  private getSingleResponsePayload(response: ClientApiResponse): Client {
+  private getSingleResponsePayload(response: ClientApiResponse): ApiClient {
     if ('success' in response && 'data' in response) {
       return response.data;
     }
@@ -150,11 +166,11 @@ export class ClientsService {
     return response;
   }
 
-  private toPaginatedResponse(data: Client[], filters: ClientFilters): PaginatedClients {
+  private toPaginatedResponse(data: ApiClient[], filters: ClientFilters): PaginatedClients {
     const limit = filters.limit ?? data.length;
 
     return {
-      data,
+      data: data.map((client) => this.toClient(client)),
       total: data.length,
       page: filters.page ?? 1,
       limit,
@@ -163,20 +179,56 @@ export class ClientsService {
   }
 
   private toPaginatedResponseFromPayload(
-    payload: PaginatedClients,
+    payload: ApiPaginatedClients,
     filters: ClientFilters,
   ): PaginatedClients {
     const data = Array.isArray(payload.data) ? payload.data : [];
     const limit = payload.limit ?? filters.limit ?? data.length;
 
     return {
-      data,
+      data: data.map((client) => this.toClient(client)),
       total: payload.total ?? data.length,
       page: payload.page ?? filters.page ?? 1,
       limit,
       totalPages:
         payload.totalPages ??
         (data.length > 0 && limit > 0 ? Math.ceil(data.length / limit) : 0),
+    };
+  }
+
+  private toClient(client: ApiClient): Client {
+    return {
+      id: client.id,
+      nombre: client.name,
+      estado: client.status,
+      email: client.email,
+      telefono: client.phone,
+      proyectos: client.projects,
+    };
+  }
+
+  private toApiFilters(filters: ClientFilters): Record<string, string | number | undefined> {
+    return {
+      status: filters.estado,
+      name: filters.nombre,
+      email: filters.email,
+      phone: filters.telefono,
+      page: filters.page,
+      limit: filters.limit,
+    };
+  }
+
+  private toApiWritePayload(cliente: Partial<ClientFormData>): {
+    nombre?: string;
+    email?: string | null;
+    telefono?: string | null;
+    status?: string;
+  } {
+    return {
+      nombre: cliente.nombre,
+      email: cliente.email,
+      telefono: cliente.telefono,
+      status: cliente.estado,
     };
   }
 }

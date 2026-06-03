@@ -9,8 +9,24 @@ interface ApiResponse<T> {
   data: T;
 }
 
-type TasksApiResponse = ApiResponse<PaginatedTasks | Task[]> | PaginatedTasks | Task[];
-type TaskApiResponse = ApiResponse<Task> | Task;
+interface ApiTask {
+  id: number;
+  description: string;
+  status: TaskStatus;
+  projectId: number;
+  projectName: string | null;
+}
+
+interface ApiPaginatedTasks {
+  data: ApiTask[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+type TasksBackendResponse = ApiResponse<ApiPaginatedTasks | ApiTask[]> | ApiPaginatedTasks | ApiTask[];
+type TaskBackendResponse = ApiResponse<ApiTask> | ApiTask;
 
 @Injectable({
   providedIn: 'root',
@@ -30,47 +46,46 @@ export class TasksService {
     const normalizedFilters = this.withDefaultPagination(filters);
 
     return this.http
-      .get<TasksApiResponse>(this.apiUrl, {
-        params: this.buildParams(normalizedFilters),
+      .get<TasksBackendResponse>(this.apiUrl, {
+        params: this.buildParams(this.toApiFilters(normalizedFilters)),
       })
       .pipe(
-        map((response: TasksApiResponse) => this.normalizeTasksResponse(response, normalizedFilters)),
+        map((response: TasksBackendResponse) => this.normalizeTasksResponse(response, normalizedFilters)),
       );
   }
 
   getTareaPorId(id: number): Observable<Task> {
-    return this.http.get<TaskApiResponse>(`${this.apiUrl}/${id}`).pipe(
-      map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+    return this.http.get<TaskBackendResponse>(`${this.apiUrl}/${id}`).pipe(
+      map((response: TaskBackendResponse) => this.toTask(this.getSingleResponsePayload(response))),
     );
   }
 
   guardarTarea(tarea: TaskFormData): Observable<Task> {
     if (tarea.id) {
       const { id, ...tareaActualizada } = tarea;
-      return this.http.patch<TaskApiResponse>(`${this.apiUrl}/${id}`, tareaActualizada).pipe(
-        map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+      return this.http.patch<TaskBackendResponse>(`${this.apiUrl}/${id}`, this.toApiTaskPayload(tareaActualizada)).pipe(
+        map((response: TaskBackendResponse) => this.toTask(this.getSingleResponsePayload(response))),
       );
     }
 
-    const { id, ...nuevaTarea } = tarea;
-    return this.http.post<TaskApiResponse>(this.apiUrl, nuevaTarea).pipe(
-      map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+    return this.http.post<TaskBackendResponse>(this.apiUrl, this.toApiTaskPayload(tarea)).pipe(
+      map((response: TaskBackendResponse) => this.toTask(this.getSingleResponsePayload(response))),
     );
   }
 
   cambiarEstado(id: number, estado: TaskStatus): Observable<Task> {
-    return this.http.patch<TaskApiResponse>(`${this.apiUrl}/${id}`, { estado }).pipe(
-      map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+    return this.http.patch<TaskBackendResponse>(`${this.apiUrl}/${id}`, { status: estado }).pipe(
+      map((response: TaskBackendResponse) => this.toTask(this.getSingleResponsePayload(response))),
     );
   }
 
   eliminarTarea(id: number): Observable<Task> {
-    return this.http.delete<TaskApiResponse>(`${this.apiUrl}/${id}`).pipe(
-      map((response: TaskApiResponse) => this.getSingleResponsePayload(response)),
+    return this.http.delete<TaskBackendResponse>(`${this.apiUrl}/${id}`).pipe(
+      map((response: TaskBackendResponse) => this.toTask(this.getSingleResponsePayload(response))),
     );
   }
 
-  private buildParams(filters: TaskFilters): HttpParams {
+  private buildParams(filters: Record<string, string | number | null | undefined>): HttpParams {
     let params = new HttpParams();
 
     for (const [key, value] of Object.entries(filters)) {
@@ -93,7 +108,7 @@ export class TasksService {
   }
 
   private normalizeTasksResponse(
-    response: TasksApiResponse,
+    response: TasksBackendResponse,
     filters: TaskFilters,
   ): PaginatedTasks {
     if (
@@ -119,7 +134,7 @@ export class TasksService {
     return this.toPaginatedResponse([], filters);
   }
 
-  private getResponsePayload(response: TasksApiResponse): PaginatedTasks | Task[] {
+  private getResponsePayload(response: TasksBackendResponse): ApiPaginatedTasks | ApiTask[] {
     if (Array.isArray(response)) {
       return response;
     }
@@ -131,7 +146,7 @@ export class TasksService {
     return response;
   }
 
-  private getSingleResponsePayload(response: TaskApiResponse): Task {
+  private getSingleResponsePayload(response: TaskBackendResponse): ApiTask {
     if ('success' in response && 'data' in response) {
       return response.data;
     }
@@ -139,11 +154,11 @@ export class TasksService {
     return response;
   }
 
-  private toPaginatedResponse(data: Task[], filters: TaskFilters): PaginatedTasks {
+  private toPaginatedResponse(data: ApiTask[], filters: TaskFilters): PaginatedTasks {
     const limit = filters.limit ?? data.length;
 
     return {
-      data,
+      data: data.map((task) => this.toTask(task)),
       total: data.length,
       page: filters.page ?? 1,
       limit,
@@ -152,20 +167,52 @@ export class TasksService {
   }
 
   private toPaginatedResponseFromPayload(
-    payload: PaginatedTasks,
+    payload: ApiPaginatedTasks,
     filters: TaskFilters,
   ): PaginatedTasks {
     const data = Array.isArray(payload.data) ? payload.data : [];
     const limit = payload.limit ?? filters.limit ?? data.length;
 
     return {
-      data,
+      data: data.map((task) => this.toTask(task)),
       total: payload.total ?? data.length,
       page: payload.page ?? filters.page ?? 1,
       limit,
       totalPages:
         payload.totalPages ??
         (data.length > 0 && limit > 0 ? Math.ceil(data.length / limit) : 0),
+    };
+  }
+
+  private toTask(task: ApiTask): Task {
+    return {
+      id: task.id,
+      descripcion: task.description,
+      estado: task.status,
+      proyectoId: task.projectId,
+      proyectoNombre: task.projectName,
+    };
+  }
+
+  private toApiFilters(filters: TaskFilters): Record<string, string | number | null | undefined> {
+    return {
+      status: filters.estado,
+      description: filters.descripcion,
+      projectId: filters.proyectoId,
+      page: filters.page,
+      limit: filters.limit,
+    };
+  }
+
+  private toApiTaskPayload(tarea: Partial<TaskFormData>): {
+    description?: string;
+    status?: TaskStatus;
+    projectId?: number | null;
+  } {
+    return {
+      description: tarea.descripcion,
+      status: tarea.estado,
+      projectId: tarea.proyectoId,
     };
   }
 }

@@ -13,10 +13,10 @@ export class TasksMapper {
   static toResponse(task: Task): TaskResponseDto {
     return {
       id: task.id,
-      descripcion: task.descripcion,
-      estado: task.estado,
-      proyectoId: task.proyectoId,
-      proyectoNombre: task.project?.name ?? null,
+      description: task.description,
+      status: task.status,
+      projectId: task.projectId,
+      projectName: task.project?.name ?? null,
     };
   }
 

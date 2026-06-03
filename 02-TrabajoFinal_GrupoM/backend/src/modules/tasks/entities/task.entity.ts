@@ -1,21 +1,14 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, } from 'typeorm';
 import { Project } from '../../projects/entities/project.entity';
 import { TaskStatus } from '../../../common/enums/task-status.enum';
 
 @Entity('tasks')
 export class Task {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ name: 'description', length: 255 })
-  descripcion: string;
+  description!: string;
 
   @Column({
     name: 'status',
@@ -23,12 +16,15 @@ export class Task {
     enum: TaskStatus,
     default: TaskStatus.PENDING,
   })
-  estado: TaskStatus;
+  status!: TaskStatus;
 
   @Column({ name: 'projectId', type: 'int' })
-  proyectoId: number;
+  projectId!: number;
 
-  @ManyToOne(() => Project, { eager: true, nullable: false })
+  @ManyToOne(() => Project, (project) => project.tasks, {
+    eager: true,
+    nullable: false,
+  })
   @JoinColumn({ name: 'projectId' })
-  project: Project;
+  project!: Project;
 }

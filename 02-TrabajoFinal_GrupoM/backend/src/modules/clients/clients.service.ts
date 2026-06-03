@@ -1,10 +1,6 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, ILike, In, Repository } from 'typeorm';
+import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
 import { ClientStatus } from '../../common/enums/client-status.enum';
 import { CreateClientDto } from './dtos/input/create-client.dto';
@@ -15,10 +11,10 @@ import { Project } from '../projects/entities/project.entity';
 import { ProjectStatus } from '../../common/enums/project-status.enum';
 
 interface ClientFilters {
-  estado?: string;
-  nombre?: string;
+  status?: string;
+  name?: string;
   email?: string;
-  telefono?: string;
+  phone?: string;
   page?: string;
   limit?: string;
 }
@@ -44,7 +40,7 @@ export class ClientsService {
   async create(dto: CreateClientDto): Promise<ClientResponseDto> {
     const client = this.clientRepository.create({
       ...dto,
-      estado: ClientStatus.ACTIVO,
+      status: ClientStatus.ACTIVO,
     });
     const saved = await this.clientRepository.save(client);
     return ClientsMapper.toResponse(saved);
@@ -84,7 +80,7 @@ export class ClientsService {
     const client = await this.clientRepository.findOne({
       where: { id },
       relations: {
-        proyectos: true,
+        projects: true,
       },
     });
 
@@ -99,8 +95,8 @@ export class ClientsService {
     const client = await this.findClientOrFail(id);
 
     if (
-      dto.estado === ClientStatus.BAJA &&
-      client.estado !== ClientStatus.BAJA
+      dto.status === ClientStatus.BAJA &&
+      client.status !== ClientStatus.BAJA
     ) {
       await this.validateClientWithoutProjects(id);
     }
@@ -113,13 +109,13 @@ export class ClientsService {
   async remove(id: number): Promise<ClientResponseDto> {
     const client = await this.findClientOrFail(id);
 
-    if (client.estado === ClientStatus.BAJA) {
+    if (client.status === ClientStatus.BAJA) {
       throw new BadRequestException('El cliente ya esta dado de baja');
     }
 
     await this.validateClientWithoutProjects(id);
 
-    client.estado = ClientStatus.BAJA;
+    client.status = ClientStatus.BAJA;
     const saved = await this.clientRepository.save(client);
     return ClientsMapper.toResponse(saved);
   }
@@ -138,7 +134,7 @@ export class ClientsService {
     const projectsCount = await this.projectRepository.count({
       where: {
         clientId: id,
-        status: In([ProjectStatus.ACTIVE, ProjectStatus.FINISHED]),
+        status: ProjectStatus.ACTIVE,
       },
     });
 
@@ -159,7 +155,7 @@ export class ClientsService {
     const normalizedStatus = trimmedStatus.toLowerCase() as ClientStatus;
 
     if (!Object.values(ClientStatus).includes(normalizedStatus)) {
-      throw new BadRequestException('Estado de cliente invalido');
+      throw new BadRequestException('Estado de cliente inválido');
     }
 
     return normalizedStatus;
@@ -169,25 +165,25 @@ export class ClientsService {
     filters: ClientFilters,
   ): FindOptionsWhere<Client> | FindOptionsWhere<Client>[] {
     const where: FindOptionsWhere<Client> = {};
-    const normalizedStatus = this.normalizeStatus(filters.estado);
-    const nombre = filters.nombre?.trim();
+    const normalizedStatus = this.normalizeStatus(filters.status);
+    const name = filters.name?.trim();
     const email = filters.email?.trim();
-    const telefono = filters.telefono?.trim();
+    const phone = filters.phone?.trim();
 
     if (normalizedStatus) {
-      where.estado = normalizedStatus;
+      where.status = normalizedStatus;
     }
 
-    if (nombre) {
-      where.nombre = ILike(`%${nombre}%`);
+    if (name) {
+      where.name = ILike(`%${name}%`);
     }
 
     if (email) {
       where.email = ILike(`%${email}%`);
     }
 
-    if (telefono) {
-      where.telefono = ILike(`%${telefono}%`);
+    if (phone) {
+      where.phone = ILike(`%${phone}%`);
     }
 
     return where;
@@ -195,10 +191,10 @@ export class ClientsService {
 
   private hasSearchFilters(filters: ClientFilters): boolean {
     return [
-      filters.estado,
-      filters.nombre,
+      filters.status,
+      filters.name,
       filters.email,
-      filters.telefono,
+      filters.phone,
     ].some((value) => value?.trim());
   }
 

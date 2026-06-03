@@ -5,10 +5,10 @@ export class ClientsMapper {
   static toResponse(client: Client): ClientResponseDto {
     return {
       id: client.id,
-      nombre: client.nombre,
-      estado: client.estado,
+      name: client.name,
+      status: client.status,
       email: client.email,
-      telefono: client.telefono,
+      phone: client.phone,
     };
   }
 }

@@ -8,7 +8,6 @@ import { ClientsService } from '../../../clients/services/clients.service';
 import { Project, ProjectStatus } from '../../models/project.model';
 import { ProjectService } from '../../services/project.service';
 
-// Manejo de roles
 import { AuthService } from '../../../../../core/services/auth.service';
 
 interface ProjectEditForm {

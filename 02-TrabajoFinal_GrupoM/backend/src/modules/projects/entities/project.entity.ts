@@ -1,13 +1,7 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { ProjectStatus } from '../../../common/enums/project-status.enum';
 import { Client } from '../../clients/entities/client.entity';
+import { Task } from '../../tasks/entities/task.entity';
 
 @Entity('projects')
 export class Project {
@@ -24,7 +18,7 @@ export class Project {
   })
   status!: ProjectStatus;
 
-  @ManyToOne(() => Client, (client) => client.proyectos, {
+  @ManyToOne(() => Client, (client) => client.projects, {
     nullable: true,
     eager: true,
     onDelete: 'SET NULL',
@@ -37,4 +31,7 @@ export class Project {
 
   @Column({ type: 'date', nullable: true })
   endDate!: string | null;
+
+  @OneToMany(() => Task, (task) => task.project)
+  tasks!: Task[];
 }

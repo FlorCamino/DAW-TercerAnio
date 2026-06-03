@@ -13,7 +13,7 @@ export class ProjectsMapper {
       new Date(project.endDate) < today &&
       project.status === ProjectStatus.ACTIVE;
 
-    return {
+    const response: ProjectResponseDto = {
       id: project.id,
       name: project.name,
       status: project.status,
@@ -21,13 +21,24 @@ export class ProjectsMapper {
       client: project.client
         ? {
           id: project.client.id,
-          nombre: project.client.nombre,
-          estado: project.client.estado,
+          name: project.client.name,
+          status: project.client.status,
         }
         : null,
       endDate: project.endDate,
       isOverdue,
     };
+
+    if (project.tasks) {
+      response.tasks = project.tasks.map((task) => ({
+        id: task.id,
+        description: task.description,
+        status: task.status,
+        projectId: task.projectId,
+      }));
+    }
+
+    return response;
   }
 
   static toListResponse(projects: Project[]): ProjectListResponseDto {

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from "bcrypt";
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,14 +12,14 @@ import { UsersMapper } from './mappers/users.mapper';
 import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
 
 interface UserFilters {
-    estado?: string;
-    nombre?: string;
-    rol?: string;
+    status?: string;
+    name?: string;
+    role?: string;
     page?: string;
     limit?: string;
     currentUser?: {
         id: number;
-        rol: UserRole;
+        role: UserRole;
     };
 }
 
@@ -28,13 +28,13 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-    ) {}
+    ) { }
 
     async create(createUserDto: CreateUserDto): Promise<UserResponseDto> {
         const user = this.userRepository.create({
             ...createUserDto,
-            clave: bcrypt.hashSync(createUserDto.clave, 10),
-            estado: UserStatus.ACTIVO,
+            password: bcrypt.hashSync(createUserDto.password, 10),
+            status: UserStatus.ACTIVO,
         });
 
         const saved = await this.userRepository.save(user);
@@ -42,7 +42,7 @@ export class UsersService {
     }
 
     async findOne(id: number): Promise<UserResponseDto> {
-        const user = await this.userRepository.findOne({ where: { id }});
+        const user = await this.userRepository.findOne({ where: { id } });
 
         if (!user) {
             throw new NotFoundException('Usuario no encontrado');
@@ -53,29 +53,29 @@ export class UsersService {
 
     async findAll(filters: UserFilters = {}) {
         const query = this.userRepository.createQueryBuilder('user');
-        
-        const estado = this.normalizeStatus(filters.estado);
-        const nombre = filters.nombre?.trim();
-        const rol = this.normalizeRole(filters.rol);
+
+        const estado = this.normalizeStatus(filters.status);
+        const name = filters.name?.trim();
+        const role = this.normalizeRole(filters.role);
         const page = this.parsePositiveInt(filters.page, 1);
         const limit = this.parsePositiveInt(filters.limit, 6);
 
-        if (filters.currentUser && filters.currentUser.rol !== UserRole.ADMIN) {
+        if (filters.currentUser && filters.currentUser.role !== UserRole.ADMIN) {
             query.andWhere('user.id = :currentUserId', {
                 currentUserId: filters.currentUser.id,
             });
         }
 
         if (estado) {
-            query.andWhere('user.estado = :estado', { estado });
+            query.andWhere('user.status = :estado', { estado });
         }
 
-        if (nombre) {
-            addAccentInsensitiveLike(query, 'user.nombre', 'nombre', nombre);
+        if (name) {
+            addAccentInsensitiveLike(query, 'user.name', 'name', name);
         }
 
-        if (rol) {
-            query.andWhere('user.rol = :rol', { rol });
+        if (role) {
+            query.andWhere('user.role = :role', { role });
         }
 
         query.orderBy('user.id', 'DESC');
@@ -92,60 +92,37 @@ export class UsersService {
         };
     }
 
-    async findByUsernameActivo(nombre: string): Promise<User | null> {
+    async findByUsernameActivo(name: string): Promise<User | null> {
         return this.userRepository.findOne({
-            where: { nombre,
-            estado: UserStatus.ACTIVO },
-            select: ['id', 'nombre', 'clave', 'estado', 'rol'],
+            where: {
+                name,
+                status: UserStatus.ACTIVO
+            },
+            select: ['id', 'name', 'password', 'status', 'role'],
         });
-    }
-
-    async cambiarEstado(id: number, estado: UserStatus): Promise<UserResponseDto> {
-        const user = await this.findUserOrFail(id);
-        user.estado = estado;
-        const saved = await this.userRepository.save(user);
-        return UsersMapper.toResponse(saved);
-    }
-
-    async cambiarRol(id: number, rol: UserRole): Promise<UserResponseDto> {
-        const user = await this.findUserOrFail(id);
-        user.rol = rol;
-        const saved = await this.userRepository.save(user);
-        return UsersMapper.toResponse(saved);
     }
 
     async update(id: number, dto: UpdateUserDto): Promise<UserResponseDto> {
         const user = await this.findUserOrFail(id);
 
-        if (dto.estado !== undefined) {
-            user.estado = dto.estado;
+        if (dto.status !== undefined) {
+            user.status = dto.status;
         }
 
-        if (dto.rol !== undefined) {
-            user.rol = dto.rol;
+        if (dto.role !== undefined) {
+            user.role = dto.role;
         }
 
-        if (dto.clave !== undefined) {
-            user.clave = bcrypt.hashSync(dto.clave, 10);
+        if (dto.password !== undefined) {
+            user.password = bcrypt.hashSync(dto.password, 10);
         }
 
         const saved = await this.userRepository.save(user);
         return UsersMapper.toResponse(saved);
     }
 
-    async cambiarClave(id: number, claveActual: string, claveNueva: string): Promise<void> {
-        const user = await this.findUserOrFail(id);
-
-        if (!bcrypt.compareSync(claveActual, user.clave)) {
-            throw new UnauthorizedException("La clave actual es incorrecta");
-        }
-        
-        user.clave = bcrypt.hashSync(claveNueva, 10);
-        await this.userRepository.save(user);
-    }
-
     private async findUserOrFail(id: number): Promise<User> {
-        const user = await this.userRepository.findOne({ where: { id }});
+        const user = await this.userRepository.findOne({ where: { id } });
 
         if (!user) {
             throw new NotFoundException('Usuario no encontrado');
@@ -182,18 +159,8 @@ export class UsersService {
 
     private parsePositiveInt(value: string | undefined, defaultValue: number): number {
         const parsedValue = Number(value);
-        if (!Number.isInteger(parsedValue) || parsedValue <=0) {
-            return defaultValue;
-        }
-        return parsedValue;
-    }
-
-    private parseOptionalPositiveInt(value: string | undefined, fieldName: string): number | undefined {
-        if (value === undefined || value.trim() === '') return undefined;
-
-        const parsedValue = Number(value);
         if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
-            throw new BadRequestException(`El ${fieldName} debe ser un número positivo`);
+            return defaultValue;
         }
         return parsedValue;
     }

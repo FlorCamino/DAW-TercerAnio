@@ -28,25 +28,25 @@ export class AuthService {
             throw new UnauthorizedException("Nombre de usuario inválido o inactivo");
         }
 
-        if (!bcrypt.compareSync(dto.clave, user.clave)) {
+        if (!bcrypt.compareSync(dto.clave, user.password)) {
             throw new UnauthorizedException("Credenciales inválidas");
         }
 
-        const tokenGenerado = randomUUID();
-        const expiraEn = this.getSessionExpirationDate();
+        const generatedToken = randomUUID();
+        const expiresAt = this.getSessionExpirationDate();
 
-        const nuevaSesion = this.sessionRepository.create({
-            token: tokenGenerado,
+        const newSession = this.sessionRepository.create({
+            token: generatedToken,
             user,
-            expiraEn,
+            expiresAt,
         });
 
-        await this.sessionRepository.save(nuevaSesion);
+        await this.sessionRepository.save(newSession);
 
         return {
-            accessToken: tokenGenerado,
-            rol: user.rol,
-            nombre: user.nombre,
+            accessToken: generatedToken,
+            rol: user.role,
+            nombre: user.name,
         };
     }
 
@@ -57,30 +57,30 @@ export class AuthService {
     async validarToken(token: string): Promise<User | null> {
         if (!token) return null;
 
-        const sesionActiva = await this.sessionRepository.findOne({
+        const activeSession = await this.sessionRepository.findOne({
             where: { token },
             relations: ["user"],
         });
 
-        if (!sesionActiva || !sesionActiva.user) {
+        if (!activeSession || !activeSession.user) {
             return null;
         }
 
-        if (sesionActiva.expiraEn <= new Date()) {
-            await this.sessionRepository.delete({ id: sesionActiva.id });
+        if (activeSession.expiresAt <= new Date()) {
+            await this.sessionRepository.delete({ id: activeSession.id });
             return null;
         }
 
-        if (sesionActiva.user.estado !== UserStatus.ACTIVO) {
+        if (activeSession.user.status !== UserStatus.ACTIVO) {
             return null;
         }
 
-        return sesionActiva.user;
+        return activeSession.user;
     }
 
     async deleteExpiredSessions(): Promise<void> {
         await this.sessionRepository.delete({
-            expiraEn: LessThan(new Date()),
+            expiresAt: LessThan(new Date()),
         });
     }
 

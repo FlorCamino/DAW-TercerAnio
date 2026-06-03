@@ -1,11 +1,6 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-
 import { Task } from './entities/task.entity';
 import { Project } from '../projects/entities/project.entity';
 import { CreateTaskDto } from './dtos/input/create-task.dto';
@@ -16,9 +11,9 @@ import { TaskResponseDto } from './dtos/output/task-response.dto';
 import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
 
 interface TaskFilters {
-  estado?: string;
-  descripcion?: string;
-  proyectoId?: string;
+  status?: string;
+  description?: string;
+  projectId?: string;
   page: number;
   limit: number;
 }
@@ -34,12 +29,12 @@ export class TasksService {
   ) { }
 
   async create(dto: CreateTaskDto): Promise<TaskResponseDto> {
-    const project = await this.findProject(dto.proyectoId);
+    const project = await this.findProject(dto.projectId);
 
     const task = this.taskRepository.create({
-      descripcion: dto.descripcion,
-      estado: dto.estado ?? TaskStatus.PENDING,
-      proyectoId: dto.proyectoId,
+      description: dto.description,
+      status: dto.status ?? TaskStatus.PENDING,
+      projectId: dto.projectId,
       project,
     });
 
@@ -56,11 +51,11 @@ export class TasksService {
     const limit =
       Number.isFinite(filters.limit) && filters.limit > 0 ? filters.limit : 10;
 
-    const estado = filters.estado?.trim();
-    const descripcion = filters.descripcion?.trim();
-    const proyectoId = this.parseOptionalPositiveInt(filters.proyectoId, 'proyecto');
+    const status = filters.status?.trim();
+    const description = filters.description?.trim();
+    const projectId = this.parseOptionalPositiveInt(filters.projectId, 'project');
 
-    if (estado && !this.isValidStatus(estado)) {
+    if (status && !this.isValidStatus(status)) {
       throw new BadRequestException('El estado indicado no es valido');
     }
 
@@ -68,16 +63,16 @@ export class TasksService {
       .createQueryBuilder('task')
       .leftJoinAndSelect('task.project', 'project');
 
-    if (estado) {
-      query.andWhere('task.estado = :estado', { estado });
+    if (status) {
+      query.andWhere('task.status = :status', { status });
     }
 
-    if (descripcion) {
-      addAccentInsensitiveLike(query, 'task.descripcion', 'descripcion', descripcion);
+    if (description) {
+      addAccentInsensitiveLike(query, 'task.description', 'description', description);
     }
 
-    if (proyectoId) {
-      query.andWhere('task.proyectoId = :proyectoId', { proyectoId });
+    if (projectId) {
+      query.andWhere('task.projectId = :projectId', { projectId });
     }
 
     const [tasks, total] = await query
@@ -99,17 +94,17 @@ export class TasksService {
     const task = await this.findTaskWithProject(id);
 
     const onlyChangingStatus =
-      dto.estado !== undefined &&
-      dto.descripcion === undefined &&
-      dto.proyectoId === undefined;
+      dto.status !== undefined &&
+      dto.description === undefined &&
+      dto.projectId === undefined;
 
     const isReactivatingDeletedTask =
-      task.estado === TaskStatus.DELETED &&
-      dto.estado !== undefined &&
-      dto.estado !== TaskStatus.DELETED;
+      task.status === TaskStatus.DELETED &&
+      dto.status !== undefined &&
+      dto.status !== TaskStatus.DELETED;
 
     if (
-      task.estado === TaskStatus.DELETED &&
+      task.status === TaskStatus.DELETED &&
       !onlyChangingStatus &&
       !isReactivatingDeletedTask
     ) {
@@ -118,21 +113,21 @@ export class TasksService {
       );
     }
 
-    if (dto.proyectoId !== undefined) {
-      task.project = await this.findProject(dto.proyectoId);
-      task.proyectoId = dto.proyectoId;
+    if (dto.projectId !== undefined) {
+      task.project = await this.findProject(dto.projectId);
+      task.projectId = dto.projectId;
     }
 
-    if (dto.descripcion !== undefined) {
-      task.descripcion = dto.descripcion;
+    if (dto.description !== undefined) {
+      task.description = dto.description;
     }
 
-    if (dto.estado !== undefined) {
-      if (!this.isValidStatus(dto.estado)) {
+    if (dto.status !== undefined) {
+      if (!this.isValidStatus(dto.status)) {
         throw new BadRequestException('El estado indicado no es valido');
       }
 
-      task.estado = dto.estado;
+      task.status = dto.status;
     }
 
     const saved = await this.taskRepository.save(task);
@@ -144,11 +139,11 @@ export class TasksService {
   async remove(id: number): Promise<TaskResponseDto> {
     const task = await this.findTaskWithProject(id);
 
-    if (task.estado === TaskStatus.DELETED) {
+    if (task.status === TaskStatus.DELETED) {
       throw new BadRequestException('La tarea ya esta dada de baja');
     }
 
-    task.estado = TaskStatus.DELETED;
+    task.status = TaskStatus.DELETED;
 
     const saved = await this.taskRepository.save(task);
     const taskWithProject = await this.findTaskWithProject(saved.id);

@@ -7,12 +7,12 @@ export class RolesGuard implements CanActivate {
     constructor(private reflector: Reflector) { }
 
     canActivate(context: ExecutionContext): boolean {
-        const rolesRequeridos = this.reflector.getAllAndOverride<UserRole[]>("roles", [
+        const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>("roles", [
             context.getHandler(),
             context.getClass(),
         ]);
 
-        if (!rolesRequeridos) {
+        if (!requiredRoles) {
             return true;
         }
 
@@ -21,8 +21,8 @@ export class RolesGuard implements CanActivate {
             throw new ForbiddenException("No tienes permisos para realizar esta operación");
         }
 
-        const tieneRol = rolesRequeridos.includes(user.rol);
-        if (!tieneRol) {
+        const hasRole = requiredRoles.includes(user.role);
+        if (!hasRole) {
             throw new ForbiddenException("No tienes permisos para realizar esta operación");
         }
 
