@@ -42,7 +42,9 @@ export class ProjectListComponent implements OnInit {
   filtros = {
     estado: '',
     busqueda: '',
-  };
+    fechaDesde: '',
+    fechaHasta: '',
+};
 
   estadoDropdownAbierto = false;
 
@@ -109,7 +111,9 @@ export class ProjectListComponent implements OnInit {
     this.filtros = {
       estado: '',
       busqueda: '',
-    };
+      fechaDesde: '',
+      fechaHasta: '',
+     };
 
     this.estadoDropdownAbierto = false;
     this.paginaActual = 1;
@@ -277,37 +281,65 @@ export class ProjectListComponent implements OnInit {
   }
 
   private aplicarFiltrosYPaginado(): void {
-    const estadoFiltro = this.normalizarTexto(this.filtros.estado);
-    const busquedaFiltro = this.normalizarTexto(this.filtros.busqueda);
+  const estadoFiltro = this.normalizarTexto(this.filtros.estado);
+  const busquedaFiltro = this.normalizarTexto(this.filtros.busqueda);
 
-    const proyectosFiltrados = this.projects().filter((project) => {
-      const estadoProyecto = this.normalizarTexto(String(project.status ?? ''));
+  const proyectosFiltrados = this.projects().filter((project) => {
+    const estadoProyecto = this.normalizarTexto(String(project.status ?? ''));
 
-      const textoProyecto = this.normalizarTexto(`
-        ${project.name ?? ''}
-        ${project.client?.nombre ?? ''}
-        ${project.endDate ?? ''}
-        ${project.status ?? ''}
-      `);
+    const textoProyecto = this.normalizarTexto(`
+      ${project.name ?? ''}
+      ${project.client?.nombre ?? ''}
+      ${project.endDate ?? ''}
+      ${project.status ?? ''}
+    `);
 
-      const coincideEstado = !estadoFiltro || estadoProyecto === estadoFiltro;
-      const coincideBusqueda = !busquedaFiltro || textoProyecto.includes(busquedaFiltro);
+    const coincideEstado =
+      !estadoFiltro || estadoProyecto === estadoFiltro;
 
-      return coincideEstado && coincideBusqueda;
-    });
+    const coincideBusqueda =
+      !busquedaFiltro || textoProyecto.includes(busquedaFiltro);
 
-    this.totalProyectos = proyectosFiltrados.length;
-    this.totalPaginas = Math.max(Math.ceil(this.totalProyectos / this.cantidadPorPagina), 1);
+    let coincideFecha = true;
 
-    if (this.paginaActual > this.totalPaginas) {
-      this.paginaActual = this.totalPaginas;
+    if (project.endDate) {
+      const fechaProyecto = new Date(project.endDate);
+
+      if (this.filtros.fechaDesde) {
+        coincideFecha =
+          coincideFecha &&
+          fechaProyecto >= new Date(this.filtros.fechaDesde);
+      }
+
+      if (this.filtros.fechaHasta) {
+        coincideFecha =
+          coincideFecha &&
+          fechaProyecto <= new Date(this.filtros.fechaHasta);
+      }
     }
 
-    const inicio = (this.paginaActual - 1) * this.cantidadPorPagina;
-    const fin = inicio + this.cantidadPorPagina;
+    return (
+      coincideEstado &&
+      coincideBusqueda &&
+      coincideFecha
+    );
+  });
 
-    this.listaProyectos = proyectosFiltrados.slice(inicio, fin);
+  this.totalProyectos = proyectosFiltrados.length;
+  this.totalPaginas = Math.max(
+    Math.ceil(this.totalProyectos / this.cantidadPorPagina),
+    1
+  );
+
+  if (this.paginaActual > this.totalPaginas) {
+    this.paginaActual = this.totalPaginas;
   }
+
+  const inicio = (this.paginaActual - 1) * this.cantidadPorPagina;
+  const fin = inicio + this.cantidadPorPagina;
+
+  this.listaProyectos = proyectosFiltrados.slice(inicio, fin);
+}
 
   private loadActiveClients(): void {
     this.clientsService.getClientes({ limit: 1000 }).subscribe({
