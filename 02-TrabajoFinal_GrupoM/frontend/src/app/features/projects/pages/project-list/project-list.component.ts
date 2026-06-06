@@ -9,6 +9,8 @@ import { Project, ProjectStatus } from '../../models/project.model';
 import { ProjectService } from '../../services/project.service';
 
 import { AuthService } from '../../../../../core/services/auth.service';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 interface ProjectEditForm {
   id: number | null;
@@ -134,6 +136,26 @@ export class ProjectListComponent implements OnInit {
   link.click();
 
   window.URL.revokeObjectURL(url);
+}
+
+descargarPDF(): void {
+  const doc = new jsPDF();
+
+  doc.setFontSize(16);
+  doc.text('Listado de Proyectos', 14, 15);
+
+  autoTable(doc, {
+    startY: 25,
+    head: [['Nombre', 'Estado', 'Cliente', 'Fecha Finalización']],
+    body: this.listaProyectos.map(project => [
+      project.name,
+      project.status,
+      project.client?.nombre ?? 'Sin cliente',
+      project.endDate ?? '-'
+    ])
+  });
+
+  doc.save('proyectos.pdf');
 }
 
   limpiarFiltros(): void {
