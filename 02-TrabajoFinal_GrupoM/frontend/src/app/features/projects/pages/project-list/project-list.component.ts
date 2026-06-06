@@ -107,6 +107,35 @@ export class ProjectListComponent implements OnInit {
     this.aplicarFiltrosYPaginado();
   }
 
+  descargarCSV(): void {
+  const encabezados = ['Nombre', 'Estado', 'Cliente', 'Fecha Finalización'];
+
+  const filas = this.listaProyectos.map(project => [
+    project.name,
+    project.status,
+    project.client?.nombre ?? 'Sin cliente',
+    project.endDate ?? ''
+  ]);
+
+  const csv = [
+    encabezados.join(','),
+    ...filas.map(fila => fila.join(','))
+  ].join('\n');
+
+  const blob = new Blob([csv], {
+    type: 'text/csv;charset=utf-8;'
+  });
+
+  const url = window.URL.createObjectURL(blob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'proyectos.csv';
+  link.click();
+
+  window.URL.revokeObjectURL(url);
+}
+
   limpiarFiltros(): void {
     this.filtros = {
       estado: '',
