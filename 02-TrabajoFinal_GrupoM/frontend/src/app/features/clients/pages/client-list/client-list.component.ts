@@ -32,6 +32,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
   filtros = {
     estado: '',
     nombre: '',
+    telefono: '',
   };
 
   clienteEditado: ClientFormData = { id: null, nombre: '', email: '', telefono: '' };
@@ -110,6 +111,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
     this.filtros = {
       estado: '',
       nombre: '',
+      telefono: '',
     };
 
     this.estadoDropdownAbierto = false;

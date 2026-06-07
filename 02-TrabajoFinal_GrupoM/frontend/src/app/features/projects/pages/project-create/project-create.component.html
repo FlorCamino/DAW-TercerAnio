@@ -16,4 +16,24 @@
       </a>
     </app-project-form>
   </section>
+
+  <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+    <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+      <div class="management-alert-header">
+        <span class="management-alert-icon">
+          {{ alertaActual.type === 'error' ? '!' : 'OK' }}
+        </span>
+
+        <h2>{{ alertaActual.title }}</h2>
+      </div>
+
+      <p>{{ alertaActual.message }}</p>
+
+      <div class="management-alert-actions">
+        <button class="primary-button" type="button" (click)="cerrarAlerta()">
+          {{ alertaActual.confirmText }}
+        </button>
+      </div>
+    </section>
+  </div>
 </main>

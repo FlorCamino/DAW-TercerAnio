@@ -134,7 +134,7 @@ export class ClientsService {
     const projectsCount = await this.projectRepository.count({
       where: {
         clientId: id,
-        status: ProjectStatus.ACTIVE,
+        status: ProjectStatus.ACTIVO,
       },
     });
 

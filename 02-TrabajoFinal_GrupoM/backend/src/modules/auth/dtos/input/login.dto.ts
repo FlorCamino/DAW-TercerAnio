@@ -8,14 +8,14 @@ export class LoginDto {
     })
     @IsString({ message: "El nombre de usuario debe ser un texto" })
     @IsNotEmpty({ message: "El nombre de usuario es obligatorio" })
-    nombre!: string;
+    username!: string;
 
     @ApiProperty({
         description: "Contraseña de usuario",
         example: "mica123456",
     })
-    @IsString({ message: "La clave debe ser un texto" })
-    @IsNotEmpty({ message: "La clave es obligatoria" })
-    @MinLength(6, { message: "La clave debe tener al menos 6 caracteres" })
-    clave!: string;
+    @IsString({ message: "La contraseña debe ser un texto" })
+    @IsNotEmpty({ message: "La contraseña es obligatoria" })
+    @MinLength(6, { message: "La contraseña debe tener al menos 6 caracteres" })
+    password!: string;
 }

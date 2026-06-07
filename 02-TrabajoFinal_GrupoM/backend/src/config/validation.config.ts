@@ -57,17 +57,15 @@ function translateValidationMessage(
 function translateFieldName(property: string): string {
   const fieldNames: Record<string, string> = {
     clientId: 'El cliente',
-    descripcion: 'La descripcion',
+    description: 'La descripcion',
     email: 'El email',
     endDate: 'La fecha de finalizacion',
-    estado: 'El estado',
+    status: 'El estado',
     limit: 'El limite',
     name: 'El nombre',
-    nombre: 'El nombre',
     page: 'La pagina',
     proyectoId: 'El proyecto',
-    status: 'El estado',
-    telefono: 'El telefono',
+    phone: 'El telefono',
   };
 
   return fieldNames[property] ?? `El campo ${property}`;

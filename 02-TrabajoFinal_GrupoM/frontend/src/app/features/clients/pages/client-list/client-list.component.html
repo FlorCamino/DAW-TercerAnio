@@ -10,12 +10,12 @@
     </a>
   </section>
 
-  <section class="management-toolbar" aria-label="Búsqueda de clientes">
+  <section class="management-toolbar" aria-label="Busqueda de clientes">
     <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
       <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
         aria-label="Filtrar por estado">
         <span>{{ obtenerTextoEstado(filtros.estado) }}</span>
-        <span class="custom-status-arrow">▾</span>
+        <span class="custom-status-arrow">&dtrif;</span>
       </button>
 
       <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
@@ -36,8 +36,11 @@
       </div>
     </div>
 
-        <input class="management-search" [(ngModel)]="filtros.nombre" (ngModelChange)="actualizarBusqueda()"
-      placeholder="Buscar por parte del nombre, email o teléfono..." />
+    <input class="management-search" [(ngModel)]="filtros.nombre" (ngModelChange)="actualizarBusqueda()"
+      placeholder="Buscar por email y nombre..." />
+
+    <input class="management-search" [(ngModel)]="filtros.telefono" (ngModelChange)="actualizarBusqueda()"
+      placeholder="Buscar por telefono..." inputmode="numeric" />
 
     <button class="primary-button" (click)="buscarClientes()">
       Buscar
@@ -51,7 +54,7 @@
   <section class="form-card management-edit-card" aria-label="Formulario de cliente" aria-live="polite"
     *ngIf="editando">
     <div class="edit-panel-header">
-      <span class="edit-eyebrow">Modo edición</span>
+      <span class="edit-eyebrow">Modo edicion</span>
       <strong>{{ clienteEditado.nombre || 'Cliente seleccionado' }}</strong>
     </div>
 
@@ -67,8 +70,8 @@
       </label>
 
       <label class="field-control">
-        <span>Teléfono</span>
-        <input [(ngModel)]="clienteEditado.telefono" placeholder="Teléfono" inputmode="numeric" minlength="7"
+        <span>Telefono</span>
+        <input [(ngModel)]="clienteEditado.telefono" placeholder="Telefono" inputmode="numeric" minlength="7"
           maxlength="15" pattern="[0-9]{7,15}" />
       </label>
 
@@ -90,7 +93,7 @@
         <tr>
           <th>Nombre</th>
           <th>Email</th>
-          <th>Teléfono</th>
+          <th>Telefono</th>
           <th>Estado</th>
           <th>Acciones</th>
         </tr>
@@ -100,12 +103,12 @@
         <tr *ngFor="let cliente of listaClientes" [class.editing-row]="editando && cliente.id === clienteEditado.id">
           <td>{{ cliente.nombre }}</td>
           <td>{{ cliente.email || 'Sin email' }}</td>
-          <td>{{ cliente.telefono || 'Sin teléfono' }}</td>
+          <td>{{ cliente.telefono || 'Sin telefono' }}</td>
 
           <td>
             <select class="status-select" [class.inactive]="normalizarEstado(cliente.estado) === 'baja'"
               [ngModel]="normalizarEstado(cliente.estado)" (ngModelChange)="solicitarCambioEstado(cliente, $event)"
-              [disabled]="cambiandoEstadoId === cliente.id || !esAdmin()"  aria-label="Cambiar estado del cliente">
+              [disabled]="cambiandoEstadoId === cliente.id || !esAdmin()" aria-label="Cambiar estado del cliente">
               <option value="activo">Activo</option>
               <option value="baja">Baja</option>
             </select>
@@ -117,10 +120,7 @@
                 Ver
               </a>
 
-              <button
-                class="action-button action-edit"
-                (click)="editar(cliente)"
-                [disabled]="estaDeBaja(cliente)"
+              <button class="action-button action-edit" (click)="editar(cliente)" [disabled]="estaDeBaja(cliente)"
                 *ngIf="esAdmin()">
                 Editar
               </button>
@@ -142,7 +142,7 @@
 
     <div class="pagination-bar" *ngIf="totalClientes > 0">
       <div class="page-size-control">
-        <span>Clientes por página</span>
+        <span>Clientes por pagina</span>
 
         <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
           <option [ngValue]="6">6</option>
@@ -153,7 +153,7 @@
       </div>
 
       <span class="pagination-summary">
-        Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalClientes }} clientes
+        Pagina {{ paginaActual }} de {{ totalPaginas }} - {{ totalClientes }} clientes
       </span>
 
       <div class="pagination-actions">

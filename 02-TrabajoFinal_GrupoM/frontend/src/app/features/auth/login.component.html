@@ -1,20 +1,19 @@
 <div class="login-wrapper">
     <div class="login-card">
-        <div class="login-haeder-block">
-        <h2>Iniciar Sesión</h2>
-        <p class="subtitle">Ingresa tus datos para iniciar sesión</p>
+        <div class="login-header-block">
+            <h2>Iniciar Sesión</h2>
+            <p class="subtitle">Ingresa tus datos para iniciar sesión</p>
         </div>
 
         <form (ngSubmit)="iniciarSesion()" class="project-form">
             <div class="field-control">
                 <label for="seed-user">Usuario de prueba</label>
-                <select
-                    id="seed-user"
-                    name="seedUser"
-                    [ngModel]="usuarioSeleccionado"
-                    (ngModelChange)="seleccionarUsuario($event)">
+
+                <select id="seed-user" name="seedUser" [ngModel]="usuarioSeleccionado"
+                    (ngModelChange)="seleccionarUsuario($event)" [disabled]="loading">
                     <option value="">Seleccionar usuario</option>
-                    <option *ngFor="let usuario of usuariosSeed" [value]="usuario.nombre">
+
+                    <option *ngFor="let usuario of usuariosSeed" [value]="usuario.username">
                         {{ usuario.label }}
                     </option>
                 </select>
@@ -22,32 +21,34 @@
 
             <div class="field-control">
                 <label for="username">Usuario</label>
-                <input
-                    type="text"
-                    id="username"
-                    name="nombre"
-                    [(ngModel)]="credenciales.nombre"
-                    placeholder="Ejemplo: micazalazar"
-                    required>
+
+                <input type="text" id="username" name="username" [(ngModel)]="credenciales.username"
+                    placeholder="Ejemplo: micazalazar" autocomplete="username" [disabled]="loading" required>
             </div>
 
             <div class="field-control">
                 <label for="password">Contraseña</label>
-                <input
-                    type="password"
-                    id="password"
-                    name="clave"
-                    [(ngModel)]="credenciales.clave"
-                    placeholder="******"
-                    required>
+
+                <div class="password-input-wrapper">
+                    <input [type]="showPassword ? 'text' : 'password'" id="password" name="password"
+                        [(ngModel)]="credenciales.password" placeholder="******" autocomplete="current-password"
+                        [disabled]="loading" required>
+
+                    <button type="button" class="password-toggle-button" (click)="togglePasswordVisibility()"
+                        [disabled]="loading" [title]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                        [attr.aria-label]="showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'">
+                        <i class="pi" [ngClass]="showPassword ? 'pi-eye-slash' : 'pi-eye'"></i>
+                    </button>
+                </div>
             </div>
 
-            <div *ngIf="errorMessage" class="auth-error-alert">
-                <i class="pi pi-exclamation-circle"></i>{{ errorMessage }}
+            <div *ngIf="errorMessage" class="auth-error-alert" aria-live="polite">
+                <i class="pi pi-exclamation-circle"></i>
+                <span>{{ errorMessage }}</span>
             </div>
 
             <div class="auth-action-row">
-                <button type="submit" [disabled]="loading" class="btn-login-submit">
+                <button type="submit" [disabled]="loading" [attr.aria-busy]="loading" class="btn-login-submit">
                     {{ loading ? "Cargando..." : "Ingresar" }}
                 </button>
             </div>

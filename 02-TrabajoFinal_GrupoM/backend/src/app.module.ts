@@ -6,6 +6,7 @@ import { databaseConfig } from './config/database.config';
 import { AuthModule } from './modules/auth/auth.module';
 import { ClientsModule } from './modules/clients/clients.module';
 import { ProjectsModule } from './modules/projects/projects.module';
+import { ReportsModule } from './modules/reports/reports.module';
 import { TasksModule } from './modules/tasks/tasks.module';
 import { UserModule } from './modules/users/users.module';
 
@@ -21,6 +22,7 @@ import { UserModule } from './modules/users/users.module';
     AuthModule,
     ClientsModule,
     ProjectsModule,
+    ReportsModule,
     TasksModule,
     UserModule,
   ],

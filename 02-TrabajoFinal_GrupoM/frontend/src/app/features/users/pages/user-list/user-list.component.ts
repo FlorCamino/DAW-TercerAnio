@@ -1,4 +1,5 @@
 import { CommonModule } from '@angular/common';
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -13,6 +14,15 @@ interface UserEditForm {
     rol: string;
     clave: string;
     confirmarClave: string;
+}
+
+type AlertType = 'info' | 'error';
+
+interface UserAlert {
+    title: string;
+    message: string;
+    type: AlertType;
+    confirmText: string;
 }
 
 @Component({
@@ -30,16 +40,17 @@ export class UserListComponent implements OnInit {
     totalPaginas = 0;
 
     estadoDropdownAbierto = false;
+    rolDropdownAbierto = false;
     editando = false;
     guardando = false;
 
-    mensaje = '';
-    error = '';
+    alerta: UserAlert | null = null;
     cambiandoEstadoId: number | null = null;
 
     filtros: UserFilters = {
         estado: '',
         nombre: '',
+        rol: '',
     };
 
     usuarioEditado: UserEditForm = this.crearUsuarioEditadoVacio();
@@ -61,6 +72,15 @@ export class UserListComponent implements OnInit {
     seleccionarEstado(estado: string): void {
         this.filtros.estado = estado;
         this.estadoDropdownAbierto = false;
+        this.rolDropdownAbierto = false;
+        this.paginaActual = 1;
+        this.cargar();
+    }
+
+    seleccionarRol(rol: string): void {
+        this.filtros.rol = rol;
+        this.estadoDropdownAbierto = false;
+        this.rolDropdownAbierto = false;
         this.paginaActual = 1;
         this.cargar();
     }
@@ -74,6 +94,7 @@ export class UserListComponent implements OnInit {
         this.filtros = {
             estado: '',
             nombre: '',
+            rol: '',
         };
 
         this.paginaActual = 1;
@@ -97,6 +118,10 @@ export class UserListComponent implements OnInit {
             return 'Administrador';
         }
 
+        if (rol === '') {
+            return 'Todos los roles';
+        }
+
         return 'Usuario';
     }
 
@@ -106,8 +131,7 @@ export class UserListComponent implements OnInit {
         }
 
         if (usuario.estado === 'baja') {
-            this.mensaje = '';
-            this.error = 'No se puede editar un usuario en estado baja.';
+            this.mostrarError('No se puede editar', 'No se puede editar un usuario en estado baja.');
             this.cdr.detectChanges();
             return;
         }
@@ -121,8 +145,7 @@ export class UserListComponent implements OnInit {
         };
 
         this.editando = true;
-        this.mensaje = '';
-        this.error = '';
+        this.cerrarAlerta();
         this.cdr.detectChanges();
 
         setTimeout(() => {
@@ -135,28 +158,24 @@ export class UserListComponent implements OnInit {
 
     guardar(): void {
         if (!this.usuarioEditado.id) {
-            this.error = 'No se encontró el usuario seleccionado.';
-            this.mensaje = '';
+            this.mostrarError('Usuario no seleccionado', 'No se encontró el usuario seleccionado.');
             return;
         }
 
         if (this.usuarioEditado.clave || this.usuarioEditado.confirmarClave) {
             if (this.usuarioEditado.clave !== this.usuarioEditado.confirmarClave) {
-                this.error = 'Las claves ingresadas no coinciden.';
-                this.mensaje = '';
+                this.mostrarError('Claves inválidas', 'Las claves ingresadas no coinciden.');
                 return;
             }
 
             if (this.usuarioEditado.clave.length < 6) {
-                this.error = 'La nueva clave debe tener al menos 6 caracteres.';
-                this.mensaje = '';
+                this.mostrarError('Clave demasiado corta', 'La nueva clave debe tener al menos 6 caracteres.');
                 return;
             }
         }
 
         this.guardando = true;
-        this.error = '';
-        this.mensaje = '';
+        this.cerrarAlerta();
 
         const payload: {
             rol: string;
@@ -175,14 +194,19 @@ export class UserListComponent implements OnInit {
                     usuario.id === usuarioActualizado.id ? usuarioActualizado : usuario,
                 );
 
-                this.mensaje = `Usuario "${usuarioActualizado.nombre}" actualizado correctamente.`;
+                this.mostrarInfo(
+                    'Usuario actualizado',
+                    `Usuario "${usuarioActualizado.nombre}" actualizado correctamente.`,
+                );
                 this.guardando = false;
                 this.limpiar();
                 this.cdr.detectChanges();
             },
-            error: () => {
-                this.error = 'No se pudo actualizar el usuario.';
-                this.mensaje = '';
+            error: (error: HttpErrorResponse) => {
+                this.mostrarError(
+                    'No se pudo actualizar',
+                    this.obtenerMensajeError(error, 'No se pudo actualizar el usuario.'),
+                );
                 this.guardando = false;
                 this.cdr.detectChanges();
             },
@@ -202,8 +226,7 @@ export class UserListComponent implements OnInit {
         }
 
         this.cambiandoEstadoId = usuario.id;
-        this.mensaje = '';
-        this.error = '';
+        this.cerrarAlerta();
 
         this.usersService.cambiarEstado(usuario.id, nuevoEstado).subscribe({
             next: (usuarioActualizado: User) => {
@@ -211,7 +234,13 @@ export class UserListComponent implements OnInit {
                     item.id === usuarioActualizado.id ? usuarioActualizado : item,
                 );
 
-                this.mensaje = `Estado de "${usuario.nombre}" actualizado correctamente.`;
+                const titulo = nuevoEstado === 'baja' ? 'Usuario dado de baja' : 'Estado actualizado';
+                const mensaje =
+                    nuevoEstado === 'baja'
+                        ? `Usuario "${usuario.nombre}" dado de baja correctamente.`
+                        : `Estado de "${usuario.nombre}" actualizado correctamente.`;
+
+                this.mostrarInfo(titulo, mensaje);
                 this.cambiandoEstadoId = null;
 
                 if (this.usuarioEditado.id === usuarioActualizado.id && nuevoEstado === 'baja') {
@@ -220,16 +249,23 @@ export class UserListComponent implements OnInit {
 
                 this.cdr.detectChanges();
             },
-            error: () => {
-                this.error = 'No se pudo cambiar el estado del usuario.';
+            error: (error: HttpErrorResponse) => {
+                this.mostrarError(
+                    'No se pudo cambiar el estado',
+                    this.obtenerMensajeError(error, 'No se pudo cambiar el estado del usuario.'),
+                );
                 this.cambiandoEstadoId = null;
                 this.cdr.detectChanges();
             },
         });
     }
 
+    cerrarAlerta(): void {
+        this.alerta = null;
+    }
+
     hayFiltrosActivos(): boolean {
-        return !!(this.filtros.estado || this.filtros.nombre?.trim());
+        return !!(this.filtros.estado || this.filtros.rol || this.filtros.nombre?.trim());
     }
 
     cambiarCantidadPorPagina(): void {
@@ -264,10 +300,14 @@ export class UserListComponent implements OnInit {
                 this.totalPaginas = response.totalPages;
                 this.cdr.detectChanges();
             },
-            error: () => {
+            error: (error: HttpErrorResponse) => {
                 this.listaUsuarios = [];
                 this.totalUsuarios = 0;
                 this.totalPaginas = 0;
+                this.mostrarError(
+                    'No se pudieron cargar los usuarios',
+                    this.obtenerMensajeError(error, 'Intente nuevamente en unos instantes.'),
+                );
                 this.cdr.detectChanges();
             },
         });
@@ -281,5 +321,41 @@ export class UserListComponent implements OnInit {
             clave: '',
             confirmarClave: '',
         };
+    }
+
+    private mostrarInfo(title: string, message: string): void {
+        this.alerta = {
+            title,
+            message,
+            type: 'info',
+            confirmText: 'Salir',
+        };
+    }
+
+    private mostrarError(title: string, message: string): void {
+        this.alerta = {
+            title,
+            message,
+            type: 'error',
+            confirmText: 'Salir',
+        };
+    }
+
+    private obtenerMensajeError(error: HttpErrorResponse, mensajePorDefecto: string): string {
+        const backendMessage = error.error?.message;
+
+        if (Array.isArray(backendMessage)) {
+            return backendMessage.join(' ');
+        }
+
+        if (typeof backendMessage === 'string' && backendMessage.trim()) {
+            return backendMessage;
+        }
+
+        if (typeof error.error === 'string' && error.error.trim()) {
+            return error.error;
+        }
+
+        return mensajePorDefecto;
     }
 }

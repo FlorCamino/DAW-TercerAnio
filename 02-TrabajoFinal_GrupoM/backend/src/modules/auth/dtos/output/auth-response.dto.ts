@@ -10,10 +10,10 @@ export class AuthResponseDto {
     @ApiProperty({
         description: "Rol del usuario: Administrador o Usuario"
     })
-    rol!: UserRole;
+    role!: UserRole;
 
     @ApiProperty({
         description: "Nombre del usuario"
     })
-    nombre!: string;
+    name!: string;
 }

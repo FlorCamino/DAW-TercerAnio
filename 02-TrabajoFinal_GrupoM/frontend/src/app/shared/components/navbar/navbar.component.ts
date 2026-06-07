@@ -1,8 +1,12 @@
-import { Component } from '@angular/core';
-import { IsActiveMatchOptions, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { AuthService } from '../../../../core/services/auth.service';
-import { inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnDestroy, inject } from '@angular/core';
+import {
+  IsActiveMatchOptions,
+  Router,
+  RouterLink,
+  RouterLinkActive,
+} from '@angular/router';
+import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({
   selector: 'app-navbar',
@@ -11,7 +15,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './navbar.component.html',
   styleUrl: './navbar.component.css',
 })
-export class NavbarComponent {
+export class NavbarComponent implements OnDestroy {
   private authService = inject(AuthService);
   private router = inject(Router);
 
@@ -41,17 +45,28 @@ export class NavbarComponent {
 
   protected toggleMenu(): void {
     this.menuOpen = !this.menuOpen;
+    this.updateBodyScroll();
   }
 
   protected closeMenu(): void {
     this.menuOpen = false;
+    this.updateBodyScroll();
   }
 
   protected logout(): void {
     this.closeMenu();
+
     this.authService.logout().subscribe({
-      next: () => this.router.navigate(["/auth/login"]),
-      error: () => this.router.navigate(["/auth/login"])
-    })
+      next: () => this.router.navigate(['/auth/login']),
+      error: () => this.router.navigate(['/auth/login']),
+    });
+  }
+
+  ngOnDestroy(): void {
+    document.body.classList.remove('menu-open-body');
+  }
+
+  private updateBodyScroll(): void {
+    document.body.classList.toggle('menu-open-body', this.menuOpen);
   }
 }

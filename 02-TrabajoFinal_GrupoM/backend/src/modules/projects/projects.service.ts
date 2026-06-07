@@ -41,7 +41,7 @@ export class ProjectsService {
 
     const project = this.projectRepository.create({
       name: dto.name,
-      status: dto.status ?? ProjectStatus.ACTIVE,
+      status: dto.status ?? ProjectStatus.ACTIVO,
       clientId: dto.clientId ?? null,
       endDate: dto.endDate ?? null,
     });
@@ -126,7 +126,7 @@ export class ProjectsService {
       dto.clientId === undefined &&
       dto.endDate === undefined;
 
-    if (project.status === ProjectStatus.INACTIVE && !onlyChangingStatus) {
+    if (project.status === ProjectStatus.BAJA && !onlyChangingStatus) {
       throw new BadRequestException(
         'No se puede modificar un proyecto dado de baja',
       );
@@ -165,10 +165,10 @@ export class ProjectsService {
     if (!project) {
       throw new NotFoundException(`Proyecto con id ${id} no encontrado`);
     }
-    if (project.status === ProjectStatus.INACTIVE) {
+    if (project.status === ProjectStatus.BAJA) {
       throw new BadRequestException('El proyecto ya está dado de baja');
     }
-    project.status = ProjectStatus.INACTIVE;
+    project.status = ProjectStatus.BAJA;
     const saved = await this.projectRepository.save(project);
     return ProjectsMapper.toResponse(saved);
   }

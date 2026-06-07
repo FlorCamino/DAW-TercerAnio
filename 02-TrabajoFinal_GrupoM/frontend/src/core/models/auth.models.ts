@@ -1,10 +1,11 @@
 export interface LoginDto {
-    nombre: string;
-    clave: string;
+    username: string;
+    password: string;
 }
 
 export interface AuthResponseDto {
     accessToken: string;
-    rol: "administrador" | "usuario";
-    nombre: string;
+    role: "administrador" | "usuario";
+    name: string;
+    expiresAt?: string;
 }

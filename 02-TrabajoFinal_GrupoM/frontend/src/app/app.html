@@ -1,5 +1,5 @@
-<app-navbar />
+<app-navbar *ngIf="!isAuthRoute" />
 
 <router-outlet />
 
-<app-footer />
+<app-footer *ngIf="!isAuthRoute" />

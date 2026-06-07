@@ -1,15 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsDateString,
-  IsEnum,
-  IsInt,
-  IsNotEmpty,
-  IsOptional,
-  IsPositive,
-  IsString,
-  MaxLength,
-} from 'class-validator';
+import { IsDateString, IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, MaxLength, } from 'class-validator';
 import { ProjectStatus } from '../../../../common/enums/project-status.enum';
 
 export class CreateProjectDto {
@@ -21,7 +12,7 @@ export class CreateProjectDto {
   })
   name!: string;
 
-  @ApiPropertyOptional({ enum: ProjectStatus, example: ProjectStatus.ACTIVE })
+  @ApiPropertyOptional({ enum: ProjectStatus, example: ProjectStatus.ACTIVO })
   @IsOptional()
   @IsEnum(ProjectStatus, { message: 'El estado tiene un valor inválido' })
   status?: ProjectStatus;

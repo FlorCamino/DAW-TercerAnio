@@ -22,13 +22,13 @@ export class AuthService {
     ) { }
 
     async login(dto: LoginDto): Promise<AuthResponseDto> {
-        const user = await this.usersService.findByUsernameActivo(dto.nombre);
+        const user = await this.usersService.findByUsernameActivo(dto.username);
 
         if (!user) {
             throw new UnauthorizedException("Nombre de usuario inválido o inactivo");
         }
 
-        if (!bcrypt.compareSync(dto.clave, user.password)) {
+        if (!bcrypt.compareSync(dto.password, user.password)) {
             throw new UnauthorizedException("Credenciales inválidas");
         }
 
@@ -45,8 +45,8 @@ export class AuthService {
 
         return {
             accessToken: generatedToken,
-            rol: user.role,
-            nombre: user.name,
+            role: user.role,
+            name: user.name,
         };
     }
 

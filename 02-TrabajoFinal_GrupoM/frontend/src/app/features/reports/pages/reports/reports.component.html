@@ -1,0 +1,338 @@
+<main class="management-container">
+  <section class="management-header">
+    <div class="management-title-block">
+      <h1>Reportes</h1>
+      <p>Consulta indicadores del sistema y genera una vista imprimible.</p>
+    </div>
+
+    <div class="report-actions">
+      <button class="primary-button" type="button" (click)="printPdf()" [disabled]="loading || !!error">
+        Imprimir PDF
+      </button>
+      <button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !!error">
+        Imprimir CSV
+      </button>
+    </div>
+  </section>
+
+  <section class="management-toolbar" aria-label="Selector de reportes">
+    <label class="field-control">
+      <span>Reporte</span>
+      <select [(ngModel)]="selectedReport" (ngModelChange)="onReportChange()">
+        <option value="summary">Resumen general</option>
+        <option value="projectsByStatus">Proyectos por estado</option>
+        <option value="tasksByStatus">Tareas por estado</option>
+        <option value="projectDeadlines">Proyectos vencidos o proximos a finalizar</option>
+        <option value="clientsProjects">Clientes con proyectos asociados</option>
+      </select>
+    </label>
+
+    <label class="field-control" *ngIf="selectedReport === 'tasksByStatus'">
+      <span>Proyecto</span>
+      <select [ngModel]="selectedProjectId ?? ''" (ngModelChange)="onProjectFilterChange($event)">
+        <option value="">Todos los proyectos</option>
+        <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
+      </select>
+    </label>
+
+    <button class="secondary-button" type="button" (click)="retryLoad()" [disabled]="loading">
+      Actualizar
+    </button>
+  </section>
+
+  <p class="management-message" *ngIf="loading">Cargando reportes...</p>
+
+  <div class="management-alert-backdrop" *ngIf="error">
+    <section class="management-alert error" role="alert">
+      <div class="management-alert-header">
+        <span class="management-alert-icon">!</span>
+        <h2>No se pudieron cargar los reportes</h2>
+      </div>
+      <p>{{ error }}</p>
+      <div class="management-alert-actions">
+        <button type="button" class="secondary-button" (click)="error = ''">Cerrar</button>
+      </div>
+    </section>
+  </div>
+
+  <section class="management-table-wrapper" aria-label="Reporte seleccionado" *ngIf="!loading && !error">
+    <div class="edit-panel-header">
+      <span class="edit-eyebrow">{{ reportTitle }}</span>
+      <strong>Vista previa</strong>
+    </div>
+
+    <table class="management-table report-table" *ngIf="selectedReport === 'summary' && summary">
+      <thead>
+        <tr>
+          <th>Indicador</th>
+          <th>Cantidad</th>
+          <th>Detalle administrativo</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Total de proyectos</td>
+          <td class="report-count">{{ summary.totalProjects }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver proyectos</summary>
+              <ul class="report-detail-list">
+                <li *ngFor="let project of summary.details.totalProjects">{{ projectDetail(project) }}</li>
+                <li *ngIf="summary.details.totalProjects.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Total de clientes</td>
+          <td class="report-count">{{ summary.totalClients }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver clientes</summary>
+              <ul class="report-detail-list">
+                <li *ngFor="let client of summary.details.totalClients">{{ clientDetail(client) }}</li>
+                <li *ngIf="summary.details.totalClients.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Total de tareas</td>
+          <td class="report-count">{{ summary.totalTasks }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver tareas</summary>
+              <ul class="report-detail-list">
+                <li *ngFor="let task of summary.details.totalTasks">{{ taskDetail(task) }}</li>
+                <li *ngIf="summary.details.totalTasks.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Total de usuarios</td>
+          <td class="report-count">{{ summary.totalUsers }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver usuarios</summary>
+              <ul class="report-detail-list">
+                <li *ngFor="let user of summary.details.totalUsers">{{ userDetail(user) }}</li>
+                <li *ngIf="summary.details.totalUsers.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Proyectos activos</td>
+          <td class="report-count">{{ summary.activeProjects }}</td>
+          <td>
+            <details class="report-details" open>
+              <summary>Ver proyectos activos</summary>
+              <ul class="report-detail-list">
+                <li *ngFor="let project of summary.details.activeProjects">{{ projectDetail(project) }}</li>
+                <li *ngIf="summary.details.activeProjects.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Proyectos finalizados</td>
+          <td class="report-count">{{ summary.finishedProjects }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver proyectos finalizados</summary>
+              <ul class="report-detail-list">
+                <li *ngFor="let project of summary.details.finishedProjects">{{ projectDetail(project) }}</li>
+                <li *ngIf="summary.details.finishedProjects.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Tareas pendientes</td>
+          <td class="report-count">{{ summary.pendingTasks }}</td>
+          <td>
+            <details class="report-details" open>
+              <summary>Ver tareas pendientes</summary>
+              <ul class="report-detail-list">
+                <li *ngFor="let task of summary.details.pendingTasks">{{ taskDetail(task) }}</li>
+                <li *ngIf="summary.details.pendingTasks.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Tareas finalizadas</td>
+          <td class="report-count">{{ summary.finishedTasks }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver tareas finalizadas</summary>
+              <ul class="report-detail-list">
+                <li *ngFor="let task of summary.details.finishedTasks">{{ taskDetail(task) }}</li>
+                <li *ngIf="summary.details.finishedTasks.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="management-table" *ngIf="selectedReport === 'projectsByStatus' && projectsByStatus">
+      <thead>
+        <tr>
+          <th>Estado</th>
+          <th>Cantidad</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Activo</td>
+          <td>{{ projectsByStatus.active }}</td>
+          <td>
+            <details class="report-details" open>
+              <summary>Ver proyectos activos</summary>
+              <ul class="report-detail-list compact">
+              <li *ngFor="let project of projectsByStatus.details.active">{{ projectDetail(project) }}</li>
+              <li *ngIf="projectsByStatus.details.active.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Finalizado</td>
+          <td>{{ projectsByStatus.finished }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver proyectos finalizados</summary>
+              <ul class="report-detail-list compact">
+              <li *ngFor="let project of projectsByStatus.details.finished">{{ projectDetail(project) }}</li>
+              <li *ngIf="projectsByStatus.details.finished.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Baja</td>
+          <td>{{ projectsByStatus.inactive }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver proyectos dados de baja</summary>
+              <ul class="report-detail-list compact">
+              <li *ngFor="let project of projectsByStatus.details.inactive">{{ projectDetail(project) }}</li>
+              <li *ngIf="projectsByStatus.details.inactive.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="management-table" *ngIf="selectedReport === 'tasksByStatus' && tasksByStatus">
+      <thead>
+        <tr>
+          <th>Estado</th>
+          <th>Cantidad</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Pendiente</td>
+          <td>{{ tasksByStatus.pending }}</td>
+          <td>
+            <details class="report-details" open>
+              <summary>Ver tareas pendientes</summary>
+              <ul class="report-detail-list compact">
+              <li *ngFor="let task of tasksByStatus.details.pending">{{ taskDetail(task) }}</li>
+              <li *ngIf="tasksByStatus.details.pending.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Finalizada</td>
+          <td>{{ tasksByStatus.finished }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver tareas finalizadas</summary>
+              <ul class="report-detail-list compact">
+              <li *ngFor="let task of tasksByStatus.details.finished">{{ taskDetail(task) }}</li>
+              <li *ngIf="tasksByStatus.details.finished.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr>
+          <td>Baja</td>
+          <td>{{ tasksByStatus.inactive }}</td>
+          <td>
+            <details class="report-details">
+              <summary>Ver tareas dadas de baja</summary>
+              <ul class="report-detail-list compact">
+              <li *ngFor="let task of tasksByStatus.details.inactive">{{ taskDetail(task) }}</li>
+              <li *ngIf="tasksByStatus.details.inactive.length === 0">Sin registros</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="management-table" *ngIf="selectedReport === 'projectDeadlines'">
+      <thead>
+        <tr>
+          <th>Proyecto</th>
+          <th>Cliente</th>
+          <th>Fecha finalizacion</th>
+          <th>Estado</th>
+          <th>Situacion</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let project of projectDeadlines">
+          <td>{{ project.name }}</td>
+          <td>{{ project.client ?? 'Sin cliente' }}</td>
+          <td>{{ project.endDate }}</td>
+          <td>{{ project.status }}</td>
+          <td>{{ formatSituation(project.situation) }}</td>
+        </tr>
+        <tr *ngIf="projectDeadlines.length === 0">
+          <td colspan="5" class="management-empty-row">No hay proyectos vencidos o proximos a finalizar.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <table class="management-table" *ngIf="selectedReport === 'clientsProjects'">
+      <thead>
+        <tr>
+          <th>Cliente</th>
+          <th>Total proyectos</th>
+          <th>Activos</th>
+          <th>Finalizados</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let client of clientsProjects">
+          <td>{{ client.name }}</td>
+          <td>{{ client.totalProjects }}</td>
+          <td>{{ client.activeProjects }}</td>
+          <td>{{ client.finishedProjects }}</td>
+          <td>
+            <details class="report-details" [open]="client.projects.length > 0">
+              <summary>Ver proyectos del cliente</summary>
+              <ul class="report-detail-list compact">
+              <li *ngFor="let project of client.projects">{{ projectDetail(project) }}</li>
+              <li *ngIf="client.projects.length === 0">Sin proyectos asociados</li>
+              </ul>
+            </details>
+          </td>
+        </tr>
+        <tr *ngIf="clientsProjects.length === 0">
+          <td colspan="5" class="management-empty-row">No hay clientes para mostrar.</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</main>

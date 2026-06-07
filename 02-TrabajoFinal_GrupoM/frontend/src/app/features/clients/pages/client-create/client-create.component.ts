@@ -6,6 +6,16 @@ import { Router, RouterLink } from '@angular/router';
 import { ClientFormData } from '../../models/client.model';
 import { ClientsService } from '../../services/clients.service';
 
+type AlertType = 'info' | 'error';
+
+interface ClientAlert {
+  title: string;
+  message: string;
+  type: AlertType;
+  confirmText: string;
+  onClose?: () => void;
+}
+
 @Component({
   selector: 'app-cliente-create',
   standalone: true,
@@ -19,8 +29,7 @@ export class ClientCreateComponent {
     telefono: '',
   };
 
-  error = '';
-  success = '';
+  alerta: ClientAlert | null = null;
   guardando = false;
 
   constructor(
@@ -30,42 +39,66 @@ export class ClientCreateComponent {
   ) { }
 
   guardar(): void {
-    this.error = '';
-    this.success = '';
+    if (this.guardando) {
+      return;
+    }
+
+    this.cerrarAlerta();
     this.guardando = true;
 
     this.clientsService.crearCliente(this.cliente).subscribe({
       next: () => {
         this.guardando = false;
-        this.success = 'El cliente fue creado con éxito.';
-
+        this.alerta = {
+          title: 'Cliente creado',
+          message: `Cliente "${this.cliente.nombre}" creado correctamente.`,
+          type: 'info',
+          confirmText: 'Salir',
+          onClose: () => this.router.navigate(['/clientes']),
+        };
         this.cdr.detectChanges();
-
-        setTimeout(() => {
-          this.router.navigate(['/clientes']);
-        }, 2000);
       },
       error: (err: HttpErrorResponse) => {
         this.guardando = false;
-        this.success = '';
-        this.error = this.obtenerMensajeError(err) || 'No se pudo crear el cliente.';
-
+        this.mostrarError('No se pudo crear', this.obtenerMensajeError(err, 'No se pudo crear el cliente.'));
         this.cdr.detectChanges();
       },
     });
   }
 
-  private obtenerMensajeError(error: HttpErrorResponse): string {
-    const message = error.error?.message ?? error.message;
+  cerrarAlerta(): void {
+    const onClose = this.alerta?.onClose;
+    this.alerta = null;
 
-    if (Array.isArray(message)) {
-      return message.join('\n');
+    if (onClose) {
+      onClose();
+    }
+  }
+
+  private mostrarError(title: string, message: string): void {
+    this.alerta = {
+      title,
+      message,
+      type: 'error',
+      confirmText: 'Salir',
+    };
+  }
+
+  private obtenerMensajeError(error: HttpErrorResponse, mensajePorDefecto: string): string {
+    const backendMessage = error.error?.message;
+
+    if (Array.isArray(backendMessage)) {
+      return backendMessage.join(' ');
     }
 
-    if (typeof message === 'string') {
-      return message;
+    if (typeof backendMessage === 'string' && backendMessage.trim()) {
+      return backendMessage;
     }
 
-    return '';
+    if (typeof error.error === 'string' && error.error.trim()) {
+      return error.error;
+    }
+
+    return mensajePorDefecto;
   }
 }

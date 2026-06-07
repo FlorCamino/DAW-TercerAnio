@@ -219,15 +219,15 @@ export class ClientsService {
   }
 
   private toApiWritePayload(cliente: Partial<ClientFormData>): {
-    nombre?: string;
+    name?: string;
     email?: string | null;
-    telefono?: string | null;
+    phone?: string | null;
     status?: string;
   } {
     return {
-      nombre: cliente.nombre,
+      name: cliente.nombre,
       email: cliente.email,
-      telefono: cliente.telefono,
+      phone: cliente.telefono,
       status: cliente.estado,
     };
   }
