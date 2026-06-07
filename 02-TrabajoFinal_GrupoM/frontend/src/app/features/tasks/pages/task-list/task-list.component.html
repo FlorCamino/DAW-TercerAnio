@@ -80,7 +80,8 @@
             </label>
 
             <div class="edit-actions">
-                <button class="primary-button" type="button" (click)="guardar()">
+                <button class="primary-button" type="button" (click)="guardar()"
+                    [disabled]="!formularioEdicionValido || !hayCambiosEdicion">
                     Actualizar
                 </button>
 

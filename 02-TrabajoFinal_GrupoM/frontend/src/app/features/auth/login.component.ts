@@ -43,6 +43,13 @@ export class LoginComponent {
     loading = false;
     showPassword = false;
 
+    get formularioValido(): boolean {
+        return Boolean(
+            this.credenciales.username.trim() &&
+            this.credenciales.password.trim().length >= 6
+        );
+    }
+
     seleccionarUsuario(username: string): void {
         this.usuarioSeleccionado = username;
 
@@ -74,7 +81,7 @@ export class LoginComponent {
     }
 
     iniciarSesion(): void {
-        if (this.loading) {
+        if (this.loading || !this.formularioValido) {
             return;
         }
 

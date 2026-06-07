@@ -104,7 +104,8 @@
             </label>
 
             <div class="edit-actions">
-                <button class="primary-button" type="button" (click)="guardar()" [disabled]="guardando">
+                <button class="primary-button" type="button" (click)="guardar()"
+                    [disabled]="guardando || !formularioEdicionValido || !hayCambiosEdicion">
                     {{ guardando ? 'Guardando...' : 'Actualizar' }}
                 </button>
 
@@ -216,7 +217,13 @@
             <p>{{ alertaActual.message }}</p>
 
             <div class="management-alert-actions">
-                <button class="primary-button" type="button" (click)="cerrarAlerta()">
+                <button class="secondary-button" type="button" *ngIf="alertaActual.type === 'confirm'"
+                    (click)="cerrarAlerta()">
+                    {{ alertaActual.cancelText }}
+                </button>
+
+                <button type="button" [class.primary-button]="!alertaActual.confirmDanger"
+                    [class.danger-button]="alertaActual.confirmDanger" (click)="confirmarAlerta()">
                     {{ alertaActual.confirmText }}
                 </button>
             </div>

@@ -6,10 +6,10 @@
     </div>
 
     <div class="report-actions">
-      <button class="primary-button" type="button" (click)="printPdf()" [disabled]="loading || !!error">
+      <button class="primary-button" type="button" (click)="printPdf()" [disabled]="!selectedReportLoaded || !!error">
         Imprimir PDF
       </button>
-      <button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="loading || !!error">
+      <button class="secondary-button" type="button" (click)="exportCsv()" [disabled]="!selectedReportLoaded || !!error">
         Imprimir CSV
       </button>
     </div>
@@ -35,12 +35,12 @@
       </select>
     </label>
 
-    <button class="secondary-button" type="button" (click)="retryLoad()" [disabled]="loading">
+    <button class="secondary-button" type="button" (click)="retryLoad()" [disabled]="loading && !selectedReportLoaded">
       Actualizar
     </button>
   </section>
 
-  <p class="management-message" *ngIf="loading">Cargando reportes...</p>
+  <p class="management-message" *ngIf="loading && !selectedReportLoaded">Cargando reportes...</p>
 
   <div class="management-alert-backdrop" *ngIf="error">
     <section class="management-alert error" role="alert">
@@ -55,7 +55,7 @@
     </section>
   </div>
 
-  <section class="management-table-wrapper" aria-label="Reporte seleccionado" *ngIf="!loading && !error">
+  <section class="management-table-wrapper" aria-label="Reporte seleccionado" *ngIf="selectedReportLoaded && !error">
     <div class="edit-panel-header">
       <span class="edit-eyebrow">{{ reportTitle }}</span>
       <strong>Vista previa</strong>

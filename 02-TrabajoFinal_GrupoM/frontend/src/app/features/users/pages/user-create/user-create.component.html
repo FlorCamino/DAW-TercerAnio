@@ -28,7 +28,7 @@
 
         <div class="form-actions management-form-actions">
             <button class="primary-button" type="button" (click)="guardar()"
-                [disabled]="guardando">
+                [disabled]="guardando || !formularioValido">
                 {{ guardando ? 'Guardando...' : 'Guardar' }}
             </button>
             <a class="secondary-button" routerLink="/usuarios">Cancelar</a>

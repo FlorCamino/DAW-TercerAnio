@@ -32,7 +32,7 @@
     </div>
 
     <div class="form-actions management-form-actions">
-      <button class="primary-button" type="button" (click)="guardar()" [disabled]="guardando">
+      <button class="primary-button" type="button" (click)="guardar()" [disabled]="guardando || !formularioValido">
         {{ guardando ? 'Guardando...' : 'Guardar' }}
       </button>
 

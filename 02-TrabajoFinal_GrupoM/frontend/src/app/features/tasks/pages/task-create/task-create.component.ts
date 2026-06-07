@@ -29,6 +29,10 @@ export class TaskCreateComponent implements OnInit {
     guardando = false;
     cargandoProyectos = false;
 
+    get formularioValido(): boolean {
+        return Boolean(this.tarea.descripcion.trim() && this.tarea.proyectoId);
+    }
+
     constructor(
         private readonly tasksService: TasksService,
         private readonly projectService: ProjectService,
@@ -41,6 +45,10 @@ export class TaskCreateComponent implements OnInit {
     }
 
     guardar(): void {
+        if (this.guardando || !this.formularioValido) {
+            return;
+        }
+
         this.error = '';
         this.success = '';
 
