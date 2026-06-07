@@ -32,6 +32,13 @@ export class ClientCreateComponent {
   alerta: ClientAlert | null = null;
   guardando = false;
 
+  get formularioValido(): boolean {
+    return Boolean(
+      this.cliente.nombre.trim() &&
+      String(this.cliente.telefono ?? '').trim().length >= 7,
+    );
+  }
+
   constructor(
     private readonly clientsService: ClientsService,
     private readonly router: Router,
@@ -39,7 +46,7 @@ export class ClientCreateComponent {
   ) { }
 
   guardar(): void {
-    if (this.guardando) {
+    if (this.guardando || !this.formularioValido) {
       return;
     }
 

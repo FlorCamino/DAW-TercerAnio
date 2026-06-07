@@ -16,13 +16,16 @@ interface UserEditForm {
     confirmarClave: string;
 }
 
-type AlertType = 'info' | 'error';
+type AlertType = 'info' | 'error' | 'confirm';
 
 interface UserAlert {
     title: string;
     message: string;
     type: AlertType;
     confirmText: string;
+    cancelText?: string;
+    confirmDanger?: boolean;
+    onConfirm?: () => void;
 }
 
 @Component({
@@ -54,6 +57,7 @@ export class UserListComponent implements OnInit {
     };
 
     usuarioEditado: UserEditForm = this.crearUsuarioEditadoVacio();
+    usuarioOriginal: UserEditForm = this.crearUsuarioEditadoVacio();
 
     constructor(
         private readonly usersService: UsersService,
@@ -143,6 +147,7 @@ export class UserListComponent implements OnInit {
             clave: '',
             confirmarClave: '',
         };
+        this.usuarioOriginal = { ...this.usuarioEditado };
 
         this.editando = true;
         this.cerrarAlerta();
@@ -157,6 +162,10 @@ export class UserListComponent implements OnInit {
     }
 
     guardar(): void {
+        if (!this.formularioEdicionValido || !this.hayCambiosEdicion) {
+            return;
+        }
+
         if (!this.usuarioEditado.id) {
             this.mostrarError('Usuario no seleccionado', 'No se encontró el usuario seleccionado.');
             return;
@@ -215,9 +224,32 @@ export class UserListComponent implements OnInit {
 
     limpiar(): void {
         this.usuarioEditado = this.crearUsuarioEditadoVacio();
+        this.usuarioOriginal = this.crearUsuarioEditadoVacio();
         this.editando = false;
         this.guardando = false;
         this.cdr.detectChanges();
+    }
+
+    get formularioEdicionValido(): boolean {
+        if (!this.usuarioEditado.id) {
+            return false;
+        }
+
+        if (this.usuarioEditado.clave || this.usuarioEditado.confirmarClave) {
+            return (
+                this.usuarioEditado.clave === this.usuarioEditado.confirmarClave &&
+                this.usuarioEditado.clave.length >= 6
+            );
+        }
+
+        return true;
+    }
+
+    get hayCambiosEdicion(): boolean {
+        return (
+            this.usuarioEditado.rol !== this.usuarioOriginal.rol ||
+            Boolean(this.usuarioEditado.clave || this.usuarioEditado.confirmarClave)
+        );
     }
 
     cambiarEstado(usuario: User, nuevoEstado: string): void {
@@ -225,8 +257,35 @@ export class UserListComponent implements OnInit {
             return;
         }
 
-        this.cambiandoEstadoId = usuario.id;
+        this.alerta = {
+            title: 'Confirmar cambio de estado',
+            message: `Esta seguro que desea cambiar el estado de "${usuario.nombre}" a "${this.obtenerTextoEstado(nuevoEstado)}"?`,
+            type: 'confirm',
+            confirmText: 'Confirmar',
+            cancelText: 'Cancelar',
+            confirmDanger: nuevoEstado === 'baja',
+            onConfirm: () => this.actualizarEstadoUsuario(usuario, nuevoEstado),
+        };
+        this.cdr.detectChanges();
+    }
+
+    confirmarAlerta(): void {
+        if (!this.alerta) {
+            return;
+        }
+
+        if (this.alerta.type !== 'confirm') {
+            this.cerrarAlerta();
+            return;
+        }
+
+        const onConfirm = this.alerta.onConfirm;
         this.cerrarAlerta();
+        onConfirm?.();
+    }
+
+    private actualizarEstadoUsuario(usuario: User, nuevoEstado: string): void {
+        this.cambiandoEstadoId = usuario.id;
 
         this.usersService.cambiarEstado(usuario.id, nuevoEstado).subscribe({
             next: (usuarioActualizado: User) => {

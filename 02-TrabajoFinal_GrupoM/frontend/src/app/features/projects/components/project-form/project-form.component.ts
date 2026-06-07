@@ -39,6 +39,10 @@ export class ProjectFormComponent implements OnInit {
 
   constructor(private readonly clientsService: ClientsService) { }
 
+  get formularioValido(): boolean {
+    return Boolean(this.form.name.trim() && this.form.clientId);
+  }
+
   ngOnInit(): void {
     this.form = {
       name: this.initialValue.name ?? '',
@@ -50,6 +54,10 @@ export class ProjectFormComponent implements OnInit {
   }
 
   submit(): void {
+    if (!this.formularioValido || this.cargandoClientes) {
+      return;
+    }
+
     this.formSubmit.emit({
       name: this.form.name.trim(),
       clientId: this.form.clientId ? Number(this.form.clientId) : null,

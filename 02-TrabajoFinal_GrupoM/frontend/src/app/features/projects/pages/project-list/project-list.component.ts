@@ -17,13 +17,16 @@ interface ProjectEditForm {
   endDate: string | null;
 }
 
-type AlertType = 'info' | 'error';
+type AlertType = 'info' | 'error' | 'confirm';
 
 interface ProjectAlert {
   title: string;
   message: string;
   type: AlertType;
   confirmText: string;
+  cancelText?: string;
+  confirmDanger?: boolean;
+  onConfirm?: () => void;
 }
 
 @Component({
@@ -41,6 +44,7 @@ export class ProjectListComponent implements OnInit {
   clientesActivos: Client[] = [];
 
   proyectoEditado: ProjectEditForm = this.crearProyectoVacio();
+  proyectoOriginal: ProjectEditForm = this.crearProyectoVacio();
   editando = false;
   guardando = false;
   cambiandoEstadoId: number | null = null;
@@ -165,6 +169,7 @@ export class ProjectListComponent implements OnInit {
       clientId: project.clientId,
       endDate: project.endDate,
     };
+    this.proyectoOriginal = { ...this.proyectoEditado };
     this.editando = true;
     this.cerrarAlerta();
 
@@ -187,6 +192,10 @@ export class ProjectListComponent implements OnInit {
 
     if (!projectName) {
       this.mostrarError('Nombre obligatorio', 'El nombre del proyecto es obligatorio.');
+      return;
+    }
+
+    if (!this.hayCambiosEdicion) {
       return;
     }
 
@@ -219,8 +228,21 @@ export class ProjectListComponent implements OnInit {
 
   limpiar(): void {
     this.proyectoEditado = this.crearProyectoVacio();
+    this.proyectoOriginal = this.crearProyectoVacio();
     this.editando = false;
     this.guardando = false;
+  }
+
+  get formularioEdicionValido(): boolean {
+    return Boolean(this.proyectoEditado.name.trim());
+  }
+
+  get hayCambiosEdicion(): boolean {
+    return (
+      this.normalizarValor(this.proyectoEditado.name) !== this.normalizarValor(this.proyectoOriginal.name) ||
+      this.proyectoEditado.clientId !== this.proyectoOriginal.clientId ||
+      this.normalizarValor(this.proyectoEditado.endDate) !== this.normalizarValor(this.proyectoOriginal.endDate)
+    );
   }
 
   estaDeBaja(project: Project): boolean {
@@ -248,8 +270,34 @@ export class ProjectListComponent implements OnInit {
       return;
     }
 
-    this.cambiandoEstadoId = project.id;
+    this.alerta = {
+      title: 'Confirmar cambio de estado',
+      message: `Esta seguro que desea cambiar el estado de "${project.name}" a "${this.obtenerTextoEstado(status)}"?`,
+      type: 'confirm',
+      confirmText: 'Confirmar',
+      cancelText: 'Cancelar',
+      confirmDanger: status === 'baja',
+      onConfirm: () => this.actualizarEstadoProyecto(project, status),
+    };
+  }
+
+  confirmarAlerta(): void {
+    if (!this.alerta) {
+      return;
+    }
+
+    if (this.alerta.type !== 'confirm') {
+      this.cerrarAlerta();
+      return;
+    }
+
+    const onConfirm = this.alerta.onConfirm;
     this.cerrarAlerta();
+    onConfirm?.();
+  }
+
+  private actualizarEstadoProyecto(project: Project, status: ProjectStatus): void {
+    this.cambiandoEstadoId = project.id;
 
     this.projectService.update(project.id, { status }).subscribe({
       next: () => {
@@ -404,6 +452,10 @@ export class ProjectListComponent implements OnInit {
       type: 'error',
       confirmText: 'Salir',
     };
+  }
+
+  private normalizarValor(value: string | null | undefined): string {
+    return String(value ?? '').trim();
   }
 
   private parseDateFilter(value: string | null | undefined): number | null {

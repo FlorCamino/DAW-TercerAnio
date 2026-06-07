@@ -36,6 +36,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
   };
 
   clienteEditado: ClientFormData = { id: null, nombre: '', email: '', telefono: '' };
+  clienteOriginal: ClientFormData = { id: null, nombre: '', email: '', telefono: '' };
   editando = false;
   alerta: ClientAlert | null = null;
   cambiandoEstadoId: number | null = null;
@@ -120,6 +121,10 @@ export class ClientListComponent implements OnInit, OnDestroy {
   }
 
   guardar(): void {
+    if (!this.formularioEdicionValido || !this.hayCambiosEdicion) {
+      return;
+    }
+
     this.api.crearCliente(this.clienteEditado).subscribe({
       next: () => {
         this.limpiar();
@@ -146,6 +151,7 @@ export class ClientListComponent implements OnInit, OnDestroy {
     }
 
     this.clienteEditado = { ...cliente };
+    this.clienteOriginal = { ...cliente };
     this.editando = true;
 
     setTimeout(() => {
@@ -293,7 +299,23 @@ export class ClientListComponent implements OnInit, OnDestroy {
 
   limpiar(): void {
     this.clienteEditado = { id: null, nombre: '', email: '', telefono: '' };
+    this.clienteOriginal = { id: null, nombre: '', email: '', telefono: '' };
     this.editando = false;
+  }
+
+  get formularioEdicionValido(): boolean {
+    return Boolean(
+      this.clienteEditado.nombre?.trim() &&
+      String(this.clienteEditado.telefono ?? '').trim().length >= 7,
+    );
+  }
+
+  get hayCambiosEdicion(): boolean {
+    return (
+      this.normalizarValor(this.clienteEditado.nombre) !== this.normalizarValor(this.clienteOriginal.nombre) ||
+      this.normalizarValor(this.clienteEditado.email) !== this.normalizarValor(this.clienteOriginal.email) ||
+      this.normalizarValor(this.clienteEditado.telefono) !== this.normalizarValor(this.clienteOriginal.telefono)
+    );
   }
 
   hayFiltrosActivos(): boolean {
@@ -452,5 +474,9 @@ export class ClientListComponent implements OnInit, OnDestroy {
     }
 
     return mensajePorDefecto;
+  }
+
+  private normalizarValor(value: string | null | undefined): string {
+    return String(value ?? '').trim();
   }
 }

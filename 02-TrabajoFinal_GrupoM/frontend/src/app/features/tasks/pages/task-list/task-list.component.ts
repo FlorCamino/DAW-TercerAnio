@@ -41,6 +41,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
   };
 
   tareaEditada: TaskFormData = this.crearTareaVacia();
+  tareaOriginal: TaskFormData = this.crearTareaVacia();
 
   editando = false;
   mostrandoFormulario = false;
@@ -134,6 +135,7 @@ export class TaskListComponent implements OnInit, OnDestroy {
       estado: tarea.estado,
       proyectoId: tarea.proyectoId,
     };
+    this.tareaOriginal = { ...this.tareaEditada };
 
     this.editando = true;
     this.mostrandoFormulario = true;
@@ -148,6 +150,10 @@ export class TaskListComponent implements OnInit, OnDestroy {
   }
 
   guardar(): void {
+    if (!this.formularioEdicionValido || !this.hayCambiosEdicion) {
+      return;
+    }
+
     if (!this.tareaEditada.descripcion.trim()) {
       this.mostrarAviso(
         'Datos incompletos',
@@ -183,9 +189,21 @@ export class TaskListComponent implements OnInit, OnDestroy {
 
   limpiar(): void {
     this.tareaEditada = this.crearTareaVacia();
+    this.tareaOriginal = this.crearTareaVacia();
     this.editando = false;
     this.mostrandoFormulario = false;
     this.cdr.detectChanges();
+  }
+
+  get formularioEdicionValido(): boolean {
+    return Boolean(this.tareaEditada.descripcion.trim() && this.tareaEditada.proyectoId);
+  }
+
+  get hayCambiosEdicion(): boolean {
+    return (
+      this.normalizarValor(this.tareaEditada.descripcion) !== this.normalizarValor(this.tareaOriginal.descripcion) ||
+      this.tareaEditada.proyectoId !== this.tareaOriginal.proyectoId
+    );
   }
 
   normalizarEstadoTarea(estado: string): TaskState {
@@ -471,5 +489,9 @@ export class TaskListComponent implements OnInit, OnDestroy {
     }
 
     return mensajePorDefecto;
+  }
+
+  private normalizarValor(value: string | null | undefined): string {
+    return String(value ?? '').trim();
   }
 }

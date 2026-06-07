@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { Project } from '../../../projects/models/project.model';
@@ -42,10 +42,18 @@ export class ReportsComponent implements OnInit {
   error = '';
   selectedReport: ReportType = 'summary';
   selectedProjectId: number | null = null;
+  loadedReports: Record<ReportType, boolean> = {
+    summary: false,
+    projectsByStatus: false,
+    tasksByStatus: false,
+    projectDeadlines: false,
+    clientsProjects: false,
+  };
 
   constructor(
     private readonly reportsService: ReportsService,
     private readonly projectService: ProjectService,
+    private readonly cdr: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {
@@ -60,6 +68,8 @@ export class ReportsComponent implements OnInit {
   loadSelectedReport(): void {
     this.loading = true;
     this.error = '';
+    this.loadedReports[this.selectedReport] = false;
+    this.cdr.detectChanges();
 
     switch (this.selectedReport) {
       case 'summary':
@@ -87,14 +97,20 @@ export class ReportsComponent implements OnInit {
     this.reportsService.getTasksByStatus(this.selectedProjectId).pipe(
       finalize(() => {
         this.loading = false;
+        this.cdr.detectChanges();
       }),
     ).subscribe({
       next: (tasksByStatus) => {
         this.tasksByStatus = tasksByStatus;
+        this.loadedReports.tasksByStatus = true;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.error = 'No se pudo cargar el reporte de tareas por estado.';
+        this.loadedReports.tasksByStatus = false;
+        this.loading = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -151,6 +167,10 @@ export class ReportsComponent implements OnInit {
     return titles[this.selectedReport];
   }
 
+  get selectedReportLoaded(): boolean {
+    return this.loadedReports[this.selectedReport];
+  }
+
   formatSituation(situation: ProjectDeadlineReport['situation']): string {
     return situation === 'vencido' ? 'Vencido' : 'Proximo a vencer';
   }
@@ -187,11 +207,14 @@ export class ReportsComponent implements OnInit {
     this.reportsService.getSummary().pipe(
       finalize(() => {
         this.loading = false;
+        this.cdr.detectChanges();
       }),
     ).subscribe({
       next: (summary) => {
         this.summary = summary;
+        this.loadedReports.summary = true;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => this.handleLoadError(),
     });
@@ -201,11 +224,14 @@ export class ReportsComponent implements OnInit {
     this.reportsService.getProjectsByStatus().pipe(
       finalize(() => {
         this.loading = false;
+        this.cdr.detectChanges();
       }),
     ).subscribe({
       next: (projectsByStatus) => {
         this.projectsByStatus = projectsByStatus;
+        this.loadedReports.projectsByStatus = true;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => this.handleLoadError(),
     });
@@ -215,11 +241,14 @@ export class ReportsComponent implements OnInit {
     this.reportsService.getProjectDeadlines().pipe(
       finalize(() => {
         this.loading = false;
+        this.cdr.detectChanges();
       }),
     ).subscribe({
       next: (projectDeadlines) => {
         this.projectDeadlines = projectDeadlines;
+        this.loadedReports.projectDeadlines = true;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => this.handleLoadError(),
     });
@@ -229,11 +258,14 @@ export class ReportsComponent implements OnInit {
     this.reportsService.getClientsProjects().pipe(
       finalize(() => {
         this.loading = false;
+        this.cdr.detectChanges();
       }),
     ).subscribe({
       next: (clientsProjects) => {
         this.clientsProjects = clientsProjects;
+        this.loadedReports.clientsProjects = true;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: () => this.handleLoadError(),
     });
@@ -243,15 +275,20 @@ export class ReportsComponent implements OnInit {
     this.projectService.getAll({ limit: 1000 }).subscribe({
       next: (projects) => {
         this.projects = projects;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.projects = [];
+        this.cdr.detectChanges();
       },
     });
   }
 
   private handleLoadError(): void {
+    this.loading = false;
+    this.loadedReports[this.selectedReport] = false;
     this.error = 'No se pudieron cargar los reportes.';
+    this.cdr.detectChanges();
   }
 
   private buildPrintableHtml(): string {

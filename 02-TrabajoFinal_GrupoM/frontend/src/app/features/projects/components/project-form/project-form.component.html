@@ -38,7 +38,7 @@
   </p>
 
   <div class="form-actions management-form-actions">
-    <button class="primary-button" type="submit" [disabled]="!form.name.trim() || cargandoClientes">
+    <button class="primary-button" type="submit" [disabled]="!formularioValido || cargandoClientes">
       {{ submitLabel }}
     </button>
 

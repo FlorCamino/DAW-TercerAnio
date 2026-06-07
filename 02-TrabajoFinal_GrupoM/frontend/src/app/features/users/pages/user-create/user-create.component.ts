@@ -32,6 +32,10 @@ export class UserCreateComponent {
     alerta: UserAlert | null = null;
     guardando = false;
 
+    get formularioValido(): boolean {
+        return Boolean(this.usuario.nombre.trim() && this.usuario.clave.trim().length >= 6);
+    }
+
     constructor(
         private readonly usersService: UsersService,
         private readonly router: Router,
@@ -39,6 +43,10 @@ export class UserCreateComponent {
     ) { }
 
     guardar(): void {
+        if (this.guardando || !this.formularioValido) {
+            return;
+        }
+
         this.cerrarAlerta();
 
         if (!this.usuario.nombre.trim()) {

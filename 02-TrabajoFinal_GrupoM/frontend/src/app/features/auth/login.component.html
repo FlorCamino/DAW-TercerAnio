@@ -48,7 +48,8 @@
             </div>
 
             <div class="auth-action-row">
-                <button type="submit" [disabled]="loading" [attr.aria-busy]="loading" class="btn-login-submit">
+                <button type="submit" [disabled]="loading || !formularioValido" [attr.aria-busy]="loading"
+                    class="btn-login-submit">
                     {{ loading ? "Cargando..." : "Ingresar" }}
                 </button>
             </div>
