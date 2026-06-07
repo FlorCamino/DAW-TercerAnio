@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { Project } from '../projects/entities/project.entity';
+import { ProjectStatus } from '../../common/enums/project-status.enum';
 import { CreateTaskDto } from './dtos/input/create-task.dto';
 import { UpdateTaskDto } from './dtos/input/update-task.dto';
 import { TaskStatus } from '../../common/enums/task-status.enum';
@@ -33,7 +34,7 @@ export class TasksService {
 
     const task = this.taskRepository.create({
       description: dto.description,
-      status: dto.status ?? TaskStatus.PENDING,
+      status: dto.status ?? TaskStatus.PENDIENTE,
       projectId: dto.projectId,
       project,
     });
@@ -99,12 +100,12 @@ export class TasksService {
       dto.projectId === undefined;
 
     const isReactivatingDeletedTask =
-      task.status === TaskStatus.DELETED &&
+      task.status === TaskStatus.BAJA &&
       dto.status !== undefined &&
-      dto.status !== TaskStatus.DELETED;
+      dto.status !== TaskStatus.BAJA;
 
     if (
-      task.status === TaskStatus.DELETED &&
+      task.status === TaskStatus.BAJA &&
       !onlyChangingStatus &&
       !isReactivatingDeletedTask
     ) {
@@ -139,11 +140,11 @@ export class TasksService {
   async remove(id: number): Promise<TaskResponseDto> {
     const task = await this.findTaskWithProject(id);
 
-    if (task.status === TaskStatus.DELETED) {
+    if (task.status === TaskStatus.BAJA) {
       throw new BadRequestException('La tarea ya esta dada de baja');
     }
 
-    task.status = TaskStatus.DELETED;
+    task.status = TaskStatus.BAJA;
 
     const saved = await this.taskRepository.save(task);
     const taskWithProject = await this.findTaskWithProject(saved.id);
@@ -171,6 +172,12 @@ export class TasksService {
 
     if (!project) {
       throw new NotFoundException(`Proyecto con id ${id} no existe`);
+    }
+
+    if (project.status === ProjectStatus.BAJA) {
+      throw new BadRequestException(
+        'No se pueden asociar tareas a un proyecto dado de baja',
+      );
     }
 
     return project;

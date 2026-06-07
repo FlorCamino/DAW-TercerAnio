@@ -1,10 +1,9 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards, } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { TaskStatus } from '../../common/enums/task-status.enum';
 import { CreateTaskDto } from './dtos/input/create-task.dto';
 import { UpdateTaskDto } from './dtos/input/update-task.dto';
 import { TasksService } from './tasks.service';
-import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { UserRole } from '../../common/enums/user-role.enum';
@@ -60,7 +59,7 @@ export class TasksController {
         value: {
           description: 'Definir modelo de datos inicial',
           projectId: 1,
-          status: TaskStatus.PENDING,
+          status: TaskStatus.PENDIENTE,
         },
       },
     },
@@ -80,13 +79,13 @@ export class TasksController {
         value: {
           description: 'Definir modelo de datos final',
           projectId: 1,
-          status: TaskStatus.FINISHED,
+          status: TaskStatus.FINALIZADO,
         },
       },
       cambiarEstado: {
         summary: 'Cambiar solo el estado',
         value: {
-          status: TaskStatus.FINISHED,
+          status: TaskStatus.FINALIZADO,
         },
       },
     },

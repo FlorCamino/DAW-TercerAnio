@@ -59,9 +59,9 @@ export class ClientsController {
       crearCliente: {
         summary: 'Crear cliente activo',
         value: {
-          nombre: 'Janet Casaretto',
+          name: 'Janet Casaretto',
           email: 'janet@mail.com',
-          telefono: '123456789',
+          phone: '123456789',
         },
       },
     },
@@ -79,10 +79,10 @@ export class ClientsController {
       editarCliente: {
         summary: 'Modificar datos del cliente',
         value: {
-          nombre: 'Janet Casaretto',
+          name: 'Janet Casaretto',
           email: 'janet@mail.com',
-          telefono: '123456789',
-          estado: ClientStatus.ACTIVO,
+          phone: '123456789',
+          status: ClientStatus.ACTIVO,
         },
       },
     },

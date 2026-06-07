@@ -11,10 +11,8 @@ export class Task {
   description!: string;
 
   @Column({
-    name: 'status',
-    type: 'enum',
-    enum: TaskStatus,
-    default: TaskStatus.PENDING,
+    type: 'varchar',
+    default: TaskStatus.PENDIENTE,
   })
   status!: TaskStatus;
 
@@ -22,7 +20,6 @@ export class Task {
   projectId!: number;
 
   @ManyToOne(() => Project, (project) => project.tasks, {
-    eager: true,
     nullable: false,
   })
   @JoinColumn({ name: 'projectId' })

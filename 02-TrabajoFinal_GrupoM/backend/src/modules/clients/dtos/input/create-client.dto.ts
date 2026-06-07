@@ -8,7 +8,7 @@ export class CreateClientDto {
   @MaxLength(150, {
     message: 'El nombre del cliente no puede superar los 150 caracteres',
   })
-  nombre!: string;
+  name!: string;
 
   @ApiProperty({ example: 'janet@mail.com', required: false })
   @IsOptional()
@@ -28,5 +28,5 @@ export class CreateClientDto {
   @Matches(/^[0-9]{7,15}$/, {
     message: 'El teléfono debe tener entre 7 y 15 números',
   })
-  telefono?: string;
+  phone?: string;
 }

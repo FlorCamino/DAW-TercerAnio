@@ -3,14 +3,11 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectorRef, Component, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AuthService } from '../../../../../core/services/auth.service';
 import { Client } from '../../../clients/models/client.model';
 import { ClientsService } from '../../../clients/services/clients.service';
 import { Project, ProjectStatus } from '../../models/project.model';
 import { ProjectService } from '../../services/project.service';
-
-import { AuthService } from '../../../../../core/services/auth.service';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 interface ProjectEditForm {
   id: number | null;
@@ -18,6 +15,15 @@ interface ProjectEditForm {
   status: ProjectStatus;
   clientId: number | null;
   endDate: string | null;
+}
+
+type AlertType = 'info' | 'error';
+
+interface ProjectAlert {
+  title: string;
+  message: string;
+  type: AlertType;
+  confirmText: string;
 }
 
 @Component({
@@ -38,15 +44,14 @@ export class ProjectListComponent implements OnInit {
   editando = false;
   guardando = false;
   cambiandoEstadoId: number | null = null;
-  mensajeEdicion = '';
-  errorEdicion = '';
+  alerta: ProjectAlert | null = null;
 
   filtros = {
     estado: '',
     busqueda: '',
     fechaDesde: '',
     fechaHasta: '',
-};
+  };
 
   estadoDropdownAbierto = false;
 
@@ -71,27 +76,6 @@ export class ProjectListComponent implements OnInit {
     this.loadProjects();
   }
 
-  private loadProjects(): void {
-    this.loading.set(true);
-    this.error.set('');
-
-    this.projectService.getAll({ limit: 1000 }).subscribe({
-      next: (data: Project[]) => {
-        this.projects.set(data);
-        this.aplicarFiltrosYPaginado();
-        this.loading.set(false);
-      },
-      error: () => {
-        this.projects.set([]);
-        this.listaProyectos = [];
-        this.totalProyectos = 0;
-        this.totalPaginas = 1;
-        this.error.set('No se pudieron cargar los proyectos.');
-        this.loading.set(false);
-      },
-    });
-  }
-
   seleccionarEstado(estado: string): void {
     this.filtros.estado = estado;
     this.estadoDropdownAbierto = false;
@@ -109,62 +93,13 @@ export class ProjectListComponent implements OnInit {
     this.aplicarFiltrosYPaginado();
   }
 
-  descargarCSV(): void {
-  const encabezados = ['Nombre', 'Estado', 'Cliente', 'Fecha Finalización'];
-
-  const filas = this.listaProyectos.map(project => [
-    project.name,
-    project.status,
-    project.client?.nombre ?? 'Sin cliente',
-    project.endDate ?? ''
-  ]);
-
-  const csv = [
-    encabezados.join(','),
-    ...filas.map(fila => fila.join(','))
-  ].join('\n');
-
-  const blob = new Blob([csv], {
-    type: 'text/csv;charset=utf-8;'
-  });
-
-  const url = window.URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'proyectos.csv';
-  link.click();
-
-  window.URL.revokeObjectURL(url);
-}
-
-descargarPDF(): void {
-  const doc = new jsPDF();
-
-  doc.setFontSize(16);
-  doc.text('Listado de Proyectos', 14, 15);
-
-  autoTable(doc, {
-    startY: 25,
-    head: [['Nombre', 'Estado', 'Cliente', 'Fecha Finalización']],
-    body: this.listaProyectos.map(project => [
-      project.name,
-      project.status,
-      project.client?.nombre ?? 'Sin cliente',
-      project.endDate ?? '-'
-    ])
-  });
-
-  doc.save('proyectos.pdf');
-}
-
   limpiarFiltros(): void {
     this.filtros = {
       estado: '',
       busqueda: '',
       fechaDesde: '',
       fechaHasta: '',
-     };
+    };
 
     this.estadoDropdownAbierto = false;
     this.paginaActual = 1;
@@ -172,7 +107,12 @@ descargarPDF(): void {
   }
 
   hayFiltrosActivos(): boolean {
-    return Boolean(this.filtros.estado || this.filtros.busqueda.trim());
+    return Boolean(
+      this.filtros.estado ||
+      this.filtros.busqueda.trim() ||
+      this.filtros.fechaDesde ||
+      this.filtros.fechaHasta,
+    );
   }
 
   cambiarCantidadPorPagina(): void {
@@ -196,7 +136,6 @@ descargarPDF(): void {
 
   obtenerTextoEstado(estado: string): string {
     const estadoNormalizado = this.normalizarTexto(estado);
-
     const estados: Record<string, string> = {
       '': 'Todos los estados',
       activo: 'Activo',
@@ -215,8 +154,7 @@ descargarPDF(): void {
 
   editar(project: Project): void {
     if (this.estaDeBaja(project)) {
-      this.errorEdicion = 'No se puede editar un proyecto dado de baja.';
-      this.mensajeEdicion = '';
+      this.mostrarError('No se puede editar', 'No se puede editar un proyecto dado de baja.');
       return;
     }
 
@@ -228,8 +166,7 @@ descargarPDF(): void {
       endDate: project.endDate,
     };
     this.editando = true;
-    this.mensajeEdicion = '';
-    this.errorEdicion = '';
+    this.cerrarAlerta();
 
     setTimeout(() => {
       document.querySelector('.management-edit-card')?.scrollIntoView({
@@ -244,20 +181,17 @@ descargarPDF(): void {
     const projectName = this.proyectoEditado.name.trim();
 
     if (!projectId) {
-      this.errorEdicion = 'Seleccione un proyecto para actualizar.';
-      this.mensajeEdicion = '';
+      this.mostrarError('Proyecto no seleccionado', 'Seleccione un proyecto para actualizar.');
       return;
     }
 
     if (!projectName) {
-      this.errorEdicion = 'El nombre del proyecto es obligatorio.';
-      this.mensajeEdicion = '';
+      this.mostrarError('Nombre obligatorio', 'El nombre del proyecto es obligatorio.');
       return;
     }
 
     this.guardando = true;
-    this.errorEdicion = '';
-    this.mensajeEdicion = '';
+    this.cerrarAlerta();
 
     this.projectService
       .update(projectId, {
@@ -267,13 +201,16 @@ descargarPDF(): void {
       })
       .subscribe({
         next: () => {
-          this.mensajeEdicion = 'El proyecto fue actualizado correctamente.';
+          this.mostrarInfo('Proyecto actualizado', 'El proyecto fue actualizado correctamente.');
           this.guardando = false;
           this.limpiar();
           this.loadProjects();
         },
         error: (err: HttpErrorResponse) => {
-          this.errorEdicion = this.obtenerMensajeError(err, 'No se pudo actualizar el proyecto.');
+          this.mostrarError(
+            'No se pudo actualizar',
+            this.obtenerMensajeError(err, 'No se pudo actualizar el proyecto.'),
+          );
           this.guardando = false;
           this.cdr.detectChanges();
         },
@@ -312,85 +249,101 @@ descargarPDF(): void {
     }
 
     this.cambiandoEstadoId = project.id;
-    this.mensajeEdicion = '';
-    this.errorEdicion = '';
+    this.cerrarAlerta();
 
-    this.projectService
-      .update(project.id, { status })
-      .subscribe({
-        next: () => {
-          this.mensajeEdicion = `El estado de "${project.name}" fue actualizado correctamente.`;
-          this.cambiandoEstadoId = null;
-          this.loadProjects();
-        },
-        error: (err: HttpErrorResponse) => {
-          this.errorEdicion = this.obtenerMensajeError(err, 'No se pudo actualizar el estado del proyecto.');
-          this.cambiandoEstadoId = null;
-          this.cdr.detectChanges();
-        },
-      });
+    this.projectService.update(project.id, { status }).subscribe({
+      next: () => {
+        this.mostrarInfo(
+          'Estado actualizado',
+          `El estado de "${project.name}" fue actualizado correctamente.`,
+        );
+        this.cambiandoEstadoId = null;
+        this.loadProjects();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.mostrarError(
+          'No se pudo actualizar el estado',
+          this.obtenerMensajeError(err, 'No se pudo actualizar el estado del proyecto.'),
+        );
+        this.cambiandoEstadoId = null;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cerrarAlerta(): void {
+    this.alerta = null;
+  }
+
+  private loadProjects(): void {
+    this.loading.set(true);
+    this.error.set('');
+
+    this.projectService.getAll({ limit: 1000 }).subscribe({
+      next: (data: Project[]) => {
+        this.projects.set(data);
+        this.aplicarFiltrosYPaginado();
+        this.loading.set(false);
+      },
+      error: () => {
+        this.projects.set([]);
+        this.listaProyectos = [];
+        this.totalProyectos = 0;
+        this.totalPaginas = 1;
+        this.error.set('');
+        this.mostrarError('Error al cargar proyectos', 'No se pudieron cargar los proyectos.');
+        this.loading.set(false);
+      },
+    });
   }
 
   private aplicarFiltrosYPaginado(): void {
-  const estadoFiltro = this.normalizarTexto(this.filtros.estado);
-  const busquedaFiltro = this.normalizarTexto(this.filtros.busqueda);
+    const estadoFiltro = this.normalizarTexto(this.filtros.estado);
+    const busquedaFiltro = this.normalizarTexto(this.filtros.busqueda);
+    const fechaDesde = this.parseDateFilter(this.filtros.fechaDesde);
+    const fechaHasta = this.parseDateFilter(this.filtros.fechaHasta);
 
-  const proyectosFiltrados = this.projects().filter((project) => {
-    const estadoProyecto = this.normalizarTexto(String(project.status ?? ''));
-
-    const textoProyecto = this.normalizarTexto(`
-      ${project.name ?? ''}
-      ${project.client?.nombre ?? ''}
-      ${project.endDate ?? ''}
-      ${project.status ?? ''}
-    `);
-
-    const coincideEstado =
-      !estadoFiltro || estadoProyecto === estadoFiltro;
-
-    const coincideBusqueda =
-      !busquedaFiltro || textoProyecto.includes(busquedaFiltro);
-
-    let coincideFecha = true;
-
-    if (project.endDate) {
-      const fechaProyecto = new Date(project.endDate);
-
-      if (this.filtros.fechaDesde) {
-        coincideFecha =
-          coincideFecha &&
-          fechaProyecto >= new Date(this.filtros.fechaDesde);
-      }
-
-      if (this.filtros.fechaHasta) {
-        coincideFecha =
-          coincideFecha &&
-          fechaProyecto <= new Date(this.filtros.fechaHasta);
-      }
+    if (fechaDesde && fechaHasta && fechaDesde > fechaHasta) {
+      this.listaProyectos = [];
+      this.totalProyectos = 0;
+      this.totalPaginas = 1;
+      this.mostrarError('Rango de fechas invalido', 'La fecha desde no puede ser posterior a la fecha hasta.');
+      return;
     }
 
-    return (
-      coincideEstado &&
-      coincideBusqueda &&
-      coincideFecha
-    );
-  });
+    if (this.alerta?.title === 'Rango de fechas invalido') {
+      this.cerrarAlerta();
+    }
 
-  this.totalProyectos = proyectosFiltrados.length;
-  this.totalPaginas = Math.max(
-    Math.ceil(this.totalProyectos / this.cantidadPorPagina),
-    1
-  );
+    const proyectosFiltrados = this.projects().filter((project) => {
+      const estadoProyecto = this.normalizarTexto(String(project.status ?? ''));
+      const fechaProyecto = this.parseDateFilter(project.endDate);
+      const textoProyecto = this.normalizarTexto(`
+        ${project.name ?? ''}
+        ${project.client?.nombre ?? ''}
+        ${project.endDate ?? ''}
+        ${project.status ?? ''}
+      `);
 
-  if (this.paginaActual > this.totalPaginas) {
-    this.paginaActual = this.totalPaginas;
+      const coincideEstado = !estadoFiltro || estadoProyecto === estadoFiltro;
+      const coincideBusqueda = !busquedaFiltro || textoProyecto.includes(busquedaFiltro);
+      const coincideFechaDesde = !fechaDesde || (fechaProyecto !== null && fechaProyecto >= fechaDesde);
+      const coincideFechaHasta = !fechaHasta || (fechaProyecto !== null && fechaProyecto <= fechaHasta);
+
+      return coincideEstado && coincideBusqueda && coincideFechaDesde && coincideFechaHasta;
+    });
+
+    this.totalProyectos = proyectosFiltrados.length;
+    this.totalPaginas = Math.max(Math.ceil(this.totalProyectos / this.cantidadPorPagina), 1);
+
+    if (this.paginaActual > this.totalPaginas) {
+      this.paginaActual = this.totalPaginas;
+    }
+
+    const inicio = (this.paginaActual - 1) * this.cantidadPorPagina;
+    const fin = inicio + this.cantidadPorPagina;
+    this.listaProyectos = proyectosFiltrados.slice(inicio, fin);
   }
-
-  const inicio = (this.paginaActual - 1) * this.cantidadPorPagina;
-  const fin = inicio + this.cantidadPorPagina;
-
-  this.listaProyectos = proyectosFiltrados.slice(inicio, fin);
-}
 
   private loadActiveClients(): void {
     this.clientsService.getClientes({ limit: 1000 }).subscribe({
@@ -433,6 +386,35 @@ descargarPDF(): void {
     }
 
     return mensajePorDefecto;
+  }
+
+  private mostrarInfo(title: string, message: string): void {
+    this.alerta = {
+      title,
+      message,
+      type: 'info',
+      confirmText: 'Salir',
+    };
+  }
+
+  private mostrarError(title: string, message: string): void {
+    this.alerta = {
+      title,
+      message,
+      type: 'error',
+      confirmText: 'Salir',
+    };
+  }
+
+  private parseDateFilter(value: string | null | undefined): number | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsedDate = new Date(`${value}T00:00:00`);
+    const timestamp = parsedDate.getTime();
+
+    return Number.isNaN(timestamp) ? null : timestamp;
   }
 
   private normalizarTexto(texto: string): string {

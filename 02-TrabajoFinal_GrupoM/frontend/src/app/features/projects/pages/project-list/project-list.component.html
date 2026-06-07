@@ -2,7 +2,7 @@
   <section class="management-header">
     <div class="management-title-block">
       <h1>Proyectos</h1>
-      <p>Administra proyectos, clientes asociados, estados y fechas de finalización.</p>
+      <p>Administra proyectos, clientes asociados, estados y fechas de finalizacion.</p>
     </div>
 
     <a class="primary-button" routerLink="/projects/create">
@@ -10,12 +10,12 @@
     </a>
   </section>
 
-  <section class="management-toolbar" aria-label="Búsqueda de proyectos">
+  <section class="management-toolbar projects-filter-toolbar" aria-label="Busqueda de proyectos">
     <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
       <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
         aria-label="Filtrar por estado">
         <span>{{ obtenerTextoEstado(filtros.estado) }}</span>
-        <span class="custom-status-arrow">▾</span>
+        <span class="custom-status-arrow">&dtrif;</span>
       </button>
 
       <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
@@ -41,45 +41,30 @@
       </div>
     </div>
 
-    <input class="management-search"
-       [(ngModel)]="filtros.busqueda"
-       (ngModelChange)="actualizarBusqueda()"
-       placeholder="Buscar por nombre, cliente o fecha..." />
+    <input class="management-search" [(ngModel)]="filtros.busqueda" (ngModelChange)="actualizarBusqueda()"
+      placeholder="Buscar por nombre, cliente o fecha exacta..." />
 
-<input type="date"
-       [(ngModel)]="filtros.fechaDesde"
-       (change)="buscarProyectos()" />
+    <label class="field-control">
+      <span>Desde</span>
+      <input type="date" [(ngModel)]="filtros.fechaDesde" (ngModelChange)="actualizarBusqueda()" />
+    </label>
 
-<input type="date"
-       [(ngModel)]="filtros.fechaHasta"
-       (change)="buscarProyectos()" />
+    <label class="field-control">
+      <span>Hasta</span>
+      <input type="date" [(ngModel)]="filtros.fechaHasta" (ngModelChange)="actualizarBusqueda()" />
+    </label>
 
-<button class="primary-button" type="button" (click)="buscarProyectos()">
-  Buscar
-</button>
+    <button class="primary-button" type="button" (click)="buscarProyectos()">
+      Buscar
+    </button>
 
-<button class="secondary-button" type="button" (click)="limpiarFiltros()">
-  Limpiar
-</button>
+    <button class="secondary-button" type="button" (click)="limpiarFiltros()">
+      Limpiar
+    </button>
 
-<button class="secondary-button"
-        type="button"
-        (click)="descargarCSV()">
-  Descargar CSV
-</button>
+  </section>
 
-<button class="secondary-button"
-        type="button"
-        (click)="descargarPDF()">
-  Descargar PDF
-</button>
-
-    </section>
-
-  <p class="management-message" *ngIf="mensajeEdicion">{{ mensajeEdicion }}</p>
-  <p class="management-message error" *ngIf="errorEdicion">{{ errorEdicion }}</p>
-
-  <section class="form-card management-edit-card" aria-label="Formulario de ediciÃ³n de proyecto" aria-live="polite"
+  <section class="form-card management-edit-card" aria-label="Formulario de edicion de proyecto" aria-live="polite"
     *ngIf="editando">
     <div class="edit-panel-header">
       <span class="edit-eyebrow">Modo edición</span>
@@ -103,7 +88,7 @@
       </label>
 
       <label class="field-control">
-        <span>Finalización</span>
+        <span>Finalizacion</span>
         <input type="date" [(ngModel)]="proyectoEditado.endDate" />
       </label>
 
@@ -131,7 +116,7 @@
           <th>Nombre</th>
           <th>Estado</th>
           <th>Cliente</th>
-          <th>Finalización</th>
+          <th>Finalizacion</th>
           <th>Acciones</th>
         </tr>
       </thead>
@@ -151,7 +136,7 @@
             <select class="status-select" [class.done]="normalizarEstadoProyecto(project.status) === 'finalizado'"
               [class.inactive]="normalizarEstadoProyecto(project.status) === 'baja'"
               [ngModel]="normalizarEstadoProyecto(project.status)" (ngModelChange)="cambiarEstado(project, $event)"
-              [disabled]="cambiandoEstadoId === project.id || !esAdmin()"  aria-label="Cambiar estado del proyecto">
+              [disabled]="cambiandoEstadoId === project.id || !esAdmin()" aria-label="Cambiar estado del proyecto">
               <option value="activo">Activo</option>
               <option value="finalizado">Finalizado</option>
               <option value="baja">Baja</option>
@@ -159,7 +144,7 @@
           </td>
 
           <td>{{ project.client?.nombre ?? 'Sin cliente' }}</td>
-          <td>{{ project.endDate ?? '—' }}</td>
+          <td>{{ project.endDate ?? '-' }}</td>
 
           <td>
             <div class="table-actions">
@@ -168,8 +153,7 @@
               </a>
 
               <button type="button" class="action-button action-edit" (click)="editar(project)"
-                [disabled]="estaDeBaja(project)"
-                *ngIf="esAdmin()">
+                [disabled]="estaDeBaja(project)" *ngIf="esAdmin()">
                 Editar
               </button>
             </div>
@@ -192,7 +176,7 @@
     @if (totalProyectos > 0) {
     <div class="pagination-bar">
       <div class="page-size-control">
-        <span>Proyectos por página</span>
+        <span>Proyectos por pagina</span>
 
         <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
           <option [ngValue]="6">6</option>
@@ -203,7 +187,7 @@
       </div>
 
       <span class="pagination-summary">
-        Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalProyectos }} proyectos
+        Pagina {{ paginaActual }} de {{ totalPaginas }} - {{ totalProyectos }} proyectos
       </span>
 
       <div class="pagination-actions">
@@ -220,4 +204,24 @@
     }
   </section>
   }
+
+  <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+    <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+      <div class="management-alert-header">
+        <span class="management-alert-icon">
+          {{ alertaActual.type === 'error' ? '!' : 'OK' }}
+        </span>
+
+        <h2>{{ alertaActual.title }}</h2>
+      </div>
+
+      <p>{{ alertaActual.message }}</p>
+
+      <div class="management-alert-actions">
+        <button class="primary-button" type="button" (click)="cerrarAlerta()">
+          {{ alertaActual.confirmText }}
+        </button>
+      </div>
+    </section>
+  </div>
 </div>

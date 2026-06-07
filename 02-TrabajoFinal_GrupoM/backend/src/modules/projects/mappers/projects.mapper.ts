@@ -11,7 +11,7 @@ export class ProjectsMapper {
     const isOverdue =
       project.endDate !== null &&
       new Date(project.endDate) < today &&
-      project.status === ProjectStatus.ACTIVE;
+      project.status === ProjectStatus.ACTIVO;
 
     const response: ProjectResponseDto = {
       id: project.id,

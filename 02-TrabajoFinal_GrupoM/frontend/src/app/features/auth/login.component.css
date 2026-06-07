@@ -49,6 +49,7 @@
 
 .field-control input,
 .field-control select {
+    width: 100%;
     min-height: 44px;
     padding: 0 14px;
     border: 1px solid #d9e4df;
@@ -58,6 +59,7 @@
     font-family: inherit;
     font-size: 1rem;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
 .field-control select {
@@ -69,6 +71,42 @@
     outline: none;
     border-color: #154d3a;
     box-shadow: 0 0 0 3px rgba(16, 37, 31, 0.05);
+}
+
+.password-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-input-wrapper input {
+    width: 100%;
+    padding-right: 46px;
+}
+
+.password-toggle-button {
+    position: absolute;
+    right: 10px;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: #536970;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle-button:hover {
+    color: #10251f;
+    background: #eef4f1;
+}
+
+.password-toggle-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(16, 37, 31, 0.08);
 }
 
 .btn-login-submit {
@@ -87,7 +125,7 @@
     margin-top: 10px;
 }
 
-.btn-login-submit:hover {
+.btn-login-submit:hover:not(:disabled) {
     background: #336431;
 }
 
@@ -108,4 +146,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.auth-action-row {
+    width: 100%;
 }

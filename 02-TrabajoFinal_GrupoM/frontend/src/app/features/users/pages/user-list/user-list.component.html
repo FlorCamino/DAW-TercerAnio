@@ -36,6 +36,31 @@
             </div>
         </div>
 
+        <div class="custom-status-select" [class.open]="rolDropdownAbierto">
+            <button type="button" class="custom-status-trigger" (click)="rolDropdownAbierto = !rolDropdownAbierto"
+                aria-label="Filtrar por rol">
+                <span>{{ obtenerTextoRol(filtros.rol ?? '') }}</span>
+                <span class="custom-status-arrow">&dtrif;</span>
+            </button>
+
+            <div class="custom-status-menu" *ngIf="rolDropdownAbierto">
+                <button type="button" class="custom-status-option" [class.selected]="filtros.rol === ''"
+                    (click)="seleccionarRol('')">
+                    Todos los roles
+                </button>
+
+                <button type="button" class="custom-status-option" [class.selected]="filtros.rol === 'administrador'"
+                    (click)="seleccionarRol('administrador')">
+                    Administrador
+                </button>
+
+                <button type="button" class="custom-status-option" [class.selected]="filtros.rol === 'usuario'"
+                    (click)="seleccionarRol('usuario')">
+                    Usuario
+                </button>
+            </div>
+        </div>
+
         <input class="management-search" [(ngModel)]="filtros.nombre" placeholder="Buscar por nombre..." />
 
         <button class="primary-button" type="button" (click)="buscar()">
@@ -89,9 +114,6 @@
             </div>
         </div>
     </section>
-
-    <p class="management-message" *ngIf="mensaje">{{ mensaje }}</p>
-    <p class="management-message error" *ngIf="error">{{ error }}</p>
 
     <section class="management-table-wrapper" aria-label="Listado de usuarios">
         <table class="management-table">
@@ -180,4 +202,24 @@
             </div>
         </div>
     </section>
+
+    <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+        <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+            <div class="management-alert-header">
+                <span class="management-alert-icon">
+                    {{ alertaActual.type === 'error' ? '!' : '✓' }}
+                </span>
+
+                <h2>{{ alertaActual.title }}</h2>
+            </div>
+
+            <p>{{ alertaActual.message }}</p>
+
+            <div class="management-alert-actions">
+                <button class="primary-button" type="button" (click)="cerrarAlerta()">
+                    {{ alertaActual.confirmText }}
+                </button>
+            </div>
+        </section>
+    </div>
 </main>

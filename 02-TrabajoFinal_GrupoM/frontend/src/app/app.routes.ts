@@ -92,6 +92,13 @@ export const routes: Routes = [
           ),
       },
       {
+        path: 'reportes',
+        loadComponent: () =>
+          import('./features/reports/pages/reports/reports.component').then(
+            (m) => m.ReportsComponent,
+          ),
+      },
+      {
         path: "usuarios",
         loadComponent: () =>
           import("./features/users/pages/user-list/user-list.component").then(m => m.UserListComponent),

@@ -59,7 +59,7 @@ export class ProjectsController {
         summary: 'Crear proyecto asociado a cliente activo',
         value: {
           name: 'Sistema de gestion interna',
-          status: ProjectStatus.ACTIVE,
+          status: ProjectStatus.ACTIVO,
           clientId: 1,
           endDate: '2026-07-15',
         },
@@ -68,6 +68,7 @@ export class ProjectsController {
         summary: 'Crear proyecto interno sin cliente',
         value: {
           name: 'Automatizacion interna',
+          status: ProjectStatus.ACTIVO,
           clientId: null,
         },
       },
@@ -87,7 +88,7 @@ export class ProjectsController {
         summary: 'Modificar proyecto',
         value: {
           name: 'Sistema de gestion interna v2',
-          status: ProjectStatus.FINISHED,
+          status: ProjectStatus.FINALIZADO,
           clientId: 1,
           endDate: '2026-08-10',
         },

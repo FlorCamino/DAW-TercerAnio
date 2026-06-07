@@ -14,7 +14,7 @@ export class Project {
   @Column({
     type: 'enum',
     enum: ProjectStatus,
-    default: ProjectStatus.ACTIVE,
+    default: ProjectStatus.ACTIVO,
   })
   status!: ProjectStatus;
 
