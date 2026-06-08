@@ -259,6 +259,23 @@
   justify-content: flex-end;
 }
 
+.reports-filter-toolbar {
+  align-items: center;
+}
+
+.report-filter-control {
+  display: block;
+  width: min(300px, 100%);
+}
+
+.report-filter-select {
+  width: 100%;
+  min-width: 0;
+  flex: unset;
+  background: #ffffff;
+  cursor: pointer;
+}
+
 .management-message {
   margin-top: 20px;
   color: #5b7078;
@@ -1239,11 +1256,6 @@
   align-items: end;
   gap: 12px;
   margin: 20px 0 22px;
-  padding: 16px;
-  background: #ffffff;
-  border: 1px solid #d9e4df;
-  border-radius: 10px;
-  box-shadow: 0 8px 22px rgba(18, 33, 29, 0.05);
 }
 
 .projects-filter-toolbar .custom-status-select,

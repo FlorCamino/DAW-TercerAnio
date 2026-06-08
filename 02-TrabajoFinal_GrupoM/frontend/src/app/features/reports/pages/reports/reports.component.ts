@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { finalize } from 'rxjs';
 import { Project } from '../../../projects/models/project.model';
 import { ProjectService } from '../../../projects/services/project.service';
+import { AuthService } from '../../../../../core/services/auth.service';
 import {
   ClientProjectsReport,
   ClientReportItem,
@@ -23,6 +24,20 @@ type ReportType =
   | 'tasksByStatus'
   | 'projectDeadlines'
   | 'clientsProjects';
+
+interface ReportOption {
+  value: ReportType;
+  label: string;
+  adminOnly?: boolean;
+}
+
+const REPORT_OPTIONS: ReportOption[] = [
+  { value: 'summary', label: 'Resumen general', adminOnly: true },
+  { value: 'projectsByStatus', label: 'Proyectos por estado' },
+  { value: 'tasksByStatus', label: 'Tareas por estado' },
+  { value: 'projectDeadlines', label: 'Proyectos vencidos o proximos a finalizar' },
+  { value: 'clientsProjects', label: 'Clientes con proyectos finalizados' },
+];
 
 @Component({
   selector: 'app-reports',
@@ -53,10 +68,12 @@ export class ReportsComponent implements OnInit {
   constructor(
     private readonly reportsService: ReportsService,
     private readonly projectService: ProjectService,
+    private readonly authService: AuthService,
     private readonly cdr: ChangeDetectorRef,
   ) { }
 
   ngOnInit(): void {
+    this.selectedReport = this.defaultReport;
     this.loadSelectedReport();
     this.loadProjects();
   }
@@ -121,6 +138,10 @@ export class ReportsComponent implements OnInit {
   }
 
   onReportChange(): void {
+    if (!this.canAccessSelectedReport()) {
+      this.selectedReport = this.defaultReport;
+    }
+
     this.loadSelectedReport();
   }
 
@@ -156,15 +177,15 @@ export class ReportsComponent implements OnInit {
   }
 
   get reportTitle(): string {
-    const titles: Record<ReportType, string> = {
-      summary: 'Resumen general',
-      projectsByStatus: 'Proyectos por estado',
-      tasksByStatus: 'Tareas por estado',
-      projectDeadlines: 'Proyectos vencidos o proximos a finalizar',
-      clientsProjects: 'Clientes con proyectos asociados',
-    };
+    return REPORT_OPTIONS.find((option) => option.value === this.selectedReport)?.label ?? 'Reportes';
+  }
 
-    return titles[this.selectedReport];
+  get reportOptions(): ReportOption[] {
+    if (this.authService.esAdmin()) {
+      return REPORT_OPTIONS;
+    }
+
+    return REPORT_OPTIONS.filter((option) => !option.adminOnly);
   }
 
   get selectedReportLoaded(): boolean {
@@ -218,6 +239,12 @@ export class ReportsComponent implements OnInit {
   }
 
   private loadSummary(): void {
+    if (!this.authService.esAdmin()) {
+      this.selectedReport = this.defaultReport;
+      this.loadSelectedReport();
+      return;
+    }
+
     this.reportsService.getSummary().pipe(
       finalize(() => {
         this.loading = false;
@@ -303,6 +330,14 @@ export class ReportsComponent implements OnInit {
     this.loadedReports[this.selectedReport] = false;
     this.error = 'No se pudieron cargar los reportes.';
     this.cdr.detectChanges();
+  }
+
+  private get defaultReport(): ReportType {
+    return this.authService.esAdmin() ? 'summary' : 'projectsByStatus';
+  }
+
+  private canAccessSelectedReport(): boolean {
+    return this.reportOptions.some((option) => option.value === this.selectedReport);
   }
 
   private buildPrintableHtml(): string {
@@ -483,13 +518,13 @@ export class ReportsComponent implements OnInit {
 
   private buildClientProjectsCsvRows(): string[][] {
     return [
-      ['Cliente', 'Total proyectos', 'Activos', 'Finalizados', 'Detalle'],
+      ['Cliente', 'Total proyectos', 'Activos', 'Finalizados', 'Proyectos finalizados'],
       ...this.clientsProjects.map((client) => [
         client.name,
         client.totalProjects.toString(),
         client.activeProjects.toString(),
         client.finishedProjects.toString(),
-        this.joinCsvDetails(client.projects.map((project) => this.projectDetail(project))),
+        this.joinCsvDetails(client.finishedProjectItems.map((project) => this.projectDetail(project))),
       ]),
     ];
   }
@@ -615,7 +650,7 @@ export class ReportsComponent implements OnInit {
     return `
       <table>
         <thead>
-          <tr><th>Cliente</th><th>Total proyectos</th><th>Activos</th><th>Finalizados</th><th>Detalle</th></tr>
+          <tr><th>Cliente</th><th>Total proyectos</th><th>Activos</th><th>Finalizados</th><th>Proyectos finalizados</th></tr>
         </thead>
         <tbody>
           ${this.clientsProjects.map((client) => `
@@ -624,7 +659,7 @@ export class ReportsComponent implements OnInit {
               <td>${client.totalProjects}</td>
               <td>${client.activeProjects}</td>
               <td>${client.finishedProjects}</td>
-              <td>${this.buildPrintableList(client.projects.map((project) => this.projectDetail(project)))}</td>
+              <td>${this.buildPrintableList(client.finishedProjectItems.map((project) => this.projectDetail(project)))}</td>
             </tr>
           `).join('')}
         </tbody>

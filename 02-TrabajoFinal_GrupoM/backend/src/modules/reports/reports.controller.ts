@@ -15,6 +15,7 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('summary')
+  @Roles(UserRole.ADMIN)
   @ApiOperation({ summary: 'Resumen general del sistema' })
   getSummary() {
     return this.reportsService.getSummary();

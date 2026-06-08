@@ -15,21 +15,19 @@
     </div>
   </section>
 
-  <section class="management-toolbar" aria-label="Selector de reportes">
-    <label class="field-control">
-      <span>Reporte</span>
-      <select [(ngModel)]="selectedReport" (ngModelChange)="onReportChange()">
-        <option value="summary">Resumen general</option>
-        <option value="projectsByStatus">Proyectos por estado</option>
-        <option value="tasksByStatus">Tareas por estado</option>
-        <option value="projectDeadlines">Proyectos vencidos o proximos a finalizar</option>
-        <option value="clientsProjects">Clientes con proyectos asociados</option>
+  <section class="management-toolbar reports-filter-toolbar" aria-label="Selector de reportes">
+    <label class="report-filter-control">
+      <select class="management-search report-filter-select" [(ngModel)]="selectedReport"
+        (ngModelChange)="onReportChange()" aria-label="Reporte">
+        <option *ngFor="let option of reportOptions" [value]="option.value">
+          {{ option.label }}
+        </option>
       </select>
     </label>
 
-    <label class="field-control" *ngIf="selectedReport === 'tasksByStatus'">
-      <span>Proyecto</span>
-      <select [ngModel]="selectedProjectId ?? ''" (ngModelChange)="onProjectFilterChange($event)">
+    <label class="report-filter-control" *ngIf="selectedReport === 'tasksByStatus'">
+      <select class="management-search report-filter-select" [ngModel]="selectedProjectId ?? ''"
+        (ngModelChange)="onProjectFilterChange($event)" aria-label="Proyecto">
         <option value="">Todos los proyectos</option>
         <option *ngFor="let project of projects" [value]="project.id">{{ project.name }}</option>
       </select>
@@ -233,7 +231,7 @@
         <tr>
           <th>Estado</th>
           <th>Cantidad</th>
-          <th>Detalle</th>
+          <th>Proyectos finalizados</th>
         </tr>
       </thead>
       <tbody>
@@ -320,17 +318,17 @@
           <td>{{ client.activeProjects }}</td>
           <td>{{ client.finishedProjects }}</td>
           <td>
-            <details class="report-details" [open]="client.projects.length > 0">
-              <summary>Ver proyectos del cliente</summary>
+            <details class="report-details" [open]="client.finishedProjectItems.length > 0">
+              <summary>Ver proyectos finalizados</summary>
               <ul class="report-detail-list compact">
-              <li *ngFor="let project of client.projects">{{ projectDetail(project) }}</li>
-              <li *ngIf="client.projects.length === 0">Sin proyectos asociados</li>
+              <li *ngFor="let project of client.finishedProjectItems">{{ projectDetail(project) }}</li>
+              <li *ngIf="client.finishedProjectItems.length === 0">Sin proyectos finalizados</li>
               </ul>
             </details>
           </td>
         </tr>
         <tr *ngIf="clientsProjects.length === 0">
-          <td colspan="5" class="management-empty-row">No hay clientes para mostrar.</td>
+          <td colspan="5" class="management-empty-row">No hay clientes con proyectos finalizados para mostrar.</td>
         </tr>
       </tbody>
     </table>

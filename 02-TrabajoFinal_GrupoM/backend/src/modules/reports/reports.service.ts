@@ -186,26 +186,24 @@ export class ReportsService {
 
     return clients.map((client) => {
       const projects = client.projects ?? [];
+      const activeProjects = projects.filter(
+        (project) => project.status === ProjectStatus.ACTIVO,
+      );
+      const finishedProjects = projects.filter(
+        (project) => project.status === ProjectStatus.FINALIZADO,
+      );
 
       return {
         id: client.id,
         name: client.name,
         totalProjects: projects.length,
-        activeProjects: projects.filter(
-          (project) => project.status === ProjectStatus.ACTIVO,
-        ).length,
-        finishedProjects: projects.filter(
-          (project) => project.status === ProjectStatus.FINALIZADO,
-        ).length,
-        projects: projects.map((project) => this.toProjectDetail(project)),
-        activeProjectItems: projects
-          .filter((project) => project.status === ProjectStatus.ACTIVO)
-          .map((project) => this.toProjectDetail(project)),
-        finishedProjectItems: projects
-          .filter((project) => project.status === ProjectStatus.FINALIZADO)
-          .map((project) => this.toProjectDetail(project)),
+        activeProjects: activeProjects.length,
+        finishedProjects: finishedProjects.length,
+        projects: finishedProjects.map((project) => this.toProjectDetail(project)),
+        activeProjectItems: activeProjects.map((project) => this.toProjectDetail(project)),
+        finishedProjectItems: finishedProjects.map((project) => this.toProjectDetail(project)),
       };
-    });
+    }).filter((client) => client.finishedProjects > 0);
   }
 
   private startOfDay(date: Date): Date {
