@@ -12,7 +12,7 @@ La aplicación permite administrar las entidades principales del sistema, contro
 | ---------------- | ---------------------------------- |
 | Janet Casaretto  | Filtros en listados                |
 | Franco Challiol  | Reportes administrativos           |
-| Damián Ottone    | Fecha de finalización de proyectos |
+| Damian Ottone    | Fecha de finalización de proyectos |
 | Micaela Zalazar  | Sistema de roles                   |
 | Florencia Camino | Dashboard                          |
 
@@ -130,8 +130,6 @@ Antes de ejecutar el proyecto, es necesario tener instalado:
 * PostgreSQL
 * Angular CLI, si no se encuentra instalado globalmente
 
-El proyecto utiliza una base de datos PostgreSQL exclusiva para la aplicación, con el objetivo de evitar conflictos con otras bases de datos locales que pueda tener el evaluador.
-
 ---
 
 ## Base de datos
@@ -162,7 +160,6 @@ DB_PORT=5432
 DB_USERNAME=postgres
 DB_PASSWORD=tu_password
 DB_NAME=gestor_proyectos_grupo_m
-JWT_SECRET=gestor_proyectos_grupo_m_secret
 ```
 
 > Importante: reemplazar `tu_password` por la contraseña local de PostgreSQL.
@@ -176,8 +173,6 @@ DB_NAME=gestor_proyectos_grupo_m
 El script `npm run seed` utiliza ese valor para crear la base de datos, en caso de que no exista, y luego insertar los datos iniciales.
 
 La aplicación utiliza TypeORM. Si la opción `synchronize` está activa en la configuración del backend, las tablas necesarias se crearán automáticamente dentro de la base de datos indicada.
-
-> Aclaración: `synchronize: true` crea o sincroniza las tablas, pero no crea por sí solo la base de datos PostgreSQL. En este proyecto, la creación inicial de la base se realiza desde el script de datos de prueba.
 
 ---
 
@@ -222,8 +217,6 @@ El backend queda disponible en:
 ```text
 http://localhost:3000/api/v1
 ```
-
-> Importante: para realizar la corrección con datos de prueba, ejecutar `npm run seed` dentro de la carpeta `backend` antes de levantar el frontend.
 
 ---
 
@@ -320,7 +313,6 @@ En el **backend**, se trabajó con una arquitectura modular basada en NestJS. Ca
 
 También se decidió incorporar validaciones, manejo de roles y endpoints específicos para reportes, separando la lógica administrativa de la lógica principal de gestión.
 
-Para facilitar la corrección, se incorporó un script de datos de prueba que crea la base de datos si no existe y carga información inicial ficticia. De esta manera, el evaluador puede levantar el sistema sin cargar datos manualmente.
 
 ---
 
