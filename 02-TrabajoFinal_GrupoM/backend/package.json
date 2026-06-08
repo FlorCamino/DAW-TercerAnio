@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "0.0.1",
-  "description": "Backend for Project Management System",
+  "description": "Sistema de Gestión de Proyectos - Equipo M",
   "author": "",
   "private": true,
   "license": "UNLICENSED",
@@ -9,7 +9,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\"",
     "compodoc": "npx compodoc -p tsconfig.json -d documentation -s --port 8081 -w",
-    "start": "npm run seed && nest start",
+    "start": "nest start",
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "lint": "eslint \"src/**/*.ts\" --fix",
