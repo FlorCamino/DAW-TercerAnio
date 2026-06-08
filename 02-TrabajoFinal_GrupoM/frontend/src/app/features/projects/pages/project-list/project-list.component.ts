@@ -156,7 +156,25 @@ export class ProjectListComponent implements OnInit {
     return estados[estadoNormalizado] ?? estado;
   }
 
+  formatearFecha(fecha: string | null | undefined): string {
+    if (!fecha) {
+      return '-';
+    }
+
+    const [year, month, day] = String(fecha).split('T')[0].split('-');
+
+    if (!year || !month || !day) {
+      return String(fecha);
+    }
+
+    return `${day}/${month}/${year}`;
+  }
+
   editar(project: Project): void {
+    if (!this.esAdmin()) {
+      return;
+    }
+
     if (this.estaDeBaja(project)) {
       this.mostrarError('No se puede editar', 'No se puede editar un proyecto dado de baja.');
       return;
@@ -263,22 +281,42 @@ export class ProjectListComponent implements OnInit {
     return 'activo';
   }
 
-  cambiarEstado(project: Project, status: ProjectStatus): void {
+  cambiarEstado(project: Project, status: ProjectStatus, statusSelect?: HTMLSelectElement): void {
+    if (!this.esAdmin()) {
+      this.restaurarSelectEstado(project, statusSelect);
+      return;
+    }
+
     const estadoActual = this.normalizarEstadoProyecto(project.status);
 
     if (estadoActual === status) {
       return;
     }
 
+    this.restaurarSelectEstado(project, statusSelect);
+
+    if (status === 'finalizado') {
+      this.validarFinalizacionProyecto(project);
+      return;
+    }
+
     this.alerta = {
       title: 'Confirmar cambio de estado',
-      message: `Esta seguro que desea cambiar el estado de "${project.name}" a "${this.obtenerTextoEstado(status)}"?`,
+      message: this.obtenerMensajeConfirmacionEstado(project, status),
       type: 'confirm',
       confirmText: 'Confirmar',
       cancelText: 'Cancelar',
       confirmDanger: status === 'baja',
       onConfirm: () => this.actualizarEstadoProyecto(project, status),
     };
+  }
+
+  private restaurarSelectEstado(project: Project, statusSelect?: HTMLSelectElement): void {
+    if (!statusSelect) {
+      return;
+    }
+
+    statusSelect.value = this.normalizarEstadoProyecto(project.status);
   }
 
   confirmarAlerta(): void {
@@ -317,6 +355,72 @@ export class ProjectListComponent implements OnInit {
         this.cdr.detectChanges();
       },
     });
+  }
+
+  private validarFinalizacionProyecto(project: Project): void {
+    this.cambiandoEstadoId = project.id;
+
+    this.projectService.getOne(project.id).subscribe({
+      next: (projectDetail) => {
+        const unresolvedTasks = (projectDetail.tasks ?? []).filter(
+          (task) => task.status !== 'finalizado',
+        );
+
+        this.cambiandoEstadoId = null;
+
+        if (unresolvedTasks.length > 0) {
+          const taskNames = unresolvedTasks
+            .map((task) => `"${task.description}" (${this.obtenerTextoEstadoTarea(task.status)})`)
+            .join(', ');
+
+          this.mostrarError(
+            'No se puede finalizar',
+            `Para finalizar "${project.name}" primero deben estar finalizadas todas sus tareas. Tareas pendientes: ${taskNames}.`,
+          );
+          this.cdr.detectChanges();
+          return;
+        }
+
+        this.alerta = {
+          title: 'Confirmar cambio de estado',
+          message: this.obtenerMensajeConfirmacionEstado(project, 'finalizado'),
+          type: 'confirm',
+          confirmText: 'Confirmar',
+          cancelText: 'Cancelar',
+          confirmDanger: false,
+          onConfirm: () => this.actualizarEstadoProyecto(project, 'finalizado'),
+        };
+        this.cdr.detectChanges();
+      },
+      error: (err: HttpErrorResponse) => {
+        this.cambiandoEstadoId = null;
+        this.mostrarError(
+          'No se pudo validar el proyecto',
+          this.obtenerMensajeError(err, 'No se pudieron verificar las tareas asociadas al proyecto.'),
+        );
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private obtenerMensajeConfirmacionEstado(project: Project, status: ProjectStatus): string {
+    if (status === 'baja') {
+      return `Esta seguro que desea dar de baja "${project.name}"? Las tareas asociadas tambien pasaran a baja.`;
+    }
+
+    return `Esta seguro que desea cambiar el estado de "${project.name}" a "${this.obtenerTextoEstado(status)}"?`;
+  }
+
+  private obtenerTextoEstadoTarea(status: string): string {
+    if (status === 'finalizado') {
+      return 'finalizada';
+    }
+
+    if (status === 'baja') {
+      return 'baja';
+    }
+
+    return 'pendiente';
   }
 
   cerrarAlerta(): void {

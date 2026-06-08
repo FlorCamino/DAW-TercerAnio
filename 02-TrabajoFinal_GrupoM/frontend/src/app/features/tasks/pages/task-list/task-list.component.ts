@@ -121,6 +121,10 @@ export class TaskListComponent implements OnInit, OnDestroy {
   }
 
   editar(tarea: Task): void {
+    if (!this.esAdmin()) {
+      return;
+    }
+
     if (this.estaDeBaja(tarea)) {
       this.mostrarAviso(
         'Tarea dada de baja',
@@ -225,6 +229,10 @@ export class TaskListComponent implements OnInit, OnDestroy {
   }
 
   solicitarCambioEstado(tarea: Task, nuevoEstado: TaskState): void {
+    if (!this.esAdmin()) {
+      return;
+    }
+
     const estadoActual = this.normalizarEstadoTarea(tarea.estado);
 
     if (estadoActual === nuevoEstado) {

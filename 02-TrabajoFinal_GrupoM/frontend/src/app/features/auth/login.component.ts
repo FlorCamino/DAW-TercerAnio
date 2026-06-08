@@ -21,14 +21,14 @@ export class LoginComponent {
 
     usuariosSeed = [
         {
-            label: "micazalazar - Admin",
-            username: "micazalazar",
-            password: "mica123456"
+            label: "admin - Administrador",
+            username: "admin",
+            password: "admin123456"
         },
         {
-            label: "usuariotest - Usuario",
-            username: "usuariotest",
-            password: "usuariotest123"
+            label: "usuario - Usuario comun",
+            username: "usuario",
+            password: "usuario123456"
         }
     ];
 

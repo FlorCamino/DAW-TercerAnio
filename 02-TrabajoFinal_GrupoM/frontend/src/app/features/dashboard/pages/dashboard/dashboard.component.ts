@@ -49,6 +49,7 @@ interface UpcomingProject {
   endDate: Date;
   endDateLabel: string;
   daysRemaining: number;
+  status: string;
 }
 
 interface PaginatedResponse<T> {
@@ -84,6 +85,7 @@ export class DashboardComponent implements OnInit {
   clientProjectStats: ClientProjectStat[] = [];
   projectTaskStats: ProjectTaskStat[] = [];
   upcomingProjects: UpcomingProject[] = [];
+  overdueProjects: UpcomingProject[] = [];
 
   constructor(
     private readonly clientsService: ClientsService,
@@ -171,6 +173,7 @@ export class DashboardComponent implements OnInit {
             this.clientProjectStats = this.buildClientProjectStats(clients, projectList);
             this.projectTaskStats = this.buildProjectTaskStats(projectList, tasks);
             this.upcomingProjects = this.buildUpcomingProjects(projectList);
+            this.overdueProjects = this.buildOverdueProjects(projectList);
           } catch {
             this.dashboardError = 'Ocurrió un error al armar los datos del dashboard.';
             this.resetDashboardData();
@@ -266,11 +269,45 @@ export class DashboardComponent implements OnInit {
           endDate: normalizedEndDate,
           endDateLabel: this.formatDate(normalizedEndDate),
           daysRemaining,
+          status: this.getProjectStatus(project),
         };
       })
       .filter((project): project is UpcomingProject => project !== null)
       .sort((a, b) => a.endDate.getTime() - b.endDate.getTime())
       .slice(0, 4);
+  }
+
+  private buildOverdueProjects(projects: Project[]): UpcomingProject[] {
+    const today = this.startOfDay(new Date());
+
+    return projects
+      .map((project) => {
+        const endDate = this.getProjectEndDate(project);
+        const status = this.getProjectStatus(project);
+
+        if (!endDate || this.isFinishedStatus(status) || this.isDeletedStatus(status)) {
+          return null;
+        }
+
+        const normalizedEndDate = this.startOfDay(endDate);
+        const daysRemaining = this.getDaysBetween(today, normalizedEndDate);
+
+        if (daysRemaining >= 0) {
+          return null;
+        }
+
+        return {
+          projectId: this.getProjectId(project),
+          projectName: this.getProjectName(project),
+          endDate: normalizedEndDate,
+          endDateLabel: this.formatDate(normalizedEndDate),
+          daysRemaining: Math.abs(daysRemaining),
+          status,
+        };
+      })
+      .filter((project): project is UpcomingProject => project !== null)
+      .sort((a, b) => a.endDate.getTime() - b.endDate.getTime())
+      .slice(0, 6);
   }
 
   private buildClientProjectStats(
@@ -522,6 +559,7 @@ export class DashboardComponent implements OnInit {
     this.clientProjectStats = [];
     this.projectTaskStats = [];
     this.upcomingProjects = [];
+    this.overdueProjects = [];
   }
 
   private isDashboardRoute(url: string): boolean {

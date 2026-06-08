@@ -72,7 +72,7 @@
 
                     <div class="related-meta">
                         <span>Finalización</span>
-                        <strong>{{ project.endDate || 'Sin fecha' }}</strong>
+                        <strong>{{ formatearFecha(project.endDate) }}</strong>
                     </div>
 
                     <a class="action-button action-view" [routerLink]="['/projects', project.id]">

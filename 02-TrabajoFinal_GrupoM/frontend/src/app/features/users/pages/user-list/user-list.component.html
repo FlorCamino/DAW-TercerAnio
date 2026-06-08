@@ -5,7 +5,8 @@
             <p>Administra usuarios, roles y estados.</p>
         </div>
 
-        <a class="primary-button" routerLink="/usuarios/crear" *ngIf="esAdmin()">
+        <a class="primary-button" [class.disabled-link]="!esAdmin()" [routerLink]="esAdmin() ? '/usuarios/crear' : null"
+            [attr.aria-disabled]="!esAdmin()" [attr.tabindex]="esAdmin() ? null : -1">
             + Nuevo usuario
         </a>
     </section>
@@ -135,18 +136,13 @@
                     <td>{{ obtenerTextoRol(usuario.rol) }}</td>
 
                     <td>
-                        @if (esAdmin()) {
                         <select class="status-select" [class.inactive]="usuario.estado === 'baja'"
                             [ngModel]="usuario.estado" (ngModelChange)="cambiarEstado(usuario, $event)"
-                            [disabled]="cambiandoEstadoId === usuario.id" aria-label="Cambiar estado del usuario">
+                            [disabled]="cambiandoEstadoId === usuario.id || !esAdmin()"
+                            aria-label="Cambiar estado del usuario">
                             <option value="activo">Activo</option>
                             <option value="baja">Baja</option>
                         </select>
-                        } @else {
-                        <span class="status-pill" [class.inactive]="usuario.estado === 'baja'">
-                            {{ usuario.estado === 'baja' ? 'Baja' : 'Activo' }}
-                        </span>
-                        }
                     </td>
 
                     <td>
@@ -156,7 +152,7 @@
                             </a>
 
                             <button class="action-button action-edit" type="button" (click)="editar(usuario)"
-                                [disabled]="usuario.estado === 'baja'" *ngIf="esAdmin()">
+                                [disabled]="!esAdmin() || usuario.estado === 'baja'">
                                 Editar
                             </button>
                         </div>

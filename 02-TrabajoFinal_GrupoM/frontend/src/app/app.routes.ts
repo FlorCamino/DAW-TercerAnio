@@ -5,6 +5,7 @@ import { ClientDetailComponent } from './features/clients/pages/client-detail/cl
 import { ClientListComponent } from './features/clients/pages/client-list/client-list.component';
 import { DashboardComponent } from './features/dashboard/pages/dashboard/dashboard.component';
 import { authGuard } from '../core/guards/auth.guard';
+import { adminGuard } from '../core/guards/admin.guard';
 
 export const routes: Routes = [
   {
@@ -33,6 +34,7 @@ export const routes: Routes = [
       },
       {
         path: 'clientes/crear',
+        canActivate: [adminGuard],
         component: ClientCreateComponent,
       },
       {
@@ -58,6 +60,7 @@ export const routes: Routes = [
       },
       {
         path: 'tareas/crear',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/tasks/pages/task-create/task-create.component').then(
             (m) => m.TaskCreateComponent,
@@ -79,6 +82,7 @@ export const routes: Routes = [
       },
       {
         path: 'projects/create',
+        canActivate: [adminGuard],
         loadComponent: () =>
           import('./features/projects/pages/project-create/project-create.component').then(
             (m) => m.ProjectCreateComponent,
@@ -105,6 +109,7 @@ export const routes: Routes = [
       },
       {
         path: "usuarios/crear",
+        canActivate: [adminGuard],
         loadComponent: () =>
           import("./features/users/pages/user-create/user-create.component").then(m => m.UserCreateComponent),
       },

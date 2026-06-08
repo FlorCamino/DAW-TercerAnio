@@ -293,7 +293,7 @@
         <tr *ngFor="let project of projectDeadlines">
           <td>{{ project.name }}</td>
           <td>{{ project.client ?? 'Sin cliente' }}</td>
-          <td>{{ project.endDate }}</td>
+          <td>{{ formatDate(project.endDate) }}</td>
           <td>{{ project.status }}</td>
           <td>{{ formatSituation(project.situation) }}</td>
         </tr>

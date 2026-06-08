@@ -29,9 +29,13 @@
     <label class="field-control">
       <span>Fecha de finalización</span>
 
-      <input name="endDate" type="date" [(ngModel)]="form.endDate" />
+      <input name="endDate" type="date" [(ngModel)]="form.endDate" [min]="fechaMinima" />
     </label>
   </div>
+
+  <p class="form-alert error" *ngIf="!fechaFinalizacionValida">
+    La fecha de finalización no puede ser anterior a la fecha actual.
+  </p>
 
   <p class="form-alert error" *ngIf="errorClientes">
     {{ errorClientes }}

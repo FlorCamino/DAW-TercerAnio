@@ -36,11 +36,20 @@ export class ProjectFormComponent implements OnInit {
   clientes: any[] = [];
   cargandoClientes = false;
   errorClientes = '';
+  fechaMinima = this.obtenerFechaActualISO();
 
   constructor(private readonly clientsService: ClientsService) { }
 
   get formularioValido(): boolean {
-    return Boolean(this.form.name.trim() && this.form.clientId);
+    return Boolean(
+      this.form.name.trim() &&
+      this.form.clientId &&
+      this.fechaFinalizacionValida,
+    );
+  }
+
+  get fechaFinalizacionValida(): boolean {
+    return !this.form.endDate || this.form.endDate >= this.fechaMinima;
   }
 
   ngOnInit(): void {
@@ -91,5 +100,14 @@ export class ProjectFormComponent implements OnInit {
         this.cargandoClientes = false;
       },
     });
+  }
+
+  private obtenerFechaActualISO(): string {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
   }
 }

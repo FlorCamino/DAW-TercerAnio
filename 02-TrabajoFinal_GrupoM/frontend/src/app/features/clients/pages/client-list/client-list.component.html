@@ -5,7 +5,8 @@
       <p>Administra contactos, estados y datos principales de cada cliente.</p>
     </div>
 
-    <a class="primary-button" routerLink="/clientes/crear">
+    <a class="primary-button" [class.disabled-link]="!esAdmin()" [routerLink]="esAdmin() ? '/clientes/crear' : null"
+      [attr.aria-disabled]="!esAdmin()" [attr.tabindex]="esAdmin() ? null : -1">
       + Nuevo cliente
     </a>
   </section>
@@ -120,8 +121,8 @@
                 Ver
               </a>
 
-              <button class="action-button action-edit" (click)="editar(cliente)" [disabled]="estaDeBaja(cliente)"
-                *ngIf="esAdmin()">
+              <button class="action-button action-edit" (click)="editar(cliente)"
+                [disabled]="!esAdmin() || estaDeBaja(cliente)">
                 Editar
               </button>
             </div>

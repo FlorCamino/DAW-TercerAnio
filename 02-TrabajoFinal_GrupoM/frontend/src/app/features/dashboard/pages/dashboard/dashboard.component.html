@@ -69,43 +69,112 @@
     }
   </section>
 
-  <section class="dashboard-due-panel" aria-label="Proyectos próximos a vencer">
+  <section class="dashboard-due-panel" aria-label="Control de vencimientos">
     <div class="due-panel-header">
       <div>
         <span class="hero-eyebrow">Vencimientos</span>
-        <h2>Proyectos próximos a vencer</h2>
+        <h2>Control de entregas</h2>
+        <p>
+          Seguimiento rápido de proyectos retrasados y próximos a finalizar.
+        </p>
       </div>
 
       <a routerLink="/projects">Ver proyectos</a>
     </div>
 
-    @if (upcomingProjects.length > 0) {
-    <div class="due-list">
-      @for (project of upcomingProjects; track project.projectName) {
-      <article class="due-card">
-        <div>
-          <h3>{{ project.projectName }}</h3>
-          <span>{{ project.endDateLabel }}</span>
+    <div class="due-sections-grid">
+      <section class="quick-section overdue-section">
+        <div class="quick-section-header">
+          <div>
+            <h3>Proyectos retrasados</h3>
+            <span>Requieren prioridad</span>
+          </div>
+
+          <strong>{{ overdueProjects.length }}</strong>
         </div>
 
-        <strong>
-          {{ project.daysRemaining }}
-          {{ project.daysRemaining === 1 ? 'día' : 'días' }}
-        </strong>
+        @if (overdueProjects.length > 0) {
+        <div class="quick-card-list">
+          @for (project of overdueProjects; track project.projectName) {
+          <article class="quick-project-card overdue-project-card">
+            <div class="quick-project-info">
+              <span class="quick-badge overdue-badge">Retrasado</span>
 
-        @if (project.projectId) {
-        <a class="action-button action-view" [routerLink]="['/projects', project.projectId]">
-          Ver
-        </a>
+              <h4>{{ project.projectName }}</h4>
+
+              <p>Vencía el {{ project.endDateLabel }}</p>
+            </div>
+
+            <div class="quick-project-meta">
+              <strong>
+                {{ project.daysRemaining }}
+                {{ project.daysRemaining === 1 ? 'día' : 'días' }}
+              </strong>
+
+              <span>de atraso</span>
+            </div>
+
+            @if (project.projectId) {
+            <a class="action-button action-view" [routerLink]="['/projects', project.projectId]">
+              Ver
+            </a>
+            }
+          </article>
+          }
+        </div>
+        } @else {
+        <p class="relation-empty">
+          No hay proyectos retrasados.
+        </p>
         }
-      </article>
-      }
+      </section>
+
+      <section class="quick-section">
+        <div class="quick-section-header">
+          <div>
+            <h3>Próximos vencimientos</h3>
+            <span>Seguimiento recomendado</span>
+          </div>
+
+          <strong>{{ upcomingProjects.length }}</strong>
+        </div>
+
+        @if (upcomingProjects.length > 0) {
+        <div class="quick-card-list">
+          @for (project of upcomingProjects; track project.projectName) {
+          <article class="quick-project-card">
+            <div class="quick-project-info">
+              <span class="quick-badge upcoming-badge">En plazo</span>
+
+              <h4>{{ project.projectName }}</h4>
+
+              <p>Finaliza el {{ project.endDateLabel }}</p>
+            </div>
+
+            <div class="quick-project-meta">
+              <strong>
+                {{ project.daysRemaining }}
+                {{ project.daysRemaining === 1 ? 'día' : 'días' }}
+              </strong>
+
+              <span>restantes</span>
+            </div>
+
+            @if (project.projectId) {
+            <a class="action-button action-view" [routerLink]="['/projects', project.projectId]">
+              Ver
+            </a>
+            }
+          </article>
+          }
+        </div>
+        } @else {
+        <p class="relation-empty">
+          No hay proyectos próximos a vencer con fecha de finalización cargada.
+        </p>
+        }
+      </section>
     </div>
-    } @else {
-    <p class="relation-empty">
-      No hay proyectos próximos a vencer con fecha de finalización cargada.
-    </p>
-    }
   </section>
 
   <section class="dashboard-relations-grid" aria-label="Relaciones principales del sistema">

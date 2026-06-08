@@ -8,6 +8,16 @@ import { ProjectService } from '../../../projects/services/project.service';
 import { TaskStatus } from '../../models/task.model';
 import { TasksService } from '../../services/tasks.service';
 
+type AlertType = 'info' | 'error';
+
+interface TaskAlert {
+    title: string;
+    message: string;
+    type: AlertType;
+    confirmText: string;
+    onClose?: () => void;
+}
+
 @Component({
     selector: 'app-task-create',
     standalone: true,
@@ -24,8 +34,7 @@ export class TaskCreateComponent implements OnInit {
 
     proyectos: Project[] = [];
 
-    error = '';
-    success = '';
+    alerta: TaskAlert | null = null;
     guardando = false;
     cargandoProyectos = false;
 
@@ -49,18 +58,17 @@ export class TaskCreateComponent implements OnInit {
             return;
         }
 
-        this.error = '';
-        this.success = '';
+        this.cerrarAlerta();
 
         const descripcion = this.tarea.descripcion.trim();
 
         if (!descripcion) {
-            this.error = 'Debe ingresar una descripción para la tarea.';
+            this.mostrarError('Datos incompletos', 'Debe ingresar una descripción para la tarea.');
             return;
         }
 
         if (!this.tarea.proyectoId) {
-            this.error = 'Debe seleccionar un proyecto.';
+            this.mostrarError('Datos incompletos', 'Debe seleccionar un proyecto.');
             return;
         }
 
@@ -75,16 +83,21 @@ export class TaskCreateComponent implements OnInit {
             .subscribe({
                 next: () => {
                     this.guardando = false;
-                    this.success = 'La tarea fue creada con éxito.';
+                    this.alerta = {
+                        title: 'Tarea creada',
+                        message: `Tarea "${descripcion}" creada correctamente.`,
+                        type: 'info',
+                        confirmText: 'Salir',
+                        onClose: () => this.router.navigate(['/tareas']),
+                    };
                     this.cdr.detectChanges();
-
-                    setTimeout(() => {
-                        this.router.navigate(['/tareas']);
-                    }, 1800);
                 },
                 error: (err: HttpErrorResponse) => {
                     this.guardando = false;
-                    this.error = this.obtenerMensajeError(err) || 'No se pudo crear la tarea.';
+                    this.mostrarError(
+                        'No se pudo crear',
+                        this.obtenerMensajeError(err) || 'No se pudo crear la tarea.',
+                    );
                     this.cdr.detectChanges();
                 },
             });
@@ -105,10 +118,31 @@ export class TaskCreateComponent implements OnInit {
             error: (err: HttpErrorResponse) => {
                 this.proyectos = [];
                 this.cargandoProyectos = false;
-                this.error = this.obtenerMensajeError(err) || 'No se pudieron cargar los proyectos.';
+                this.mostrarError(
+                    'No se pudieron cargar los proyectos',
+                    this.obtenerMensajeError(err) || 'No se pudieron cargar los proyectos.',
+                );
                 this.cdr.detectChanges();
             },
         });
+    }
+
+    cerrarAlerta(): void {
+        const onClose = this.alerta?.onClose;
+        this.alerta = null;
+
+        if (onClose) {
+            onClose();
+        }
+    }
+
+    private mostrarError(title: string, message: string): void {
+        this.alerta = {
+            title,
+            message,
+            type: 'error',
+            confirmText: 'Salir',
+        };
     }
 
     private obtenerMensajeError(error: HttpErrorResponse): string {

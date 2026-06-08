@@ -21,15 +21,15 @@ export class AuthController {
             administrador: {
                 summary: "Usuario administrador de prueba",
                 value: {
-                    username: "micazalazar",
-                    password: "mica123456",
+                    username: "admin",
+                    password: "admin123456",
                 },
             },
             usuario: {
                 summary: "Usuario estandar de prueba",
                 value: {
-                    username: "usuariotest",
-                    password: "usuariotest123",
+                    username: "usuario",
+                    password: "usuario123456",
                 },
             },
         },

@@ -321,10 +321,15 @@
 .primary-button:disabled,
 .secondary-button:disabled,
 .danger-button:disabled,
-.action-button:disabled {
+.action-button:disabled,
+.disabled-link {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+.disabled-link {
+  pointer-events: none;
 }
 
 .table-actions {

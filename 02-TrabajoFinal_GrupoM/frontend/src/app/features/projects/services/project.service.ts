@@ -25,6 +25,11 @@ interface ApiProject {
   } | null;
   endDate: string | null;
   isOverdue: boolean;
+  tasks?: {
+    id: number;
+    description: string;
+    status: 'pendiente' | 'finalizado' | 'baja';
+  }[];
 }
 
 interface ApiProjectListResponse {

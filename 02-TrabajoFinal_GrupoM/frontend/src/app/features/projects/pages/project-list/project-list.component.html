@@ -5,7 +5,8 @@
       <p>Administra proyectos, clientes asociados, estados y fechas de finalizacion.</p>
     </div>
 
-    <a class="primary-button" routerLink="/projects/create">
+    <a class="primary-button" [class.disabled-link]="!esAdmin()" [routerLink]="esAdmin() ? '/projects/create' : null"
+      [attr.aria-disabled]="!esAdmin()" [attr.tabindex]="esAdmin() ? null : -1">
       + Nuevo proyecto
     </a>
   </section>
@@ -134,9 +135,10 @@
           </td>
 
           <td>
-            <select class="status-select" [class.done]="normalizarEstadoProyecto(project.status) === 'finalizado'"
+            <select #statusSelect class="status-select" [class.done]="normalizarEstadoProyecto(project.status) === 'finalizado'"
               [class.inactive]="normalizarEstadoProyecto(project.status) === 'baja'"
-              [ngModel]="normalizarEstadoProyecto(project.status)" (ngModelChange)="cambiarEstado(project, $event)"
+              [ngModel]="normalizarEstadoProyecto(project.status)"
+              (ngModelChange)="cambiarEstado(project, $event, statusSelect)"
               [disabled]="cambiandoEstadoId === project.id || !esAdmin()" aria-label="Cambiar estado del proyecto">
               <option value="activo">Activo</option>
               <option value="finalizado">Finalizado</option>
@@ -145,7 +147,7 @@
           </td>
 
           <td>{{ project.client?.nombre ?? 'Sin cliente' }}</td>
-          <td>{{ project.endDate ?? '-' }}</td>
+          <td>{{ formatearFecha(project.endDate) }}</td>
 
           <td>
             <div class="table-actions">
@@ -154,7 +156,7 @@
               </a>
 
               <button type="button" class="action-button action-edit" (click)="editar(project)"
-                [disabled]="estaDeBaja(project)" *ngIf="esAdmin()">
+                [disabled]="!esAdmin() || estaDeBaja(project)">
                 Editar
               </button>
             </div>

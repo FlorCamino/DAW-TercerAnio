@@ -10,6 +10,11 @@ export interface Project {
   client: Client | null;
   endDate: string | null;
   isOverdue: boolean;
+  tasks?: {
+    id: number;
+    description: string;
+    status: 'pendiente' | 'finalizado' | 'baja';
+  }[];
 }
 
 export interface ProjectListResponse {

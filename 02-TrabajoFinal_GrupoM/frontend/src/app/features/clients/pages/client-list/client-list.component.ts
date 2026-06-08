@@ -142,6 +142,10 @@ export class ClientListComponent implements OnInit, OnDestroy {
   }
 
   editar(cliente: Client): void {
+    if (!this.esAdmin()) {
+      return;
+    }
+
     if (this.estaDeBaja(cliente)) {
       this.mostrarAviso(
         'Cliente dado de baja',
@@ -234,6 +238,10 @@ export class ClientListComponent implements OnInit, OnDestroy {
   }
 
   solicitarCambioEstado(cliente: Client, nuevoEstado: ClientStatus): void {
+    if (!this.esAdmin()) {
+      return;
+    }
+
     const estadoActual = this.normalizarEstado(cliente.estado);
 
     if (estadoActual === nuevoEstado) {

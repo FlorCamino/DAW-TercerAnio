@@ -15,6 +15,8 @@ import { ProjectStatus } from '../../common/enums/project-status.enum';
 import { Client } from '../clients/entities/client.entity';
 import { ClientStatus } from '../../common/enums/client-status.enum';
 import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
+import { Task } from '../tasks/entities/task.entity';
+import { TaskStatus } from '../../common/enums/task-status.enum';
 
 interface ProjectFilters {
   status?: string;
@@ -32,12 +34,17 @@ export class ProjectsService {
 
     @InjectRepository(Client)
     private readonly clientRepository: Repository<Client>,
+
+    @InjectRepository(Task)
+    private readonly taskRepository: Repository<Task>,
   ) { }
 
   async create(dto: CreateProjectDto): Promise<ProjectResponseDto> {
     if (dto.clientId) {
       await this.validateActiveClient(dto.clientId);
     }
+
+    this.validateEndDate(dto.endDate);
 
     const project = this.projectRepository.create({
       name: dto.name,
@@ -114,7 +121,12 @@ export class ProjectsService {
   }
 
   async update(id: number, dto: UpdateProjectDto): Promise<ProjectResponseDto> {
-    const project = await this.projectRepository.findOne({ where: { id } });
+    const project = await this.projectRepository.findOne({
+      where: { id },
+      relations: {
+        tasks: true,
+      },
+    });
 
     if (!project) {
       throw new NotFoundException(`Proyecto con id ${id} no encontrado`);
@@ -137,10 +149,12 @@ export class ProjectsService {
     }
 
     if (dto.status !== undefined) {
+      await this.validateStatusChange(project, dto.status);
       project.status = dto.status;
     }
 
     if (dto.endDate !== undefined) {
+      this.validateEndDate(dto.endDate);
       project.endDate = dto.endDate;
     }
 
@@ -155,13 +169,22 @@ export class ProjectsService {
       }
     }
 
-    await this.projectRepository.save(project);
+    const saved = await this.projectRepository.save(project);
+
+    if (saved.status === ProjectStatus.BAJA) {
+      await this.markProjectTasksAsInactive(saved.id);
+    }
 
     return this.findOne(id);
   }
 
   async remove(id: number): Promise<ProjectResponseDto> {
-    const project = await this.projectRepository.findOne({ where: { id } });
+    const project = await this.projectRepository.findOne({
+      where: { id },
+      relations: {
+        tasks: true,
+      },
+    });
     if (!project) {
       throw new NotFoundException(`Proyecto con id ${id} no encontrado`);
     }
@@ -170,7 +193,36 @@ export class ProjectsService {
     }
     project.status = ProjectStatus.BAJA;
     const saved = await this.projectRepository.save(project);
-    return ProjectsMapper.toResponse(saved);
+    await this.markProjectTasksAsInactive(saved.id);
+    return this.findOne(saved.id);
+  }
+
+  private async validateStatusChange(
+    project: Project,
+    nextStatus: ProjectStatus,
+  ): Promise<void> {
+    if (project.status === nextStatus) {
+      return;
+    }
+
+    if (nextStatus === ProjectStatus.FINALIZADO) {
+      const pendingTasks = (project.tasks ?? []).filter(
+        (task) => task.status !== TaskStatus.FINALIZADO,
+      );
+
+      if (pendingTasks.length > 0) {
+        throw new BadRequestException(
+          'No se puede finalizar el proyecto porque tiene tareas pendientes o dadas de baja',
+        );
+      }
+    }
+  }
+
+  private async markProjectTasksAsInactive(projectId: number): Promise<void> {
+    await this.taskRepository.update(
+      { projectId },
+      { status: TaskStatus.BAJA },
+    );
   }
 
   private async validateActiveClient(clientId: number): Promise<Client> {
@@ -189,6 +241,38 @@ export class ProjectsService {
     }
 
     return client;
+  }
+
+  private validateEndDate(endDate?: string | null): void {
+    if (!endDate) {
+      return;
+    }
+
+    const selectedDate = this.parseDateOnly(endDate);
+    const today = new Date();
+    const todayOnly = new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
+
+    if (!selectedDate || selectedDate < todayOnly) {
+      throw new BadRequestException(
+        'La fecha de finalizacion no puede ser anterior a la fecha actual',
+      );
+    }
+  }
+
+  private parseDateOnly(value: string): Date | null {
+    const [year, month, day] = value.split('T')[0].split('-').map(Number);
+
+    if (!year || !month || !day) {
+      return null;
+    }
+
+    const date = new Date(year, month - 1, day);
+
+    return Number.isNaN(date.getTime()) ? null : date;
   }
 
   private normalizeStatus(status?: string): ProjectStatus | undefined {

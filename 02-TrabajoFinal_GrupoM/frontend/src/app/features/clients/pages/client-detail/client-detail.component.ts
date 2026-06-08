@@ -90,4 +90,18 @@ export class ClientDetailComponent implements OnInit {
 
         return estadoNormalizado === 'baja' || estadoNormalizado === 'inactive';
     }
+
+    formatearFecha(fecha: string | null | undefined): string {
+        if (!fecha) {
+            return 'Sin fecha';
+        }
+
+        const [year, month, day] = String(fecha).split('T')[0].split('-');
+
+        if (!year || !month || !day) {
+            return String(fecha);
+        }
+
+        return `${day}/${month}/${year}`;
+    }
 }

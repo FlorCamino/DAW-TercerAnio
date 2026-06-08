@@ -5,7 +5,8 @@
             <p>Administra tareas, estados y proyectos asociados.</p>
         </div>
 
-        <a class="primary-button" routerLink="/tareas/crear">
+        <a class="primary-button" [class.disabled-link]="!esAdmin()" [routerLink]="esAdmin() ? '/tareas/crear' : null"
+            [attr.aria-disabled]="!esAdmin()" [attr.tabindex]="esAdmin() ? null : -1">
             + Nueva tarea
         </a>
     </section>
@@ -130,8 +131,7 @@
                             </a>
 
                             <button class="action-button action-edit" type="button" (click)="editar(tarea)"
-                                [disabled]="estaDeBaja(tarea)"
-                                *ngIf="esAdmin()">
+                                [disabled]="!esAdmin() || estaDeBaja(tarea)">
                                 Editar
                             </button>
                         </div>

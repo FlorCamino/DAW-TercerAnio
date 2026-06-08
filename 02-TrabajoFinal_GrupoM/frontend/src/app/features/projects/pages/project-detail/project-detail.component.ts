@@ -111,6 +111,20 @@ export class ProjectDetailComponent implements OnInit {
     return 'Pendiente';
   }
 
+  formatearFecha(fecha: string | null | undefined): string {
+    if (!fecha) {
+      return '—';
+    }
+
+    const [year, month, day] = String(fecha).split('T')[0].split('-');
+
+    if (!year || !month || !day) {
+      return String(fecha);
+    }
+
+    return `${day}/${month}/${year}`;
+  }
+
   private taskBelongsToProject(task: Task, projectId: number): boolean {
     const taskData = task as Task & {
       projectId?: number;

@@ -177,7 +177,7 @@ export class ReportsComponent implements OnInit {
 
   projectDetail(project: ProjectReportItem): string {
     const client = project.client ? `Cliente: ${project.client}` : 'Sin cliente';
-    const endDate = project.endDate ? `Finalizacion: ${project.endDate}` : 'Sin fecha de finalizacion';
+    const endDate = project.endDate ? `Finalizacion: ${this.formatDate(project.endDate)}` : 'Sin fecha de finalizacion';
 
     return `${project.name} - ${client} - ${endDate}`;
   }
@@ -197,6 +197,20 @@ export class ReportsComponent implements OnInit {
 
   userDetail(user: UserReportItem): string {
     return `${user.name} - Rol: ${user.role} - Estado: ${user.status}`;
+  }
+
+  formatDate(date: string | null | undefined): string {
+    if (!date) {
+      return 'Sin fecha';
+    }
+
+    const [year, month, day] = String(date).split('T')[0].split('-');
+
+    if (!year || !month || !day) {
+      return String(date);
+    }
+
+    return `${day}/${month}/${year}`;
   }
 
   retryLoad(): void {
@@ -460,7 +474,7 @@ export class ReportsComponent implements OnInit {
       ...this.projectDeadlines.map((project) => [
         project.name,
         project.client ?? 'Sin cliente',
-        project.endDate,
+        this.formatDate(project.endDate),
         project.status,
         this.formatSituation(project.situation),
       ]),
@@ -587,7 +601,7 @@ export class ReportsComponent implements OnInit {
             <tr>
               <td>${this.escapeHtml(project.name)}</td>
               <td>${this.escapeHtml(project.client ?? 'Sin cliente')}</td>
-              <td>${this.escapeHtml(project.endDate)}</td>
+              <td>${this.escapeHtml(this.formatDate(project.endDate))}</td>
               <td>${this.escapeHtml(project.status)}</td>
               <td>${this.escapeHtml(this.formatSituation(project.situation))}</td>
             </tr>
