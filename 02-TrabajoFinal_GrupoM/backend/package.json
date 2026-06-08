@@ -10,9 +10,8 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "compodoc": "npx compodoc -p tsconfig.json -d documentation -s --port 8081 -w",
     "start": "npm run seed && nest start",
-    "start:dev": "npm run seed && nest start --watch",
+    "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/database/usuarios-testeo.js && node dist/main",
     "lint": "eslint \"src/**/*.ts\" --fix",
     "seed": "ts-node -r tsconfig-paths/register src/database/datos-prueba.ts"
   },
