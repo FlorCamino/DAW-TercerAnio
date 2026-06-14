@@ -1,0 +1,109 @@
+<main class="management-container entity-detail-container">
+  @if (loading()) {
+  <p class="management-message">
+    Cargando proyecto...
+  </p>
+  } @else if (error()) {
+  <p class="management-message error">
+    {{ error() }}
+  </p>
+  } @else if (project()) {
+  <section class="detail-card entity-detail-card">
+    <div class="entity-detail-header">
+      <div class="entity-avatar" aria-hidden="true">
+        {{ project()!.name.charAt(0).toUpperCase() }}
+      </div>
+
+      <div class="entity-title-block">
+        <span class="detail-eyebrow">Detalle del proyecto</span>
+
+        <div class="entity-title-row">
+          <h1>
+            {{ project()!.name }}
+          </h1>
+
+          <app-project-status-badge [status]="project()!.status" />
+
+          @if (project()!.isOverdue) {
+          <span class="badge-overdue">
+            Retrasado
+          </span>
+          }
+        </div>
+
+        <p>
+          Información general del proyecto y tareas asociadas.
+        </p>
+      </div>
+    </div>
+
+    <div class="entity-detail-grid">
+      <article class="entity-info-item">
+        <span class="info-label">Nombre</span>
+        <strong>{{ project()!.name }}</strong>
+      </article>
+
+      <article class="entity-info-item">
+        <span class="info-label">Cliente</span>
+        <strong>{{ project()!.client?.nombre ?? 'Sin cliente' }}</strong>
+      </article>
+
+      <article class="entity-info-item">
+        <span class="info-label">Finalización</span>
+        <strong>{{ formatearFecha(project()!.endDate) }}</strong>
+      </article>
+
+      <article class="entity-info-item">
+        <span class="info-label">Tareas asociadas</span>
+        <strong>{{ tareasAsociadas.length }} tarea(s)</strong>
+      </article>
+    </div>
+
+    <section class="related-section" aria-label="Tareas asociadas al proyecto">
+      <div class="related-header">
+        <div>
+          <span class="detail-eyebrow">Tareas asociadas</span>
+          <h2>{{ tareasAsociadas.length }} tarea(s)</h2>
+        </div>
+      </div>
+
+      @if (tareasAsociadas.length > 0) {
+      <div class="related-list">
+        @for (task of tareasAsociadas; track task.id) {
+        <article class="related-card">
+          <div>
+            <h3>{{ task.descripcion }}</h3>
+
+            <span class="status-pill" [class.pending]="normalizarEstadoTarea(task.estado) === 'pendiente'"
+              [class.done]="normalizarEstadoTarea(task.estado) === 'finalizado'"
+              [class.inactive]="normalizarEstadoTarea(task.estado) === 'baja'">
+              {{ obtenerTextoEstadoTarea(task.estado) }}
+            </span>
+          </div>
+
+          <div class="related-meta">
+            <span>ID tarea</span>
+            <strong>#{{ task.id }}</strong>
+          </div>
+
+          <a class="action-button action-view" [routerLink]="['/tareas', task.id]">
+            Ver tarea
+          </a>
+        </article>
+        }
+      </div>
+      } @else {
+      <p class="related-empty">
+        Este proyecto no tiene tareas asociadas.
+      </p>
+      }
+    </section>
+
+    <div class="detail-actions entity-detail-actions">
+      <a routerLink="/projects" class="secondary-button">
+        Volver
+      </a>
+    </div>
+  </section>
+  }
+</main>

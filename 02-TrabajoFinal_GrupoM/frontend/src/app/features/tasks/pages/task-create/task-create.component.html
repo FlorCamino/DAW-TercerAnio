@@ -1,0 +1,76 @@
+<main class="management-container management-form-page">
+    <section class="form-card management-form-card">
+        <div class="management-form-header">
+            <span class="form-eyebrow"></span>
+
+            <h1>Nueva tarea</h1>
+
+            <p>
+                Complete los datos principales para registrar una nueva tarea en el sistema.
+            </p>
+        </div>
+
+        <div class="management-form-grid">
+            <label class="field-control">
+                <span>Descripción</span>
+
+                <input [(ngModel)]="tarea.descripcion" placeholder="Descripción de la tarea" />
+            </label>
+
+            <label class="field-control">
+                <span>Proyecto</span>
+
+                <select [(ngModel)]="tarea.proyectoId" [disabled]="cargandoProyectos || proyectos.length === 0">
+                    <option [ngValue]="null">
+                        {{ cargandoProyectos ? 'Cargando proyectos...' : 'Seleccione un proyecto' }}
+                    </option>
+
+                    <option *ngFor="let proyecto of proyectos" [ngValue]="proyecto.id">
+                        {{ proyecto.name }}
+                    </option>
+                </select>
+            </label>
+
+            <label class="field-control">
+                <span>Estado</span>
+
+                <select [(ngModel)]="tarea.estado">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="finalizado">Finalizado</option>
+                    <option value="baja">Baja</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="form-actions management-form-actions">
+            <button class="primary-button" type="button" (click)="guardar()"
+                [disabled]="guardando || cargandoProyectos || !formularioValido">
+                {{ guardando ? 'Guardando...' : 'Guardar' }}
+            </button>
+
+            <a class="secondary-button" routerLink="/tareas">
+                Cancelar
+            </a>
+        </div>
+    </section>
+
+    <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+        <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+            <div class="management-alert-header">
+                <span class="management-alert-icon">
+                    {{ alertaActual.type === 'error' ? '!' : 'OK' }}
+                </span>
+
+                <h2>{{ alertaActual.title }}</h2>
+            </div>
+
+            <p>{{ alertaActual.message }}</p>
+
+            <div class="management-alert-actions">
+                <button type="button" class="primary-button" (click)="cerrarAlerta()">
+                    {{ alertaActual.confirmText }}
+                </button>
+            </div>
+        </section>
+    </div>
+</main>

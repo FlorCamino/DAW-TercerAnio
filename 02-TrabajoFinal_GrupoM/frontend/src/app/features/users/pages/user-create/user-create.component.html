@@ -1,0 +1,57 @@
+<main class="management-container management-form-page">
+    <section class="form-card management-form-card">
+        <div class="management-form-header">
+            <span class="form-eyebrow">Usuarios</span>
+            <h1>Nuevo usuario</h1>
+            <p>Complete los datos para registrar un nuevo usuario en el sistema.</p>
+        </div>
+
+        <div class="management-form-grid">
+            <label class="field-control">
+                <span>Nombre de usuario</span>
+                <input [(ngModel)]="usuario.nombre" placeholder="Ej: juan_perez" />
+            </label>
+
+            <label class="field-control">
+                <span>Contraseña</span>
+                <input type="password" [(ngModel)]="usuario.clave" placeholder="Mínimo 6 caracteres" />
+            </label>
+
+            <label class="field-control">
+                <span>Rol</span>
+                <select [(ngModel)]="usuario.rol">
+                    <option value="usuario">Usuario</option>
+                    <option value="administrador">Administrador</option>
+                </select>
+            </label>
+        </div>
+
+        <div class="form-actions management-form-actions">
+            <button class="primary-button" type="button" (click)="guardar()"
+                [disabled]="guardando || !formularioValido">
+                {{ guardando ? 'Guardando...' : 'Guardar' }}
+            </button>
+            <a class="secondary-button" routerLink="/usuarios">Cancelar</a>
+        </div>
+    </section>
+
+    <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+        <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+            <div class="management-alert-header">
+                <span class="management-alert-icon">
+                    {{ alertaActual.type === 'error' ? '!' : '✓' }}
+                </span>
+
+                <h2>{{ alertaActual.title }}</h2>
+            </div>
+
+            <p>{{ alertaActual.message }}</p>
+
+            <div class="management-alert-actions">
+                <button class="primary-button" type="button" (click)="cerrarAlerta()">
+                    {{ alertaActual.confirmText }}
+                </button>
+            </div>
+        </section>
+    </div>
+</main>

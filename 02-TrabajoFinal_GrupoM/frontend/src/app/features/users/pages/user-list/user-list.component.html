@@ -1,0 +1,228 @@
+<main class="management-container">
+    <section class="management-header">
+        <div class="management-title-block">
+            <h1>Usuarios</h1>
+            <p>Administra usuarios, roles y estados.</p>
+        </div>
+
+        <a class="primary-button" [class.disabled-link]="!esAdmin()" [routerLink]="esAdmin() ? '/usuarios/crear' : null"
+            [attr.aria-disabled]="!esAdmin()" [attr.tabindex]="esAdmin() ? null : -1">
+            + Nuevo usuario
+        </a>
+    </section>
+
+    <section class="management-toolbar" aria-label="Búsqueda de usuarios">
+        <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
+            <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
+                aria-label="Filtrar por estado">
+                <span>{{ obtenerTextoEstado(filtros.estado ?? '') }}</span>
+                <span class="custom-status-arrow">▾</span>
+            </button>
+
+            <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
+                <button type="button" class="custom-status-option" [class.selected]="filtros.estado === ''"
+                    (click)="seleccionarEstado('')">
+                    Todos los estados
+                </button>
+
+                <button type="button" class="custom-status-option" [class.selected]="filtros.estado === 'activo'"
+                    (click)="seleccionarEstado('activo')">
+                    Activo
+                </button>
+
+                <button type="button" class="custom-status-option danger" [class.selected]="filtros.estado === 'baja'"
+                    (click)="seleccionarEstado('baja')">
+                    Baja
+                </button>
+            </div>
+        </div>
+
+        <div class="custom-status-select" [class.open]="rolDropdownAbierto">
+            <button type="button" class="custom-status-trigger" (click)="rolDropdownAbierto = !rolDropdownAbierto"
+                aria-label="Filtrar por rol">
+                <span>{{ obtenerTextoRol(filtros.rol ?? '') }}</span>
+                <span class="custom-status-arrow">&dtrif;</span>
+            </button>
+
+            <div class="custom-status-menu" *ngIf="rolDropdownAbierto">
+                <button type="button" class="custom-status-option" [class.selected]="filtros.rol === ''"
+                    (click)="seleccionarRol('')">
+                    Todos los roles
+                </button>
+
+                <button type="button" class="custom-status-option" [class.selected]="filtros.rol === 'administrador'"
+                    (click)="seleccionarRol('administrador')">
+                    Administrador
+                </button>
+
+                <button type="button" class="custom-status-option" [class.selected]="filtros.rol === 'usuario'"
+                    (click)="seleccionarRol('usuario')">
+                    Usuario
+                </button>
+            </div>
+        </div>
+
+        <input class="management-search" [(ngModel)]="filtros.nombre" placeholder="Buscar por nombre..." />
+
+        <button class="primary-button" type="button" (click)="buscar()">
+            Buscar
+        </button>
+
+        <button class="secondary-button" type="button" (click)="limpiarFiltros()">
+            Limpiar
+        </button>
+    </section>
+
+    <section class="form-card management-edit-card" aria-label="Formulario de usuario" aria-live="polite"
+        *ngIf="editando">
+        <div class="edit-panel-header">
+            <span class="edit-eyebrow">Modo edición</span>
+            <strong>{{ usuarioEditado.nombre || 'Usuario seleccionado' }}</strong>
+        </div>
+
+        <div class="form-grid">
+            <label class="field-control">
+                <span>Nombre de usuario</span>
+                <input [value]="usuarioEditado.nombre" disabled />
+            </label>
+
+            <label class="field-control">
+                <span>Rol</span>
+                <select [(ngModel)]="usuarioEditado.rol">
+                    <option value="usuario">Usuario</option>
+                    <option value="administrador">Administrador</option>
+                </select>
+            </label>
+
+            <label class="field-control">
+                <span>Nueva clave</span>
+                <input type="password" [(ngModel)]="usuarioEditado.clave" placeholder="Dejar vacío para no cambiar" />
+            </label>
+
+            <label class="field-control">
+                <span>Confirmar clave</span>
+                <input type="password" [(ngModel)]="usuarioEditado.confirmarClave" placeholder="Repetir nueva clave" />
+            </label>
+
+            <div class="edit-actions">
+                <button class="primary-button" type="button" (click)="guardar()"
+                    [disabled]="guardando || !formularioEdicionValido || !hayCambiosEdicion">
+                    {{ guardando ? 'Guardando...' : 'Actualizar' }}
+                </button>
+
+                <button class="secondary-button" type="button" (click)="limpiar()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-table-wrapper" aria-label="Listado de usuarios">
+        <table class="management-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let usuario of listaUsuarios"
+                    [class.editing-row]="editando && usuario.id === usuarioEditado.id">
+                    <td>{{ usuario.nombre }}</td>
+
+                    <td>{{ obtenerTextoRol(usuario.rol) }}</td>
+
+                    <td>
+                        <select class="status-select" [class.inactive]="usuario.estado === 'baja'"
+                            [ngModel]="usuario.estado" (ngModelChange)="cambiarEstado(usuario, $event)"
+                            [disabled]="cambiandoEstadoId === usuario.id || !esAdmin()"
+                            aria-label="Cambiar estado del usuario">
+                            <option value="activo">Activo</option>
+                            <option value="baja">Baja</option>
+                        </select>
+                    </td>
+
+                    <td>
+                        <div class="table-actions">
+                            <a class="action-button action-view" [routerLink]="['/usuarios', usuario.id]">
+                                Ver
+                            </a>
+
+                            <button class="action-button action-edit" type="button" (click)="editar(usuario)"
+                                [disabled]="!esAdmin() || usuario.estado === 'baja'">
+                                Editar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr *ngIf="listaUsuarios.length === 0">
+                    <td colspan="4" class="management-empty-row">
+                        {{
+                        hayFiltrosActivos()
+                        ? 'No hay usuarios que coincidan con los filtros seleccionados.'
+                        : 'No hay usuarios cargados.'
+                        }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination-bar" *ngIf="totalUsuarios > 0">
+            <div class="page-size-control">
+                <span>Usuarios por página</span>
+
+                <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
+                    <option [ngValue]="6">6</option>
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="20">20</option>
+                </select>
+            </div>
+
+            <span class="pagination-summary">
+                Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalUsuarios }} usuarios
+            </span>
+
+            <div class="pagination-actions">
+                <button class="secondary-button" type="button" (click)="paginaAnterior()"
+                    [disabled]="paginaActual <= 1">
+                    Anterior
+                </button>
+
+                <button class="secondary-button" type="button" (click)="paginaSiguiente()"
+                    [disabled]="paginaActual >= totalPaginas">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+        <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+            <div class="management-alert-header">
+                <span class="management-alert-icon">
+                    {{ alertaActual.type === 'error' ? '!' : '✓' }}
+                </span>
+
+                <h2>{{ alertaActual.title }}</h2>
+            </div>
+
+            <p>{{ alertaActual.message }}</p>
+
+            <div class="management-alert-actions">
+                <button class="secondary-button" type="button" *ngIf="alertaActual.type === 'confirm'"
+                    (click)="cerrarAlerta()">
+                    {{ alertaActual.cancelText }}
+                </button>
+
+                <button type="button" [class.primary-button]="!alertaActual.confirmDanger"
+                    [class.danger-button]="alertaActual.confirmDanger" (click)="confirmarAlerta()">
+                    {{ alertaActual.confirmText }}
+                </button>
+            </div>
+        </section>
+    </div>
+</main>

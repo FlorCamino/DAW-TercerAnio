@@ -1,0 +1,54 @@
+<div class="management-container entity-detail-container">
+    @if (loading()) {
+    <p class="management-message">Cargando usuario...</p>
+    } @else if (error()) {
+    <p class="management-message error">{{ error() }}</p>
+    } @else if (usuario()) {
+    <section class="detail-card entity-detail-card">
+        <div class="entity-detail-header">
+            <div class="entity-avatar" aria-hidden="true">
+                {{ usuario()!.nombre.charAt(0).toUpperCase() }}
+            </div>
+
+            <div class="entity-title-block">
+                <span class="detail-eyebrow">Detalle de usuario</span>
+
+                <div class="entity-title-row">
+                    <h1>{{ usuario()!.nombre }}</h1>
+
+                    <span class="status-pill" [class.inactive]="usuario()!.estado === 'baja'">
+                        {{ obtenerTextoEstado(usuario()!.estado) }}
+                    </span>
+                </div>
+
+                <p>
+                    Información general del usuario registrado en el sistema.
+                </p>
+            </div>
+        </div>
+
+        <div class="entity-detail-grid">
+            <article class="entity-info-item">
+                <span class="info-label">Nombre</span>
+                <strong>{{ usuario()!.nombre }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Rol</span>
+                <strong>{{ obtenerTextoRol(usuario()!.rol) }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Estado</span>
+                <strong>{{ obtenerTextoEstado(usuario()!.estado) }}</strong>
+            </article>
+        </div>
+
+        <div class="detail-actions entity-detail-actions">
+            <a routerLink="/usuarios" class="secondary-button">
+                Volver
+            </a>
+        </div>
+    </section>
+    }
+</div>

@@ -1,0 +1,64 @@
+<main class="management-container management-form-page">
+  <section class="form-card management-form-card">
+    <div class="management-form-header">
+      <span class="form-eyebrow"></span>
+
+      <h1>Nuevo cliente</h1>
+
+      <p>
+        Complete los datos principales para registrar un nuevo cliente en el sistema.
+      </p>
+    </div>
+
+    <div class="management-form-grid">
+      <label class="field-control">
+        <span>Nombre</span>
+
+        <input [(ngModel)]="cliente.nombre" placeholder="Nombre del cliente" />
+      </label>
+
+      <label class="field-control">
+        <span>Email</span>
+
+        <input [(ngModel)]="cliente.email" placeholder="correo@ejemplo.com" />
+      </label>
+
+      <label class="field-control">
+        <span>Teléfono</span>
+
+        <input [(ngModel)]="cliente.telefono" placeholder="Ej: 123456789" inputmode="numeric" minlength="7"
+          maxlength="15" pattern="[0-9]{7,15}" />
+      </label>
+    </div>
+
+    <div class="form-actions management-form-actions">
+      <button class="primary-button" type="button" (click)="guardar()" [disabled]="guardando || !formularioValido">
+        {{ guardando ? 'Guardando...' : 'Guardar' }}
+      </button>
+
+      <a class="secondary-button" routerLink="/clientes">
+        Cancelar
+      </a>
+    </div>
+  </section>
+
+  <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+    <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+      <div class="management-alert-header">
+        <span class="management-alert-icon">
+          {{ alertaActual.type === 'error' ? '!' : 'OK' }}
+        </span>
+
+        <h2>{{ alertaActual.title }}</h2>
+      </div>
+
+      <p>{{ alertaActual.message }}</p>
+
+      <div class="management-alert-actions">
+        <button class="primary-button" type="button" (click)="cerrarAlerta()">
+          {{ alertaActual.confirmText }}
+        </button>
+      </div>
+    </section>
+  </div>
+</main>

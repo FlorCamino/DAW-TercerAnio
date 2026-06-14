@@ -1,0 +1,210 @@
+<main class="management-container">
+    <section class="management-header">
+        <div class="management-title-block">
+            <h1>Tareas</h1>
+            <p>Administra tareas, estados y proyectos asociados.</p>
+        </div>
+
+        <a class="primary-button" [class.disabled-link]="!esAdmin()" [routerLink]="esAdmin() ? '/tareas/crear' : null"
+            [attr.aria-disabled]="!esAdmin()" [attr.tabindex]="esAdmin() ? null : -1">
+            + Nueva tarea
+        </a>
+    </section>
+
+    <section class="management-toolbar" aria-label="Búsqueda de tareas">
+        <div class="custom-status-select" [class.open]="estadoDropdownAbierto">
+            <button type="button" class="custom-status-trigger" (click)="estadoDropdownAbierto = !estadoDropdownAbierto"
+                aria-label="Filtrar por estado">
+                <span>{{ obtenerTextoEstado(filtros.estado) }}</span>
+                <span class="custom-status-arrow">▾</span>
+            </button>
+
+            <div class="custom-status-menu" *ngIf="estadoDropdownAbierto">
+                <button type="button" class="custom-status-option" [class.selected]="filtros.estado === ''"
+                    (click)="seleccionarEstado('')">
+                    Todos los estados
+                </button>
+
+                <button type="button" class="custom-status-option" [class.selected]="filtros.estado === 'pendiente'"
+                    (click)="seleccionarEstado('pendiente')">
+                    Pendiente
+                </button>
+
+                <button type="button" class="custom-status-option done"
+                    [class.selected]="filtros.estado === 'finalizado'" (click)="seleccionarEstado('finalizado')">
+                    Finalizado
+                </button>
+
+                <button type="button" class="custom-status-option danger" [class.selected]="filtros.estado === 'baja'"
+                    (click)="seleccionarEstado('baja')">
+                    Baja
+                </button>
+            </div>
+        </div>
+
+        <input class="management-search" [(ngModel)]="filtros.descripcion" (ngModelChange)="actualizarBusqueda()"
+            placeholder="Buscar por descripción o proyecto..." />
+
+        <button class="primary-button" type="button" (click)="buscarTareas()">
+            Buscar
+        </button>
+
+        <button class="secondary-button" type="button" (click)="limpiarFiltros()">
+            Limpiar
+        </button>
+    </section>
+
+    <section class="form-card management-edit-card" aria-label="Formulario de edición de tarea" aria-live="polite"
+        *ngIf="editando">
+        <div class="edit-panel-header">
+            <span class="edit-eyebrow">Modo edición</span>
+            <strong>{{ tareaEditada.descripcion || 'Tarea seleccionada' }}</strong>
+        </div>
+
+        <div class="form-grid">
+            <label class="field-control">
+                <span>Descripción</span>
+
+                <input [(ngModel)]="tareaEditada.descripcion" placeholder="Descripción de la tarea" />
+            </label>
+
+            <label class="field-control">
+                <span>Proyecto</span>
+
+                <select [(ngModel)]="tareaEditada.proyectoId">
+                    <option [ngValue]="null">Seleccione un proyecto</option>
+
+                    <option *ngFor="let project of proyectos" [ngValue]="project.id">
+                        {{ project.name }}
+                    </option>
+                </select>
+            </label>
+
+            <div class="edit-actions">
+                <button class="primary-button" type="button" (click)="guardar()"
+                    [disabled]="!formularioEdicionValido || !hayCambiosEdicion">
+                    Actualizar
+                </button>
+
+                <button class="secondary-button" type="button" (click)="limpiar()">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <section class="management-table-wrapper" aria-label="Listado de tareas">
+        <table class="management-table">
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th>Proyecto</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr *ngFor="let tarea of listaTareas" [class.editing-row]="editando && tarea.id === tareaEditada.id">
+                    <td>{{ tarea.descripcion }}</td>
+
+                    <td>{{ obtenerProyecto(tarea) }}</td>
+
+                    <td>
+                        <select class="status-select"
+                            [class.pending]="normalizarEstadoTarea(tarea.estado) === 'pendiente'"
+                            [class.done]="normalizarEstadoTarea(tarea.estado) === 'finalizado'"
+                            [class.inactive]="normalizarEstadoTarea(tarea.estado) === 'baja'"
+                            [ngModel]="normalizarEstadoTarea(tarea.estado)"
+                            (ngModelChange)="solicitarCambioEstado(tarea, $event)"
+                            [disabled]="cambiandoEstadoId === tarea.id || !esAdmin()" aria-label="Cambiar estado de la tarea">
+                            <option value="pendiente">Pendiente</option>
+                            <option value="finalizado">Finalizado</option>
+                            <option value="baja">Baja</option>
+                        </select>
+                    </td>
+
+                    <td>
+                        <div class="table-actions">
+                            <a class="action-button action-view" [routerLink]="['/tareas', tarea.id]">
+                                Ver
+                            </a>
+
+                            <button class="action-button action-edit" type="button" (click)="editar(tarea)"
+                                [disabled]="!esAdmin() || estaDeBaja(tarea)">
+                                Editar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr *ngIf="listaTareas.length === 0">
+                    <td colspan="4" class="management-empty-row">
+                        {{
+                        hayFiltrosActivos()
+                        ? 'No hay tareas que coincidan con los filtros seleccionados.'
+                        : 'No hay tareas cargadas.'
+                        }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="pagination-bar" *ngIf="totalTareas > 0">
+            <div class="page-size-control">
+                <span>Tareas por página</span>
+
+                <select [(ngModel)]="cantidadPorPagina" (change)="cambiarCantidadPorPagina()">
+                    <option [ngValue]="6">6</option>
+                    <option [ngValue]="5">5</option>
+                    <option [ngValue]="10">10</option>
+                    <option [ngValue]="20">20</option>
+                </select>
+            </div>
+
+            <span class="pagination-summary">
+                Página {{ paginaActual }} de {{ totalPaginas }} - {{ totalTareas }} tareas
+            </span>
+
+            <div class="pagination-actions">
+                <button class="secondary-button" type="button" (click)="paginaAnterior()"
+                    [disabled]="paginaActual <= 1">
+                    Anterior
+                </button>
+
+                <button class="secondary-button" type="button" (click)="paginaSiguiente()"
+                    [disabled]="paginaActual >= totalPaginas">
+                    Siguiente
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <div class="management-alert-backdrop" *ngIf="alerta as alertaActual">
+        <section class="management-alert" [class.error]="alertaActual.type === 'error'">
+            <div class="management-alert-header">
+                <span class="management-alert-icon">
+                    {{ alertaActual.type === 'error' ? '!' : '?' }}
+                </span>
+
+                <h2>{{ alertaActual.title }}</h2>
+            </div>
+
+            <p *ngIf="alertaActual.message">
+                {{ alertaActual.message }}
+            </p>
+
+            <div class="management-alert-actions">
+                <button class="secondary-button" type="button" *ngIf="alertaActual.type === 'confirm'"
+                    (click)="cerrarAlerta()">
+                    {{ alertaActual.cancelText }}
+                </button>
+
+                <button type="button" [class.primary-button]="!alertaActual.confirmDanger"
+                    [class.danger-button]="alertaActual.confirmDanger" (click)="confirmarAlerta()">
+                    {{ alertaActual.confirmText }}
+                </button>
+            </div>
+        </section>
+    </div>
+</main>

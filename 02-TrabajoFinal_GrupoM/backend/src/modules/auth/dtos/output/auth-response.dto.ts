@@ -1,0 +1,19 @@
+import { ApiProperty } from "@nestjs/swagger";
+import { UserRoleEnum } from "../../../../common/enums/user-role.enum";
+
+export class AuthResponseDto {
+    @ApiProperty({
+        description: "Token de sesión único generado y guardado en base de datos"
+    })
+    accessToken!: string;
+
+    @ApiProperty({
+        description: "Rol del usuario: Administrador o Usuario"
+    })
+    role!: UserRoleEnum;
+
+    @ApiProperty({
+        description: "Nombre del usuario"
+    })
+    name!: string;
+}

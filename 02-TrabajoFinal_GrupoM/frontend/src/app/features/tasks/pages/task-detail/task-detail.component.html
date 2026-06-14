@@ -1,0 +1,96 @@
+<div class="management-container entity-detail-container">
+    @if (loading()) {
+    <p class="management-message">Cargando tarea...</p>
+    } @else if (error()) {
+    <p class="management-message error">{{ error() }}</p>
+    } @else if (tarea()) {
+    <section class="detail-card entity-detail-card">
+        <div class="entity-detail-header">
+            <div class="entity-avatar" aria-hidden="true">
+                T
+            </div>
+
+            <div class="entity-title-block">
+                <span class="detail-eyebrow">Detalle de tarea</span>
+
+                <div class="entity-title-row">
+                    <h1>{{ tarea()!.descripcion }}</h1>
+
+                    <span class="status-pill" [class.pending]="estaPendiente(tarea()!.estado)"
+                        [class.done]="estaFinalizada(tarea()!.estado)" [class.inactive]="estaDeBaja(tarea()!.estado)">
+                        {{ obtenerTextoEstado(tarea()!.estado) }}
+                    </span>
+                </div>
+
+                <p>
+                    Información general de la tarea y del proyecto asociado.
+                </p>
+            </div>
+        </div>
+
+        <div class="entity-detail-grid">
+            <article class="entity-info-item">
+                <span class="info-label">Descripción</span>
+                <strong>{{ tarea()!.descripcion }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Estado</span>
+                <strong>{{ obtenerTextoEstado(tarea()!.estado) }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Proyecto asociado</span>
+                <strong>{{ obtenerProyecto(tarea()!) }}</strong>
+            </article>
+
+            <article class="entity-info-item">
+                <span class="info-label">Identificador</span>
+                <strong>#{{ tarea()!.id }}</strong>
+            </article>
+        </div>
+
+        <section class="related-section">
+            <div class="related-header">
+                <div>
+                    <span class="detail-eyebrow">Proyecto correspondiente</span>
+                    <h2>{{ obtenerProyecto(tarea()!) }}</h2>
+                </div>
+            </div>
+
+            @if (obtenerProyectoId(tarea()!)) {
+            <div class="related-list">
+                <article class="related-card">
+                    <div>
+                        <h3>{{ obtenerProyecto(tarea()!) }}</h3>
+
+                        <span class="status-pill done">
+                            Asociado
+                        </span>
+                    </div>
+
+                    <div class="related-meta">
+                        <span>ID proyecto</span>
+                        <strong>#{{ obtenerProyectoId(tarea()!) }}</strong>
+                    </div>
+
+                    <a class="action-button action-view" [routerLink]="['/projects', obtenerProyectoId(tarea()!)]">
+                        Ver proyecto
+                    </a>
+                </article>
+            </div>
+            } @else {
+            <p class="related-empty">
+                Esta tarea no tiene un proyecto asociado.
+            </p>
+            }
+        </section>
+
+        <div class="detail-actions entity-detail-actions">
+            <a routerLink="/tareas" class="secondary-button">
+                Volver
+            </a>
+        </div>
+    </section>
+    }
+</div>

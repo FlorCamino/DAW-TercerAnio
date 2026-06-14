@@ -1,0 +1,274 @@
+<main class="dashboard-shell" id="dashboard">
+  <section class="dashboard-hero" aria-labelledby="app-title">
+    <div class="dashboard-welcome">
+      <span class="hero-eyebrow">Sistema de gestión</span>
+
+      <h1 id="app-title">Panel principal</h1>
+
+      <p>
+        Resumen general del sistema para visualizar clientes, proyectos,
+        tareas y sus relaciones principales.
+      </p>
+
+      <div class="hero-actions" aria-label="Acciones destacadas">
+        <a class="primary-action" routerLink="/clientes">Ver clientes</a>
+        <a class="secondary-action" routerLink="/projects">Ver proyectos</a>
+      </div>
+    </div>
+
+    <aside class="dashboard-focus-card dashboard-summary-card" aria-label="Resumen general">
+      <div class="summary-date">
+        <span>Fecha actual</span>
+        <strong>{{ currentDateLabel }}</strong>
+      </div>
+
+      <div class="summary-header">
+        <span>Resumen de tareas</span>
+        <h2>{{ totalTasks }} tareas</h2>
+      </div>
+
+      <div class="task-bars" aria-label="Estado de tareas">
+        @for (bar of taskStatusBars; track bar.label) {
+        <div class="task-bar-row">
+          <div class="task-bar-info">
+            <span>{{ bar.label }}</span>
+            <strong>{{ bar.value }}</strong>
+          </div>
+
+          <div class="task-bar-track" aria-hidden="true">
+            <span [style.width.%]="bar.percentage"></span>
+          </div>
+        </div>
+        }
+      </div>
+    </aside>
+  </section>
+
+  @if (dashboardError) {
+  <p class="dashboard-message error">{{ dashboardError }}</p>
+  }
+
+  @if (loadingDashboard) {
+  <section class="dashboard-loading">
+    <p>Cargando indicadores...</p>
+  </section>
+  } @else {
+  <section class="kpi-row" aria-label="Indicadores principales">
+    @for (kpi of kpiCards; track kpi.label) {
+    <article class="kpi-card" [class.pending]="kpi.type === 'pending'">
+      <span class="kpi-icon">
+        <i [class]="kpi.icon"></i>
+      </span>
+
+      <div>
+        <span>{{ kpi.label }}</span>
+        <strong>{{ kpi.value }}</strong>
+        <small>{{ kpi.detail }}</small>
+      </div>
+    </article>
+    }
+  </section>
+
+  <section class="dashboard-due-panel" aria-label="Control de vencimientos">
+    <div class="due-panel-header">
+      <div>
+        <span class="hero-eyebrow">Vencimientos</span>
+        <h2>Control de entregas</h2>
+        <p>
+          Seguimiento rápido de proyectos retrasados y próximos a finalizar.
+        </p>
+      </div>
+
+      <a routerLink="/projects">Ver proyectos</a>
+    </div>
+
+    <div class="due-sections-grid">
+      <section class="quick-section overdue-section">
+        <div class="quick-section-header">
+          <div>
+            <h3>Proyectos retrasados</h3>
+            <span>Requieren prioridad</span>
+          </div>
+
+          <strong>{{ overdueProjects.length }}</strong>
+        </div>
+
+        @if (overdueProjects.length > 0) {
+        <div class="quick-card-list">
+          @for (project of overdueProjects; track project.projectName) {
+          <article class="quick-project-card overdue-project-card">
+            <div class="quick-project-info">
+              <span class="quick-badge overdue-badge">Retrasado</span>
+
+              <h4>{{ project.projectName }}</h4>
+
+              <p>Vencía el {{ project.endDateLabel }}</p>
+            </div>
+
+            <div class="quick-project-meta">
+              <strong>
+                {{ project.daysRemaining }}
+                {{ project.daysRemaining === 1 ? 'día' : 'días' }}
+              </strong>
+
+              <span>de atraso</span>
+            </div>
+
+            @if (project.projectId) {
+            <a class="action-button action-view" [routerLink]="['/projects', project.projectId]">
+              Ver
+            </a>
+            }
+          </article>
+          }
+        </div>
+        } @else {
+        <p class="relation-empty">
+          No hay proyectos retrasados.
+        </p>
+        }
+      </section>
+
+      <section class="quick-section">
+        <div class="quick-section-header">
+          <div>
+            <h3>Próximos vencimientos</h3>
+            <span>Seguimiento recomendado</span>
+          </div>
+
+          <strong>{{ upcomingProjects.length }}</strong>
+        </div>
+
+        @if (upcomingProjects.length > 0) {
+        <div class="quick-card-list">
+          @for (project of upcomingProjects; track project.projectName) {
+          <article class="quick-project-card">
+            <div class="quick-project-info">
+              <span class="quick-badge upcoming-badge">En plazo</span>
+
+              <h4>{{ project.projectName }}</h4>
+
+              <p>Finaliza el {{ project.endDateLabel }}</p>
+            </div>
+
+            <div class="quick-project-meta">
+              <strong>
+                {{ project.daysRemaining }}
+                {{ project.daysRemaining === 1 ? 'día' : 'días' }}
+              </strong>
+
+              <span>restantes</span>
+            </div>
+
+            @if (project.projectId) {
+            <a class="action-button action-view" [routerLink]="['/projects', project.projectId]">
+              Ver
+            </a>
+            }
+          </article>
+          }
+        </div>
+        } @else {
+        <p class="relation-empty">
+          No hay proyectos próximos a vencer con fecha de finalización cargada.
+        </p>
+        }
+      </section>
+    </div>
+  </section>
+
+  <section class="dashboard-relations-grid" aria-label="Relaciones principales del sistema">
+    <article class="relation-panel">
+      <div class="relation-header">
+        <div>
+          <span class="hero-eyebrow">Clientes</span>
+          <h2>Proyectos por cliente</h2>
+        </div>
+
+        <a routerLink="/clientes">Gestionar</a>
+      </div>
+
+      @if (clientProjectStats.length > 0) {
+      <div class="relation-list">
+        @for (item of clientProjectStats; track item.clientName) {
+        <div class="relation-row">
+          <div class="relation-info">
+            <strong>{{ item.clientName }}</strong>
+            <span>
+              {{ item.activeProjects }} activo(s) ·
+              {{ item.finishedProjects }} finalizado(s)
+            </span>
+          </div>
+
+          <div class="relation-count">
+            <strong>{{ item.totalProjects }}</strong>
+            <span>proyecto(s)</span>
+          </div>
+
+          <div class="relation-track" aria-hidden="true">
+            <span [style.width.%]="item.percentage"></span>
+          </div>
+
+          @if (item.clientId) {
+          <a class="action-button action-view" [routerLink]="['/clientes', item.clientId]">
+            Ver
+          </a>
+          }
+        </div>
+        }
+      </div>
+      } @else {
+      <p class="relation-empty">
+        Todavía no hay clientes con proyectos asociados.
+      </p>
+      }
+    </article>
+
+    <article class="relation-panel">
+      <div class="relation-header">
+        <div>
+          <span class="hero-eyebrow">Proyectos</span>
+          <h2>Tareas por proyecto</h2>
+        </div>
+
+        <a routerLink="/projects">Gestionar</a>
+      </div>
+
+      @if (projectTaskStats.length > 0) {
+      <div class="relation-list">
+        @for (item of projectTaskStats; track item.projectName) {
+        <div class="relation-row">
+          <div class="relation-info">
+            <strong>{{ item.projectName }}</strong>
+            <span>
+              {{ item.pendingTasks }} pendiente(s) ·
+              {{ item.finishedTasks }} finalizada(s)
+            </span>
+          </div>
+
+          <div class="relation-count">
+            <strong>{{ item.totalTasks }}</strong>
+            <span>tarea(s)</span>
+          </div>
+
+          <div class="relation-track" aria-hidden="true">
+            <span [style.width.%]="item.percentage"></span>
+          </div>
+
+          @if (item.projectId) {
+          <a class="action-button action-view" [routerLink]="['/projects', item.projectId]">
+            Ver
+          </a>
+          }
+        </div>
+        }
+      </div>
+      } @else {
+      <p class="relation-empty">
+        Todavía no hay proyectos con tareas asociadas.
+      </p>
+      }
+    </article>
+  </section>
+  }
+</main>

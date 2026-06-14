@@ -1,0 +1,8 @@
+@import "primeicons/primeicons.css";
+@import "./app/shared/styles/management-page.css";
+
+body.menu-open-body {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}

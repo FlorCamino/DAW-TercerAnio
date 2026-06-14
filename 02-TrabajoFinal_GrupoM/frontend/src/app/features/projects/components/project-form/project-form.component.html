@@ -1,0 +1,51 @@
+<form class="project-form" (ngSubmit)="submit()">
+  <div class="management-form-grid project-form-grid">
+    <label class="field-control">
+      <span>Nombre</span>
+
+      <input name="name" [(ngModel)]="form.name" placeholder="Nombre del proyecto" required />
+    </label>
+
+    <label class="field-control">
+      <span>Cliente</span>
+
+      <select name="clientId" [(ngModel)]="form.clientId" [disabled]="cargandoClientes || clientes.length === 0">
+        <option [ngValue]="null">
+          {{
+          cargandoClientes
+          ? 'Cargando clientes...'
+          : clientes.length === 0
+          ? 'No hay clientes activos disponibles'
+          : 'Seleccione un cliente'
+          }}
+        </option>
+
+        <option *ngFor="let cliente of clientes" [ngValue]="cliente.id">
+          {{ cliente.nombre }}
+        </option>
+      </select>
+    </label>
+
+    <label class="field-control">
+      <span>Fecha de finalización</span>
+
+      <input name="endDate" type="date" [(ngModel)]="form.endDate" [min]="fechaMinima" />
+    </label>
+  </div>
+
+  <p class="form-alert error" *ngIf="!fechaFinalizacionValida">
+    La fecha de finalización no puede ser anterior a la fecha actual.
+  </p>
+
+  <p class="form-alert error" *ngIf="errorClientes">
+    {{ errorClientes }}
+  </p>
+
+  <div class="form-actions management-form-actions">
+    <button class="primary-button" type="submit" [disabled]="!formularioValido || cargandoClientes">
+      {{ submitLabel }}
+    </button>
+
+    <ng-content></ng-content>
+  </div>
+</form>
