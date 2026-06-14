@@ -3,10 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Task } from './entities/task.entity';
 import { Project } from '../projects/entities/project.entity';
-import { ProjectStatus } from '../../common/enums/project-status.enum';
+import { ProjectStatusEnum } from '../../common/enums/project-status.enum';
 import { CreateTaskDto } from './dtos/input/create-task.dto';
 import { UpdateTaskDto } from './dtos/input/update-task.dto';
-import { TaskStatus } from '../../common/enums/task-status.enum';
+import { TaskStatusEnum } from '../../common/enums/task-status.enum';
 import { TasksMapper, TaskListResponseDto } from './mappers/tasks.mapper';
 import { TaskResponseDto } from './dtos/output/task-response.dto';
 import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
@@ -34,7 +34,7 @@ export class TasksService {
 
     const task = this.taskRepository.create({
       description: dto.description,
-      status: dto.status ?? TaskStatus.PENDIENTE,
+      status: dto.status ?? TaskStatusEnum.PENDIENTE,
       projectId: dto.projectId,
       project,
     });
@@ -57,7 +57,7 @@ export class TasksService {
     const projectId = this.parseOptionalPositiveInt(filters.projectId, 'project');
 
     if (status && !this.isValidStatus(status)) {
-      throw new BadRequestException('El estado indicado no es valido');
+      throw new BadRequestException('El estado indicado no es válido');
     }
 
     const query = this.taskRepository
@@ -100,12 +100,12 @@ export class TasksService {
       dto.projectId === undefined;
 
     const isReactivatingDeletedTask =
-      task.status === TaskStatus.BAJA &&
+      task.status === TaskStatusEnum.BAJA &&
       dto.status !== undefined &&
-      dto.status !== TaskStatus.BAJA;
+      dto.status !== TaskStatusEnum.BAJA;
 
     if (
-      task.status === TaskStatus.BAJA &&
+      task.status === TaskStatusEnum.BAJA &&
       !onlyChangingStatus &&
       !isReactivatingDeletedTask
     ) {
@@ -125,7 +125,7 @@ export class TasksService {
 
     if (dto.status !== undefined) {
       if (!this.isValidStatus(dto.status)) {
-        throw new BadRequestException('El estado indicado no es valido');
+        throw new BadRequestException('El estado indicado no es válido');
       }
 
       task.status = dto.status;
@@ -140,11 +140,11 @@ export class TasksService {
   async remove(id: number): Promise<TaskResponseDto> {
     const task = await this.findTaskWithProject(id);
 
-    if (task.status === TaskStatus.BAJA) {
+    if (task.status === TaskStatusEnum.BAJA) {
       throw new BadRequestException('La tarea ya esta dada de baja');
     }
 
-    task.status = TaskStatus.BAJA;
+    task.status = TaskStatusEnum.BAJA;
 
     const saved = await this.taskRepository.save(task);
     const taskWithProject = await this.findTaskWithProject(saved.id);
@@ -174,7 +174,7 @@ export class TasksService {
       throw new NotFoundException(`Proyecto con id ${id} no existe`);
     }
 
-    if (project.status === ProjectStatus.BAJA) {
+    if (project.status === ProjectStatusEnum.BAJA) {
       throw new BadRequestException(
         'No se pueden asociar tareas a un proyecto dado de baja',
       );
@@ -183,8 +183,8 @@ export class TasksService {
     return project;
   }
 
-  private isValidStatus(status: string): status is TaskStatus {
-    return Object.values(TaskStatus).includes(status as TaskStatus);
+  private isValidStatus(status: string): status is TaskStatusEnum {
+    return Object.values(TaskStatusEnum).includes(status as TaskStatusEnum);
   }
 
   private parseOptionalPositiveInt(
@@ -199,7 +199,7 @@ export class TasksService {
 
     if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
       throw new BadRequestException(
-        `El ${fieldName} debe ser un numero positivo`,
+        `El ${fieldName} debe ser un número positivo`,
       );
     }
 

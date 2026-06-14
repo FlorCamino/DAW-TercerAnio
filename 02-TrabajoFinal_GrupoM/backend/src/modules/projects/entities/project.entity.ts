@@ -1,5 +1,5 @@
 import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
-import { ProjectStatus } from '../../../common/enums/project-status.enum';
+import { ProjectStatusEnum } from '../../../common/enums/project-status.enum';
 import { Client } from '../../clients/entities/client.entity';
 import { Task } from '../../tasks/entities/task.entity';
 
@@ -13,10 +13,10 @@ export class Project {
 
   @Column({
     type: 'enum',
-    enum: ProjectStatus,
-    default: ProjectStatus.ACTIVO,
+    enum: ProjectStatusEnum,
+    default: ProjectStatusEnum.ACTIVO,
   })
-  status!: ProjectStatus;
+  status!: ProjectStatusEnum;
 
   @ManyToOne(() => Client, (client) => client.projects, {
     nullable: true,

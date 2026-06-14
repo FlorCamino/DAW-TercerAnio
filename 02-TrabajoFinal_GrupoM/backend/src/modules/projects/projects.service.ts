@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from './entities/project.entity';
@@ -11,12 +7,12 @@ import { UpdateProjectDto } from './dtos/input/update-project.dto';
 import { ProjectsMapper } from './mappers/projects.mapper';
 import { ProjectResponseDto } from './dtos/output/project-response.dto';
 import { ProjectListResponseDto } from './dtos/output/project-list-response.dto';
-import { ProjectStatus } from '../../common/enums/project-status.enum';
+import { ProjectStatusEnum } from '../../common/enums/project-status.enum';
 import { Client } from '../clients/entities/client.entity';
-import { ClientStatus } from '../../common/enums/client-status.enum';
+import { ClientStatusEnum } from '../../common/enums/client-status.enum';
 import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
 import { Task } from '../tasks/entities/task.entity';
-import { TaskStatus } from '../../common/enums/task-status.enum';
+import { TaskStatusEnum } from '../../common/enums/task-status.enum';
 
 interface ProjectFilters {
   status?: string;
@@ -48,7 +44,7 @@ export class ProjectsService {
 
     const project = this.projectRepository.create({
       name: dto.name,
-      status: dto.status ?? ProjectStatus.ACTIVO,
+      status: dto.status ?? ProjectStatusEnum.ACTIVO,
       clientId: dto.clientId ?? null,
       endDate: dto.endDate ?? null,
     });
@@ -138,7 +134,7 @@ export class ProjectsService {
       dto.clientId === undefined &&
       dto.endDate === undefined;
 
-    if (project.status === ProjectStatus.BAJA && !onlyChangingStatus) {
+    if (project.status === ProjectStatusEnum.BAJA && !onlyChangingStatus) {
       throw new BadRequestException(
         'No se puede modificar un proyecto dado de baja',
       );
@@ -171,7 +167,7 @@ export class ProjectsService {
 
     const saved = await this.projectRepository.save(project);
 
-    if (saved.status === ProjectStatus.BAJA) {
+    if (saved.status === ProjectStatusEnum.BAJA) {
       await this.markProjectTasksAsInactive(saved.id);
     }
 
@@ -188,10 +184,10 @@ export class ProjectsService {
     if (!project) {
       throw new NotFoundException(`Proyecto con id ${id} no encontrado`);
     }
-    if (project.status === ProjectStatus.BAJA) {
+    if (project.status === ProjectStatusEnum.BAJA) {
       throw new BadRequestException('El proyecto ya está dado de baja');
     }
-    project.status = ProjectStatus.BAJA;
+    project.status = ProjectStatusEnum.BAJA;
     const saved = await this.projectRepository.save(project);
     await this.markProjectTasksAsInactive(saved.id);
     return this.findOne(saved.id);
@@ -199,15 +195,15 @@ export class ProjectsService {
 
   private async validateStatusChange(
     project: Project,
-    nextStatus: ProjectStatus,
+    nextStatus: ProjectStatusEnum,
   ): Promise<void> {
     if (project.status === nextStatus) {
       return;
     }
 
-    if (nextStatus === ProjectStatus.FINALIZADO) {
+    if (nextStatus === ProjectStatusEnum.FINALIZADO) {
       const pendingTasks = (project.tasks ?? []).filter(
-        (task) => task.status !== TaskStatus.FINALIZADO,
+        (task) => task.status !== TaskStatusEnum.FINALIZADO,
       );
 
       if (pendingTasks.length > 0) {
@@ -221,7 +217,7 @@ export class ProjectsService {
   private async markProjectTasksAsInactive(projectId: number): Promise<void> {
     await this.taskRepository.update(
       { projectId },
-      { status: TaskStatus.BAJA },
+      { status: TaskStatusEnum.BAJA },
     );
   }
 
@@ -234,7 +230,7 @@ export class ProjectsService {
       throw new NotFoundException(`Cliente con id ${clientId} no encontrado`);
     }
 
-    if (client.status !== ClientStatus.ACTIVO) {
+    if (client.status !== ClientStatusEnum.ACTIVO) {
       throw new BadRequestException(
         'Solo se puede asociar un cliente en estado activo',
       );
@@ -258,7 +254,7 @@ export class ProjectsService {
 
     if (!selectedDate || selectedDate < todayOnly) {
       throw new BadRequestException(
-        'La fecha de finalizacion no puede ser anterior a la fecha actual',
+        'La fecha de finalización no puede ser anterior a la fecha actual',
       );
     }
   }
@@ -275,17 +271,17 @@ export class ProjectsService {
     return Number.isNaN(date.getTime()) ? null : date;
   }
 
-  private normalizeStatus(status?: string): ProjectStatus | undefined {
+  private normalizeStatus(status?: string): ProjectStatusEnum | undefined {
     const trimmedStatus = status?.trim();
 
     if (!trimmedStatus) {
       return undefined;
     }
 
-    const normalizedStatus = trimmedStatus.toLowerCase() as ProjectStatus;
+    const normalizedStatus = trimmedStatus.toLowerCase() as ProjectStatusEnum;
 
-    if (!Object.values(ProjectStatus).includes(normalizedStatus)) {
-      throw new BadRequestException('Estado de proyecto invalido');
+    if (!Object.values(ProjectStatusEnum).includes(normalizedStatus)) {
+      throw new BadRequestException('Estado de proyecto inválido');
     }
 
     return normalizedStatus;
@@ -316,7 +312,7 @@ export class ProjectsService {
 
     if (!Number.isInteger(parsedValue) || parsedValue <= 0) {
       throw new BadRequestException(
-        `El ${fieldName} debe ser un numero positivo`,
+        `El ${fieldName} debe ser un número positivo`,
       );
     }
 

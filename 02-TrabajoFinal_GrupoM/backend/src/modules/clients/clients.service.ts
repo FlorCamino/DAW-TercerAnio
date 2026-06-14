@@ -2,13 +2,13 @@ import { BadRequestException, Injectable, NotFoundException, } from '@nestjs/com
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindOptionsWhere, ILike, Repository } from 'typeorm';
 import { Client } from './entities/client.entity';
-import { ClientStatus } from '../../common/enums/client-status.enum';
+import { ClientStatusEnum } from '../../common/enums/client-status.enum';
 import { CreateClientDto } from './dtos/input/create-client.dto';
 import { UpdateClientDto } from './dtos/input/update-client.dto';
 import { ClientResponseDto } from './dtos/output/client-response.dto';
 import { ClientsMapper } from './mappers/clients.mapper';
 import { Project } from '../projects/entities/project.entity';
-import { ProjectStatus } from '../../common/enums/project-status.enum';
+import { ProjectStatusEnum } from '../../common/enums/project-status.enum';
 
 interface ClientFilters {
   status?: string;
@@ -40,7 +40,7 @@ export class ClientsService {
   async create(dto: CreateClientDto): Promise<ClientResponseDto> {
     const client = this.clientRepository.create({
       ...dto,
-      status: ClientStatus.ACTIVO,
+      status: ClientStatusEnum.ACTIVO,
     });
     const saved = await this.clientRepository.save(client);
     return ClientsMapper.toResponse(saved);
@@ -95,8 +95,8 @@ export class ClientsService {
     const client = await this.findClientOrFail(id);
 
     if (
-      dto.status === ClientStatus.BAJA &&
-      client.status !== ClientStatus.BAJA
+      dto.status === ClientStatusEnum.BAJA &&
+      client.status !== ClientStatusEnum.BAJA
     ) {
       await this.validateClientWithoutProjects(id);
     }
@@ -109,13 +109,13 @@ export class ClientsService {
   async remove(id: number): Promise<ClientResponseDto> {
     const client = await this.findClientOrFail(id);
 
-    if (client.status === ClientStatus.BAJA) {
-      throw new BadRequestException('El cliente ya esta dado de baja');
+    if (client.status === ClientStatusEnum.BAJA) {
+      throw new BadRequestException('El cliente ya está dado de baja');
     }
 
     await this.validateClientWithoutProjects(id);
 
-    client.status = ClientStatus.BAJA;
+    client.status = ClientStatusEnum.BAJA;
     const saved = await this.clientRepository.save(client);
     return ClientsMapper.toResponse(saved);
   }
@@ -134,7 +134,7 @@ export class ClientsService {
     const projectsCount = await this.projectRepository.count({
       where: {
         clientId: id,
-        status: ProjectStatus.ACTIVO,
+        status: ProjectStatusEnum.ACTIVO,
       },
     });
 
@@ -145,16 +145,16 @@ export class ClientsService {
     }
   }
 
-  private normalizeStatus(estado?: string): ClientStatus | undefined {
+  private normalizeStatus(estado?: string): ClientStatusEnum | undefined {
     const trimmedStatus = estado?.trim();
 
     if (!trimmedStatus) {
       return undefined;
     }
 
-    const normalizedStatus = trimmedStatus.toLowerCase() as ClientStatus;
+    const normalizedStatus = trimmedStatus.toLowerCase() as ClientStatusEnum;
 
-    if (!Object.values(ClientStatus).includes(normalizedStatus)) {
+    if (!Object.values(ClientStatusEnum).includes(normalizedStatus)) {
       throw new BadRequestException('Estado de cliente inválido');
     }
 

@@ -3,7 +3,6 @@ import { ChangeDetectorRef, Component, DestroyRef, OnInit, inject } from '@angul
 import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, filter, forkJoin, of } from 'rxjs';
-
 import { ClientsService } from '../../../clients/services/clients.service';
 import { Project } from '../../../projects/models/project.model';
 import { ProjectService } from '../../../projects/services/project.service';
@@ -142,7 +141,7 @@ export class DashboardComponent implements OnInit {
           return of(this.emptyPaginatedResponse<Task>());
         }),
       ),
-      
+
       usersResponse: this.usersService.getUsuariosPaginados({ page: 1, limit: 1000 }).pipe(
         catchError(() => of(this.emptyPaginatedResponse<any>()))
       ),

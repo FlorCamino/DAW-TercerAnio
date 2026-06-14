@@ -6,7 +6,7 @@ import { ApiBearerAuth, ApiBody, ApiTags, ApiOperation, ApiResponse } from "@nes
 import { AuthGuard } from "../../common/guards/auth.guard";
 import { RolesGuard } from "../../common/guards/roles.guard";
 import { Roles } from "../../common/decorators/roles.decorator";
-import { UserRole } from "../../common/enums/user-role.enum";
+import { UserRoleEnum } from "../../common/enums/user-role.enum";
 
 @ApiTags("Auth")
 @Controller("auth")
@@ -42,7 +42,7 @@ export class AuthController {
     @Delete("logout")
     @ApiBearerAuth('access-token')
     @UseGuards(AuthGuard, RolesGuard)
-    @Roles(UserRole.USER, UserRole.ADMIN)
+    @Roles(UserRoleEnum.USER, UserRoleEnum.ADMIN)
     @ApiOperation({ summary: "Cerrar sesión" })
     async logout(@Headers("authorization") authHeader: string) {
         const token = authHeader?.replace("Bearer ", "");

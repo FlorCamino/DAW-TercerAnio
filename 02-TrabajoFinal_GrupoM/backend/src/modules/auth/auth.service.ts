@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { LessThan, Repository } from "typeorm";
 import * as bcrypt from "bcrypt";
@@ -8,18 +9,21 @@ import { UsersService } from "../users/users.service";
 import { Session } from "./entities/session.entity";
 import { User } from "../users/entities/user.entity";
 import { AuthResponseDto } from "./dtos/output/auth-response.dto";
-import { UserStatus } from "../../common/enums/user-status.enum";
+import { UserStatusEnum } from "../../common/enums/user-status.enum";
 
 @Injectable()
 export class AuthService {
-    private readonly sessionDurationInHours = 8;
+    private readonly sessionDurationInHours: number;
 
     constructor(
         private readonly usersService: UsersService,
+        private readonly configService: ConfigService,
 
         @InjectRepository(Session)
         private readonly sessionRepository: Repository<Session>,
-    ) { }
+    ) {
+        this.sessionDurationInHours = this.getSessionDurationInHours();
+    }
 
     async login(dto: LoginDto): Promise<AuthResponseDto> {
         const user = await this.usersService.findByUsernameActivo(dto.username);
@@ -71,7 +75,7 @@ export class AuthService {
             return null;
         }
 
-        if (activeSession.user.status !== UserStatus.ACTIVO) {
+        if (activeSession.user.status !== UserStatusEnum.ACTIVO) {
             return null;
         }
 
@@ -88,5 +92,22 @@ export class AuthService {
         const expirationDate = new Date();
         expirationDate.setHours(expirationDate.getHours() + this.sessionDurationInHours);
         return expirationDate;
+    }
+
+    private getSessionDurationInHours(): number {
+        const defaultDurationInHours = 8;
+        const configuredDuration = this.configService.get<string>("SESSION_DURATION_HOURS");
+
+        if (!configuredDuration) {
+            return defaultDurationInHours;
+        }
+
+        const durationInHours = Number(configuredDuration);
+
+        if (!Number.isFinite(durationInHours) || durationInHours <= 0) {
+            return defaultDurationInHours;
+        }
+
+        return durationInHours;
     }
 }

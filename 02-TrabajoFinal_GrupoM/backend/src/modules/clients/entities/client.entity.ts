@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
-import { ClientStatus } from '../../../common/enums/client-status.enum';
+import { ClientStatusEnum } from '../../../common/enums/client-status.enum';
 import { Project } from '../../projects/entities/project.entity';
 
 @Entity('clients')
@@ -12,10 +12,10 @@ export class Client {
 
   @Column({
     type: 'enum',
-    enum: ClientStatus,
-    default: ClientStatus.ACTIVO,
+    enum: ClientStatusEnum,
+    default: ClientStatusEnum.ACTIVO,
   })
-  status!: ClientStatus;
+  status!: ClientStatusEnum;
 
   @Column({ type: 'varchar', length: 150, nullable: true })
   email!: string | null;

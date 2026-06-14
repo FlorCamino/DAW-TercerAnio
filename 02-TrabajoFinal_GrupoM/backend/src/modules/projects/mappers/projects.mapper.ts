@@ -1,7 +1,7 @@
 import { Project } from '../entities/project.entity';
 import { ProjectResponseDto } from '../dtos/output/project-response.dto';
 import { ProjectListResponseDto } from '../dtos/output/project-list-response.dto';
-import { ProjectStatus } from '../../../common/enums/project-status.enum';
+import { ProjectStatusEnum } from '../../../common/enums/project-status.enum';
 
 export class ProjectsMapper {
   static toResponse(project: Project): ProjectResponseDto {
@@ -11,7 +11,7 @@ export class ProjectsMapper {
     const isOverdue =
       project.endDate !== null &&
       new Date(project.endDate) < today &&
-      project.status === ProjectStatus.ACTIVO;
+      project.status === ProjectStatusEnum.ACTIVO;
 
     const response: ProjectResponseDto = {
       id: project.id,

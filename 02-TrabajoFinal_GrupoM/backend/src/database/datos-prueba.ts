@@ -4,14 +4,12 @@ import * as bcrypt from "bcrypt";
 import { Client as PgClient } from "pg";
 import * as dotenv from "dotenv";
 import { Repository } from "typeorm";
-
-
 import { AppModule } from "../app.module";
-import { ClientStatus } from "../common/enums/client-status.enum";
-import { ProjectStatus } from "../common/enums/project-status.enum";
-import { TaskStatus } from "../common/enums/task-status.enum";
-import { UserRole } from "../common/enums/user-role.enum";
-import { UserStatus } from "../common/enums/user-status.enum";
+import { ClientStatusEnum } from "../common/enums/client-status.enum";
+import { ProjectStatusEnum } from "../common/enums/project-status.enum";
+import { TaskStatusEnum } from "../common/enums/task-status.enum";
+import { UserRoleEnum } from "../common/enums/user-role.enum";
+import { UserStatusEnum } from "../common/enums/user-status.enum";
 import { Client } from "../modules/clients/entities/client.entity";
 import { Project } from "../modules/projects/entities/project.entity";
 import { Task } from "../modules/tasks/entities/task.entity";
@@ -21,19 +19,19 @@ interface ClientePrueba {
   name: string;
   email: string;
   phone: string;
-  status: ClientStatus;
+  status: ClientStatusEnum;
 }
 
 interface ProyectoPrueba {
   name: string;
-  status: ProjectStatus;
+  status: ProjectStatusEnum;
   clientName: string;
   endDate: string;
 }
 
 interface TareaPrueba {
   description: string;
-  status: TaskStatus;
+  status: TaskStatusEnum;
   projectName: string;
 }
 
@@ -42,7 +40,7 @@ async function crearBaseDeDatosSiNoExiste(): Promise<void> {
 
   if (!/^[a-zA-Z0-9_]+$/.test(nombreBaseDatos)) {
     throw new Error(
-      "El nombre de la base de datos solo puede contener letras, numeros y guiones bajos",
+      "El nombre de la base de datos solo puede contener letras, números y guiones bajos",
     );
   }
 
@@ -107,14 +105,14 @@ async function cargarUsuarios(userRepo: Repository<User>): Promise<void> {
     {
       name: "admin",
       password: bcrypt.hashSync("admin123456", 10),
-      role: UserRole.ADMIN,
-      status: UserStatus.ACTIVO,
+      role: UserRoleEnum.ADMIN,
+      status: UserStatusEnum.ACTIVO,
     },
     {
       name: "usuario",
       password: bcrypt.hashSync("usuario123456", 10),
-      role: UserRole.USER,
-      status: UserStatus.ACTIVO,
+      role: UserRoleEnum.USER,
+      status: UserStatusEnum.ACTIVO,
     },
   ];
 
@@ -140,31 +138,31 @@ async function cargarClientes(clientRepo: Repository<Client>): Promise<void> {
       name: "Empresa Norte",
       email: "contacto@empresanorte.com",
       phone: "3434001001",
-      status: ClientStatus.ACTIVO,
+      status: ClientStatusEnum.ACTIVO,
     },
     {
       name: "Comercio Centro",
       email: "info@comerciocentro.com",
       phone: "3434001002",
-      status: ClientStatus.ACTIVO,
+      status: ClientStatusEnum.ACTIVO,
     },
     {
       name: "Servicios del Sur",
       email: "admin@serviciosdelsur.com",
       phone: "3434001003",
-      status: ClientStatus.ACTIVO,
+      status: ClientStatusEnum.ACTIVO,
     },
     {
       name: "Cliente Demo",
       email: "cliente@demo.com",
       phone: "3434001004",
-      status: ClientStatus.ACTIVO,
+      status: ClientStatusEnum.ACTIVO,
     },
     {
       name: "Cliente Anterior",
       email: "anterior@cliente.com",
       phone: "3434001005",
-      status: ClientStatus.BAJA,
+      status: ClientStatusEnum.BAJA,
     },
   ];
 
@@ -197,37 +195,37 @@ async function cargarProyectos(
   const proyectos: ProyectoPrueba[] = [
     {
       name: "Sistema de clientes",
-      status: ProjectStatus.ACTIVO,
+      status: ProjectStatusEnum.ACTIVO,
       clientName: "Empresa Norte",
       endDate: "2026-07-15",
     },
     {
       name: "Pagina web institucional",
-      status: ProjectStatus.ACTIVO,
+      status: ProjectStatusEnum.ACTIVO,
       clientName: "Comercio Centro",
       endDate: "2026-08-20",
     },
     {
       name: "Gestion de turnos",
-      status: ProjectStatus.ACTIVO,
+      status: ProjectStatusEnum.ACTIVO,
       clientName: "Servicios del Sur",
       endDate: "2026-09-05",
     },
     {
       name: "Reporte mensual",
-      status: ProjectStatus.FINALIZADO,
+      status: ProjectStatusEnum.FINALIZADO,
       clientName: "Cliente Demo",
       endDate: "2026-05-30",
     },
     {
       name: "Proyecto anterior",
-      status: ProjectStatus.BAJA,
+      status: ProjectStatusEnum.BAJA,
       clientName: "Cliente Anterior",
       endDate: "2026-04-10",
     },
     {
       name: "Tareas atrasadas",
-      status: ProjectStatus.ACTIVO,
+      status: ProjectStatusEnum.ACTIVO,
       clientName: "Empresa Norte",
       endDate: "2026-06-01",
     },
@@ -273,62 +271,62 @@ async function cargarTareas(
   const tareas: TareaPrueba[] = [
     {
       description: "Revisar datos iniciales",
-      status: TaskStatus.FINALIZADO,
+      status: TaskStatusEnum.FINALIZADO,
       projectName: "Sistema de clientes",
     },
     {
       description: "Crear formulario principal",
-      status: TaskStatus.PENDIENTE,
+      status: TaskStatusEnum.PENDIENTE,
       projectName: "Sistema de clientes",
     },
     {
       description: "Probar listado de clientes",
-      status: TaskStatus.PENDIENTE,
+      status: TaskStatusEnum.PENDIENTE,
       projectName: "Sistema de clientes",
     },
     {
       description: "Diseñar pantalla de inicio",
-      status: TaskStatus.FINALIZADO,
+      status: TaskStatusEnum.FINALIZADO,
       projectName: "Pagina web institucional",
     },
     {
-      description: "Agregar seccion de contacto",
-      status: TaskStatus.PENDIENTE,
+      description: "Agregar sección de contacto",
+      status: TaskStatusEnum.PENDIENTE,
       projectName: "Pagina web institucional",
     },
     {
       description: "Configurar calendario",
-      status: TaskStatus.PENDIENTE,
+      status: TaskStatusEnum.PENDIENTE,
       projectName: "Gestion de turnos",
     },
     {
       description: "Agregar aviso por correo",
-      status: TaskStatus.PENDIENTE,
+      status: TaskStatusEnum.PENDIENTE,
       projectName: "Gestion de turnos",
     },
     {
       description: "Preparar datos del reporte",
-      status: TaskStatus.FINALIZADO,
+      status: TaskStatusEnum.FINALIZADO,
       projectName: "Reporte mensual",
     },
     {
       description: "Generar reporte final",
-      status: TaskStatus.FINALIZADO,
+      status: TaskStatusEnum.FINALIZADO,
       projectName: "Reporte mensual",
     },
     {
-      description: "Archivar informacion anterior",
-      status: TaskStatus.BAJA,
+      description: "Archivar información anterior",
+      status: TaskStatusEnum.BAJA,
       projectName: "Proyecto anterior",
     },
     {
       description: "Resolver tareas pendientes",
-      status: TaskStatus.PENDIENTE,
+      status: TaskStatusEnum.PENDIENTE,
       projectName: "Tareas atrasadas",
     },
     {
       description: "Informar avance del proyecto",
-      status: TaskStatus.PENDIENTE,
+      status: TaskStatusEnum.PENDIENTE,
       projectName: "Tareas atrasadas",
     },
   ];

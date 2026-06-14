@@ -3,10 +3,10 @@ import * as bcrypt from "bcrypt";
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
-import { UserStatus } from '../../common/enums/user-status.enum';
+import { UserStatusEnum } from '../../common/enums/user-status.enum';
 import { CreateUserDto } from './dtos/input/create-user.dto';
 import { UpdateUserDto } from './dtos/input/update-user.dto';
-import { UserRole } from '../../common/enums/user-role.enum';
+import { UserRoleEnum } from '../../common/enums/user-role.enum';
 import { UserResponseDto } from './dtos/output/user-response.dto';
 import { UsersMapper } from './mappers/users.mapper';
 import { addAccentInsensitiveLike } from '../../common/utils/query-filters.util';
@@ -19,7 +19,7 @@ interface UserFilters {
     limit?: string;
     currentUser?: {
         id: number;
-        role: UserRole;
+        role: UserRoleEnum;
     };
 }
 
@@ -34,7 +34,7 @@ export class UsersService {
         const user = this.userRepository.create({
             ...createUserDto,
             password: bcrypt.hashSync(createUserDto.password, 10),
-            status: UserStatus.ACTIVO,
+            status: UserStatusEnum.ACTIVO,
         });
 
         const saved = await this.userRepository.save(user);
@@ -60,7 +60,7 @@ export class UsersService {
         const page = this.parsePositiveInt(filters.page, 1);
         const limit = this.parsePositiveInt(filters.limit, 6);
 
-        if (filters.currentUser && filters.currentUser.role !== UserRole.ADMIN) {
+        if (filters.currentUser && filters.currentUser.role !== UserRoleEnum.ADMIN) {
             query.andWhere('user.id = :currentUserId', {
                 currentUserId: filters.currentUser.id,
             });
@@ -96,7 +96,7 @@ export class UsersService {
         return this.userRepository.findOne({
             where: {
                 name,
-                status: UserStatus.ACTIVO
+                status: UserStatusEnum.ACTIVO
             },
             select: ['id', 'name', 'password', 'status', 'role'],
         });
@@ -131,26 +131,26 @@ export class UsersService {
         return user;
     }
 
-    private normalizeStatus(estado?: string): UserStatus | undefined {
+    private normalizeStatus(estado?: string): UserStatusEnum | undefined {
         const trimmedStatus = estado?.trim();
         if (!trimmedStatus) return undefined;
 
-        const normalizedStatus = trimmedStatus.toLowerCase() as UserStatus;
+        const normalizedStatus = trimmedStatus.toLowerCase() as UserStatusEnum;
 
-        if (!Object.values(UserStatus).includes(normalizedStatus)) {
+        if (!Object.values(UserStatusEnum).includes(normalizedStatus)) {
             throw new BadRequestException('Estado de usuario inválido');
         }
 
         return normalizedStatus;
     }
 
-    private normalizeRole(rol?: string): UserRole | undefined {
+    private normalizeRole(rol?: string): UserRoleEnum | undefined {
         const trimmedRole = rol?.trim();
         if (!trimmedRole) return undefined;
 
-        const normalizedRole = trimmedRole.toLowerCase() as UserRole;
+        const normalizedRole = trimmedRole.toLowerCase() as UserRoleEnum;
 
-        if (!Object.values(UserRole).includes(normalizedRole)) {
+        if (!Object.values(UserRoleEnum).includes(normalizedRole)) {
             throw new BadRequestException('Rol de usuario invalido');
         }
 

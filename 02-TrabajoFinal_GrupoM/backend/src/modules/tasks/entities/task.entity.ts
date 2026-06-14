@@ -1,6 +1,6 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, } from 'typeorm';
 import { Project } from '../../projects/entities/project.entity';
-import { TaskStatus } from '../../../common/enums/task-status.enum';
+import { TaskStatusEnum } from '../../../common/enums/task-status.enum';
 
 @Entity('tasks')
 export class Task {
@@ -12,9 +12,9 @@ export class Task {
 
   @Column({
     type: 'varchar',
-    default: TaskStatus.PENDIENTE,
+    default: TaskStatusEnum.PENDIENTE,
   })
-  status!: TaskStatus;
+  status!: TaskStatusEnum;
 
   @Column({ name: 'projectId', type: 'int' })
   projectId!: number;

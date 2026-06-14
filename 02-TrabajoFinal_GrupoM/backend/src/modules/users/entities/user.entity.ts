@@ -1,6 +1,6 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
-import { UserStatus } from '../../../common/enums/user-status.enum';
-import { UserRole } from '../../../common/enums/user-role.enum';
+import { UserStatusEnum } from '../../../common/enums/user-status.enum';
+import { UserRoleEnum } from '../../../common/enums/user-role.enum';
 
 @Entity('users')
 export class User {
@@ -18,15 +18,15 @@ export class User {
 
     @Column({
         type: 'enum',
-        enum: UserStatus,
-        default: UserStatus.ACTIVO,
+        enum: UserStatusEnum,
+        default: UserStatusEnum.ACTIVO,
     })
-    status!: UserStatus;
+    status!: UserStatusEnum;
 
     @Column({
         type: 'enum',
-        enum: UserRole,
-        default: UserRole.USER,
+        enum: UserRoleEnum,
+        default: UserRoleEnum.USER,
     })
-    role!: UserRole;
+    role!: UserRoleEnum;
 }

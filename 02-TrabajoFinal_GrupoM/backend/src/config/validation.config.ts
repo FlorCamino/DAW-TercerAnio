@@ -42,9 +42,9 @@ function translateValidationMessage(
     case 'whitelistValidation':
       return `La propiedad "${property}" no esta permitida`;
     case 'isEmail':
-      return `${fieldName} debe ser un correo valido`;
+      return `${fieldName} debe ser un correo válido`;
     case 'isEnum':
-      return `${fieldName} tiene un valor invalido`;
+      return `${fieldName} tiene un valor inválido`;
     case 'isNotEmpty':
       return `${fieldName} es obligatorio`;
     case 'isString':
@@ -57,15 +57,15 @@ function translateValidationMessage(
 function translateFieldName(property: string): string {
   const fieldNames: Record<string, string> = {
     clientId: 'El cliente',
-    description: 'La descripcion',
+    description: 'La descripción',
     email: 'El email',
-    endDate: 'La fecha de finalizacion',
+    endDate: 'La fecha de finalización',
     status: 'El estado',
-    limit: 'El limite',
+    limit: 'El límite',
     name: 'El nombre',
-    page: 'La pagina',
+    page: 'La página',
     proyectoId: 'El proyecto',
-    phone: 'El telefono',
+    phone: 'El teléfono',
   };
 
   return fieldNames[property] ?? `El campo ${property}`;

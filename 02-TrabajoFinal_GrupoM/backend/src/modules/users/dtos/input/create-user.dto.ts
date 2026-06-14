@@ -1,6 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsString, IsEnum, MinLength, IsOptional } from "class-validator";
-import { UserRole } from "../../../../common/enums/user-role.enum";
+import { UserRoleEnum } from "../../../../common/enums/user-role.enum";
 
 export class CreateUserDto {
     @ApiProperty({ example: "usuario", description: "Nombre de usuario", uniqueItems: true })
@@ -14,8 +14,8 @@ export class CreateUserDto {
     @MinLength(6, { message: "La clave debe tener entre 6 o más caracteres" })
     password!: string;
 
-    @ApiProperty({ example: UserRole.USER, description: "Rol del usuario: Usuario o Administrador", required: false })
-    @IsEnum(UserRole, { message: "El rol debe ser válido" })
+    @ApiProperty({ example: UserRoleEnum.USER, description: "Rol del usuario: Usuario o Administrador", required: false })
+    @IsEnum(UserRoleEnum, { message: "El rol debe ser válido" })
     @IsOptional()
-    role?: UserRole;
+    role?: UserRoleEnum;
 }

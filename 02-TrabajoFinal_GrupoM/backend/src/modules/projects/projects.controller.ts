@@ -1,29 +1,29 @@
 import { Body, Controller, Delete, Get, Param, Patch, ParseIntPipe, Post, Query, } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { ProjectStatus } from '../../common/enums/project-status.enum';
+import { ProjectStatusEnum } from '../../common/enums/project-status.enum';
 import { CreateProjectDto } from './dtos/input/create-project.dto';
 import { UpdateProjectDto } from './dtos/input/update-project.dto';
 import { ProjectsService } from './projects.service';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../../common/enums/user-role.enum';
+import { UserRoleEnum } from '../../common/enums/user-role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Projects')
 @ApiBearerAuth('access-token')
 @UseGuards(AuthGuard, RolesGuard)
-@Roles(UserRole.USER, UserRole.ADMIN)
+@Roles(UserRoleEnum.USER, UserRoleEnum.ADMIN)
 @Controller('projects')
 export class ProjectsController {
   constructor(private readonly projectsService: ProjectsService) { }
 
-  @ApiQuery({ name: 'status', enum: ProjectStatus, required: false })
+  @ApiQuery({ name: 'status', enum: ProjectStatusEnum, required: false })
   @ApiQuery({
     name: 'name',
     required: false,
     example: 'Sistema',
-    description: 'Filtro parcial sin distinguir mayusculas ni acentos.',
+    description: 'Filtro parcial sin distinguir mayúsculas ni acentos.',
   })
   @ApiQuery({ name: 'clientId', required: false, example: 1 })
   @ApiQuery({ name: 'page', required: true, example: 1, schema: { default: 1 } })
@@ -58,8 +58,8 @@ export class ProjectsController {
       crearProyectoConCliente: {
         summary: 'Crear proyecto asociado a cliente activo',
         value: {
-          name: 'Sistema de gestion interna',
-          status: ProjectStatus.ACTIVO,
+          name: 'Sistema de gestión interna',
+          status: ProjectStatusEnum.ACTIVO,
           clientId: 1,
           endDate: '2026-07-15',
         },
@@ -67,15 +67,15 @@ export class ProjectsController {
       crearProyectoInterno: {
         summary: 'Crear proyecto interno sin cliente',
         value: {
-          name: 'Automatizacion interna',
-          status: ProjectStatus.ACTIVO,
+          name: 'Automatización interna',
+          status: ProjectStatusEnum.ACTIVO,
           clientId: null,
         },
       },
     },
   })
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Crear proyecto' })
   create(@Body() dto: CreateProjectDto) {
     return this.projectsService.create(dto);
@@ -87,8 +87,8 @@ export class ProjectsController {
       editarProyecto: {
         summary: 'Modificar proyecto',
         value: {
-          name: 'Sistema de gestion interna v2',
-          status: ProjectStatus.FINALIZADO,
+          name: 'Sistema de gestión interna v2',
+          status: ProjectStatusEnum.FINALIZADO,
           clientId: 1,
           endDate: '2026-08-10',
         },
@@ -96,14 +96,14 @@ export class ProjectsController {
     },
   })
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Modificar proyecto' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateProjectDto) {
     return this.projectsService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Dar de baja proyecto' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.projectsService.remove(id);

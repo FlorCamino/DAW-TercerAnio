@@ -1,9 +1,9 @@
-import { TaskStatus } from '../../../../common/enums/task-status.enum';
+import { TaskStatusEnum } from '../../../../common/enums/task-status.enum';
 
 export class TaskResponseDto {
   id!: number;
   description!: string;
-  status!: TaskStatus;
+  status!: TaskStatusEnum;
   projectId!: number;
   projectName!: string | null;
 }

@@ -1,28 +1,28 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards, } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { TaskStatus } from '../../common/enums/task-status.enum';
+import { TaskStatusEnum } from '../../common/enums/task-status.enum';
 import { CreateTaskDto } from './dtos/input/create-task.dto';
 import { UpdateTaskDto } from './dtos/input/update-task.dto';
 import { TasksService } from './tasks.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../../common/enums/user-role.enum';
+import { UserRoleEnum } from '../../common/enums/user-role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Tasks')
 @ApiBearerAuth('access-token')
 @UseGuards(AuthGuard, RolesGuard)
-@Roles(UserRole.USER, UserRole.ADMIN)
+@Roles(UserRoleEnum.USER, UserRoleEnum.ADMIN)
 @Controller('tasks')
 export class TasksController {
   constructor(private readonly tasksService: TasksService) { }
 
-  @ApiQuery({ name: 'status', enum: TaskStatus, required: false })
+  @ApiQuery({ name: 'status', enum: TaskStatusEnum, required: false })
   @ApiQuery({
     name: 'description',
     required: false,
     example: 'modelo',
-    description: 'Filtro parcial sin distinguir mayusculas ni acentos.',
+    description: 'Filtro parcial sin distinguir mayúsculas ni acentos.',
   })
   @ApiQuery({ name: 'projectId', required: false, example: 1 })
   @ApiQuery({ name: 'page', required: true, example: 1, schema: { default: 1 } })
@@ -59,13 +59,13 @@ export class TasksController {
         value: {
           description: 'Definir modelo de datos inicial',
           projectId: 1,
-          status: TaskStatus.PENDIENTE,
+          status: TaskStatusEnum.PENDIENTE,
         },
       },
     },
   })
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Crear tarea' })
   create(@Body() dto: CreateTaskDto) {
     return this.tasksService.create(dto);
@@ -79,26 +79,26 @@ export class TasksController {
         value: {
           description: 'Definir modelo de datos final',
           projectId: 1,
-          status: TaskStatus.FINALIZADO,
+          status: TaskStatusEnum.FINALIZADO,
         },
       },
       cambiarEstado: {
         summary: 'Cambiar solo el estado',
         value: {
-          status: TaskStatus.FINALIZADO,
+          status: TaskStatusEnum.FINALIZADO,
         },
       },
     },
   })
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Modificar tarea' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateTaskDto) {
     return this.tasksService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Dar de baja tarea' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.tasksService.remove(id);

@@ -1,7 +1,7 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform, Type } from 'class-transformer';
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsPositive, IsString, MaxLength, } from 'class-validator';
-import { TaskStatus } from '../../../../common/enums/task-status.enum';
+import { TaskStatusEnum } from '../../../../common/enums/task-status.enum';
 
 export class CreateTaskDto {
   @ApiProperty({ example: 'Mantenimiento del sistema' })
@@ -22,11 +22,11 @@ export class CreateTaskDto {
   @IsNotEmpty({ message: 'El proyecto es obligatorio' })
   projectId!: number;
 
-  @ApiPropertyOptional({ enum: TaskStatus, example: TaskStatus.PENDIENTE })
+  @ApiPropertyOptional({ enum: TaskStatusEnum, example: TaskStatusEnum.PENDIENTE })
   @IsOptional()
   @Transform(({ value }) =>
     typeof value === 'string' ? value.toLowerCase() : value,
   )
-  @IsEnum(TaskStatus, { message: 'El estado de la tarea no es válido' })
-  status?: TaskStatus;
+  @IsEnum(TaskStatusEnum, { message: 'El estado de la tarea no es válido' })
+  status?: TaskStatusEnum;
 }

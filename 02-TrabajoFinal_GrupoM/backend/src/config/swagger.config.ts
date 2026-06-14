@@ -21,7 +21,8 @@ export function setupSwagger(app: INestApplication) {
   const document = SwaggerModule.createDocument(app, config);
   document.tags = ['App', 'Auth', 'Clients', 'Projects', 'Tasks', 'Users'].map((name) => ({ name }));
 
-  SwaggerModule.setup(`${API_PREFIX}/v${API_VERSION}/docs`, app, document, {
+  SwaggerModule.setup(`v${API_VERSION}/docs`, app, document, {
+    useGlobalPrefix: true,
     swaggerOptions: {
       defaultModelsExpandDepth: -1,
       tagsSorter: 'alpha',

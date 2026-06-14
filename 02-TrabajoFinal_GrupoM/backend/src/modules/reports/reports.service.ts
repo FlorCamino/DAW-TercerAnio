@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ProjectStatus } from '../../common/enums/project-status.enum';
-import { TaskStatus } from '../../common/enums/task-status.enum';
+import { ProjectStatusEnum } from '../../common/enums/project-status.enum';
+import { TaskStatusEnum } from '../../common/enums/task-status.enum';
 import { Client } from '../clients/entities/client.entity';
 import { Project } from '../projects/entities/project.entity';
 import { Task } from '../tasks/entities/task.entity';
@@ -37,22 +37,22 @@ export class ReportsService {
       this.tasksRepository.find({ relations: ['project'], order: { description: 'ASC' } }),
       this.usersRepository.find({ order: { name: 'ASC' } }),
       this.projectsRepository.find({
-        where: { status: ProjectStatus.ACTIVO },
+        where: { status: ProjectStatusEnum.ACTIVO },
         relations: ['client'],
         order: { name: 'ASC' },
       }),
       this.projectsRepository.find({
-        where: { status: ProjectStatus.FINALIZADO },
+        where: { status: ProjectStatusEnum.FINALIZADO },
         relations: ['client'],
         order: { name: 'ASC' },
       }),
       this.tasksRepository.find({
-        where: { status: TaskStatus.PENDIENTE },
+        where: { status: TaskStatusEnum.PENDIENTE },
         relations: ['project'],
         order: { description: 'ASC' },
       }),
       this.tasksRepository.find({
-        where: { status: TaskStatus.FINALIZADO },
+        where: { status: TaskStatusEnum.FINALIZADO },
         relations: ['project'],
         order: { description: 'ASC' },
       }),
@@ -83,17 +83,17 @@ export class ReportsService {
   async getProjectsByStatus() {
     const [activeItems, finishedItems, inactiveItems] = await Promise.all([
       this.projectsRepository.find({
-        where: { status: ProjectStatus.ACTIVO },
+        where: { status: ProjectStatusEnum.ACTIVO },
         relations: ['client'],
         order: { name: 'ASC' },
       }),
       this.projectsRepository.find({
-        where: { status: ProjectStatus.FINALIZADO },
+        where: { status: ProjectStatusEnum.FINALIZADO },
         relations: ['client'],
         order: { name: 'ASC' },
       }),
       this.projectsRepository.find({
-        where: { status: ProjectStatus.BAJA },
+        where: { status: ProjectStatusEnum.BAJA },
         relations: ['client'],
         order: { name: 'ASC' },
       }),
@@ -119,17 +119,17 @@ export class ReportsService {
 
     const [pendingItems, finishedItems, inactiveItems] = await Promise.all([
       this.tasksRepository.find({
-        where: { ...projectFilter, status: TaskStatus.PENDIENTE },
+        where: { ...projectFilter, status: TaskStatusEnum.PENDIENTE },
         relations: ['project'],
         order: { description: 'ASC' },
       }),
       this.tasksRepository.find({
-        where: { ...projectFilter, status: TaskStatus.FINALIZADO },
+        where: { ...projectFilter, status: TaskStatusEnum.FINALIZADO },
         relations: ['project'],
         order: { description: 'ASC' },
       }),
       this.tasksRepository.find({
-        where: { ...projectFilter, status: TaskStatus.BAJA },
+        where: { ...projectFilter, status: TaskStatusEnum.BAJA },
         relations: ['project'],
         order: { description: 'ASC' },
       }),
@@ -161,7 +161,7 @@ export class ReportsService {
           (endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24),
         );
         const isOverdue =
-          differenceInDays < 0 && project.status !== ProjectStatus.FINALIZADO;
+          differenceInDays < 0 && project.status !== ProjectStatusEnum.FINALIZADO;
         const isNearDeadline = differenceInDays >= 0 && differenceInDays <= 15;
 
         return {
@@ -187,10 +187,10 @@ export class ReportsService {
     return clients.map((client) => {
       const projects = client.projects ?? [];
       const activeProjects = projects.filter(
-        (project) => project.status === ProjectStatus.ACTIVO,
+        (project) => project.status === ProjectStatusEnum.ACTIVO,
       );
       const finishedProjects = projects.filter(
-        (project) => project.status === ProjectStatus.FINALIZADO,
+        (project) => project.status === ProjectStatusEnum.FINALIZADO,
       );
 
       return {

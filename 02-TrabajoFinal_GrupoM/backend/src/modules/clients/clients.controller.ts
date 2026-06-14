@@ -3,22 +3,22 @@ import { ApiBadRequestResponse, ApiBearerAuth, ApiBody, ApiOperation, ApiQuery, 
 import { ClientsService } from './clients.service';
 import { CreateClientDto } from './dtos/input/create-client.dto';
 import { UpdateClientDto } from './dtos/input/update-client.dto';
-import { ClientStatus } from '../../common/enums/client-status.enum';
+import { ClientStatusEnum } from '../../common/enums/client-status.enum';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { UserRole } from '../../common/enums/user-role.enum';
+import { UserRoleEnum } from '../../common/enums/user-role.enum';
 import { Roles } from '../../common/decorators/roles.decorator';
 
 @ApiTags('Clients')
 @ApiBearerAuth('access-token')
 @UseGuards(AuthGuard, RolesGuard)
-@Roles(UserRole.USER, UserRole.ADMIN)
+@Roles(UserRoleEnum.USER, UserRoleEnum.ADMIN)
 @Controller('clients')
 export class ClientsController {
   constructor(private readonly clientsService: ClientsService) { }
 
-  @ApiQuery({ name: 'status', enum: ClientStatus, required: false })
+  @ApiQuery({ name: 'status', enum: ClientStatusEnum, required: false })
   @ApiQuery({ name: 'name', required: false })
   @ApiQuery({ name: 'email', required: false })
   @ApiQuery({ name: 'phone', required: true })
@@ -67,7 +67,7 @@ export class ClientsController {
     },
   })
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Crear cliente' })
   create(@Body() dto: CreateClientDto) {
     return this.clientsService.create(dto);
@@ -82,20 +82,20 @@ export class ClientsController {
           name: 'Janet Casaretto',
           email: 'janet@mail.com',
           phone: '123456789',
-          status: ClientStatus.ACTIVO,
+          status: ClientStatusEnum.ACTIVO,
         },
       },
     },
   })
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Modificar cliente' })
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateClientDto) {
     return this.clientsService.update(id, dto);
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRoleEnum.ADMIN)
   @ApiOperation({ summary: 'Dar de baja cliente' })
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.clientsService.remove(id);

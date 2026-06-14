@@ -1,11 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, inject } from '@angular/core';
-import {
-  IsActiveMatchOptions,
-  Router,
-  RouterLink,
-  RouterLinkActive,
-} from '@angular/router';
+import { IsActiveMatchOptions, Router, RouterLink, RouterLinkActive, } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 
 @Component({

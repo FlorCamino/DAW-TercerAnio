@@ -12,7 +12,7 @@ export class CreateClientDto {
 
   @ApiProperty({ example: 'janet@mail.com', required: false })
   @IsOptional()
-  @IsEmail({}, { message: 'El email debe ser un correo valido' })
+  @IsEmail({}, { message: 'El email debe ser un correo válido' })
   @MaxLength(150, {
     message: 'El email no puede superar los 150 caracteres',
   })
@@ -21,10 +21,10 @@ export class CreateClientDto {
   @ApiProperty({
     example: '123456789',
     required: false,
-    description: 'Solo numeros, entre 7 y 15 digitos',
+    description: 'Solo números, entre 7 y 15 dígitos',
   })
   @IsOptional()
-  @IsString({ message: 'El telefono debe ser texto' })
+  @IsString({ message: 'El teléfono debe ser texto' })
   @Matches(/^[0-9]{7,15}$/, {
     message: 'El teléfono debe tener entre 7 y 15 números',
   })
