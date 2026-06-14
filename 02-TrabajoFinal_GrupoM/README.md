@@ -178,7 +178,7 @@ npm run start:dev
 El backend queda disponible en:
 
 ```text
-http://localhost:3000/api/v1
+http://localhost:4000/api/v1
 ```
 
 ---
